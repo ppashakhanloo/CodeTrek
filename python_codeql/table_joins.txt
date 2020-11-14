@@ -1,0 +1,11 @@
+Expression.0 <----> Expression_location.0
+Expression.0 <----> Function.2
+Expression.4 <----> Statement.0
+Expression.3 <----> Module.0
+Variable.1 <----> Module.0
+Statement.0 <----> Statement_location.0
+Expression_location.1 <----> Location.0
+Statement_location.1 <----> Location.0
+Function.1 <----> Location.0
+Function.0 <----> Variable.1
+Class.0 <----> Variable.1

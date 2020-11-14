@@ -1,0 +1,20 @@
+name: "cpp"
+display_name: "C/C++"
+version: 1.22.1
+column_kind: "utf8"
+file_types:
+  - name: c
+    display_name: C sources
+    extensions:
+      - .c
+      - .h
+  - name: cpp
+    display_name: C++ sources
+    extensions:
+      - .cc
+      - .cpp
+      - .cxx
+      - .hh
+      - .hpp
+      - .hxx
+legacy_qltest_extraction: true

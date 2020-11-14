@@ -1,0 +1,26 @@
+#!/bin/bash
+
+log=_lgtm_configure_output.log
+
+trap 'rm -f '$log EXIT
+
+# Run configure and exit if it's successful
+set -o pipefail
+"$@" 2>&1 | tee $log && exit 0
+
+echo
+echo "$0: Configure failed"
+
+argument="$(
+  tail -n 10 $log | \
+    grep 'configure: error: ' | \
+    grep -E -o -- '--[-_.=a-zA-Z0-9]+' | \
+    head -n 1
+)"
+
+if [ -n "$argument" ]; then
+  echo "$0: Running configure again with argument $argument"
+  echo
+  "$@" "$argument" && exit 0
+fi
+exit 1

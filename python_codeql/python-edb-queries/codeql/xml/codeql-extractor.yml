@@ -1,0 +1,9 @@
+name: "xml"
+display_name: "XML"
+version: 1.22.1
+column_kind: "utf16"
+file_types:
+  - name: xml
+    display_name: XML files
+    extensions:
+      - .xml

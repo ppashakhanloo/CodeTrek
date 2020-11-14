@@ -1,0 +1,10 @@
+name: "java"
+display_name: "Java"
+version: 1.22.1
+column_kind: utf16
+file_types:
+  - name: java
+    display_name: Java sources
+    extensions:
+      - .java
+legacy_qltest_extraction: true

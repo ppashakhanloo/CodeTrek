@@ -1,0 +1,336 @@
+The licenses in this directory apply to open-source software
+packages that are used in the CodeQL command-line toolchain
+distribution. They are:
+
+Name:    Adaptive Sparse Grid Integration Project
+Origin:  http://www.torstennahm.de/java/index.html
+License: Public domain
+
+Name:    ANTLR
+Origin:  http://www.antlr.org/
+Notice:  Copyright (c) 2012-2017 The ANTLR Project. All rights reserved.
+License: The BSD 3-Clause License
+         bsd-3-clause.txt - https://opensource.org/licenses/BSD-3-Clause
+
+Name:    Apache Ant
+Origin:  http://ant.apache.org/
+Notice:  See ant-notice.txt
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    Apache Commons Codec
+Origin:  https://commons.apache.org/proper/commons-codec/
+Notice:  See commons-codec-notice.txt
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    Apache Commons Collections
+Origin:  https://commons.apache.org/proper/commons-collections/
+Notice:  See commons-collections-notice.txt
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    Apache Commons Compress
+Origin:  https://commons.apache.org/proper/commons-compress/
+Notice:  See commons-compress-notice.txt
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    Apache Commons Configuration
+Origin:  http://commons.apache.org/proper/commons-configuration/
+Notice:  See commons-configuration-notice.txt
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    Apache Commons FileUpload
+Origin:  https://commons.apache.org/proper/commons-fileupload/
+Notice:  See commons-fileupload-notice.txt
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    Apache Commons IO
+Origin:  https://commons.apache.org/proper/commons-io/
+Notice:  See commons-io-notice.txt
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    Apache Commons Lang
+Origin:  https://commons.apache.org/proper/commons-lang/
+Notice:  See commons-lang-notice.txt
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    Apache Commons Logging
+Origin:  https://commons.apache.org/proper/commons-logging/
+Notice:  See commons-logging-notice.txt
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    Apache Commons Text
+Origin:  https://commons.apache.org/proper/commons-text/
+Notice:  See commons-text-notice.txt
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    Apache Maven 
+Origin:  https://maven.apache.org/
+Notice:  See maven-notice.txt
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    ASM
+Origin:  http://asm.ow2.org/
+Notice:  Copyright (c) 2000-2011 INRIA, France Telecom. All rights reserved.
+License: The BSD 3-Clause License
+         bsd-3-clause.txt - https://opensource.org/licenses/BSD-3-Clause
+
+Name:    autolink-java
+Origin:  https://github.com/robinst/autolink-java
+Notice:  Copyright (c) 2015 Robin Stocker
+License: MIT license
+         mit.txt - http://opensource.org/licenses/MIT
+
+Name:    Brotli
+Origin:  https://github.com/google/brotli
+Notice:  Copyright (c) 2009, 2010, 2013-2016 by the Brotli Authors.
+License: MIT license
+         mit.txt - http://opensource.org/licenses/MIT
+
+Name:    DefinitelyTyped
+Origin:  https://github.com/DefinitelyTyped/DefinitelyTyped
+Notice:  Copyrights are respective of each contributor listed at the beginning of each definition file.
+License: MIT license
+         mit.txt - http://opensource.org/licenses/MIT
+
+Name:    Dropwizard metrics
+Origin:  https://github.com/dropwizard/metrics
+Notice:  See metrics-notice.txt
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    Eclipse LSP4J
+Origin:  https://projects.eclipse.org/proposals/eclipse-lsp4j
+License: Eclipse Public License - v 2.0
+         eclipse-2.0.txt - https://www.eclipse.org/legal/epl-2.0/
+
+Name:    flexmark (and assorted extensions)
+Origin:  https://github.com/vsch/flexmark-java
+Notice:  Copyright (c) 2015-2016, Atlassian Pty Ltd, All rights reserved.
+         Copyright (c) 2016-2018, Vladimir Schneider, All rights reserved.
+License: 2-Clause BSD License
+         bsd-2-clause.txt - https://opensource.org/licenses/BSD-2-Clause
+
+Name:    Google Closure Externs Definitions
+Origin:  https://github.com/google/closure-compiler
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    Google Gson
+Origin:  https://github.com/google/gson
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    Guava libraries
+Origin:  https://github.com/google/guava
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    H2
+Origin:  https://www.h2database.com/html/main.html
+License: Eclipse Public License - v 1.0
+         eclipse-1.0.html - https://www.eclipse.org/legal/epl-v10.html
+     Or: Mozilla Public License
+         mozilla-2.0.html - https://www.mozilla.org/en-US/MPL/2.0/
+
+Name:    HTTP client
+Origin:  http://hc.apache.org/httpcomponents-client-ga/
+Notice:  See httpclient-notice.txt
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    HTTP core
+Origin:  http://hc.apache.org/httpcomponents-core-ga
+Notice:  See httpcore-notice.txt
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    iStack Common Utility code
+Origin:  https://github.com/javaee/jaxb-istack-commons
+License: Dual: CDDL or GPL2 (with classpath exception)
+         cddl-gpl2.txt - https://github.com/javaee/jaxb-istack-commons/blob/master/LICENSE
+
+Name:    j2html
+Origin:  https://j2html.com/
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    JavaBeans Activation Framework (JAF)
+Origin:  https://github.com/javaee/activation
+License: Dual: CDDL or GPL2 (with classpath exception)
+         cddl-gpl2.txt - https://github.com/javaee/activation/blob/master/LICENSE.txt
+
+Name:    JavaEWAH
+Origin:  https://github.com/lemire/javaewah
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    Java[tm] Architecture for XML Binding (JAXB)
+Origin:  https://github.com/javaee/jaxb-v2
+License: Dual: CDDL or GPL2 (with classpath exception) 
+         cddl-gpl2.txt - https://github.com/javaee/jaxb-v2/blob/master/LICENSE
+
+Name:    Jericho HTML Parser
+Origin:  http://jericho.htmlparser.net/docs/index.html
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+     Or: Eclipse Public License - v 1.0
+         eclipse-1.0.html - https://www.eclipse.org/legal/epl-v10.html
+
+Name:    JewelCli (uk.co.flamingpenguin.cli)
+Origin:  http://jewelcli.lexicalscope.com/
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    Jing
+Origin:  https://relaxng.org/jclark/jing.html
+Notice:  Copyright (c) 2001, 2002, 2003, 2008 Thai Open Source Software Center Ltd
+License: The BSD 3-Clause License
+         bsd-3-clause.txt - https://opensource.org/licenses/BSD-3-Clause
+
+Name:    jpplib
+Origin:  http://jpplib.sourceforge.net/
+Notice:  Copyright (c) 2009, Martin Giese. All rights reserved.
+License: MIT license
+         mit.txt - http://opensource.org/licenses/MIT
+
+Name:    Json.NET 
+Origin:  https://www.newtonsoft.com/json
+Notice:  Copyright (c) 2007 James Newton-King
+License: MIT license
+         mit.txt - http://opensource.org/licenses/MIT
+
+Name:    Lark
+Origin:  https://github.com/lark-parser/lark
+Notice:  Copyright (c) 2017 Erez Shinan
+License: MIT license
+         mit.txt - http://opensource.org/licenses/MIT
+
+Name:    lib2to3
+Origin:  https://github.com/python/cpython/tree/master/Lib/lib2to3
+License: PSF license (BSD-style)
+         python3.txt - https://docs.python.org/3/license.html
+
+Name:    LMDB
+Origin:  https://github.com/LMDB/lmdb
+Notice:  Copyright 2011-2020 Howard Chu, Symas Corp.
+License: OpenLDAP License
+         openldap.txt - https://opensource.org/licenses/OLDAP-2.8
+
+Name:    logback
+Origin:  http://logback.qos.ch/
+License: GNU Library General Public License, version 2.1
+         lgpl-2.1.txt - http://www.gnu.org/licenses/lgpl-2.1.html
+     Or: Eclipse Public License - v 1.0
+         eclipse-1.0.html - https://www.eclipse.org/legal/epl-v10.html
+
+Name:    Microsoft Build
+Origin:  https://github.com/Microsoft/msbuild/
+Notice:  Copyright (c) .NET Foundation and contributors. All rights reserved.
+License: MIT license
+         mit.txt - http://opensource.org/licenses/MIT
+
+Name:    Microsoft.DiaSymReader
+Origin:  https://github.com/dotnet/symreader
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    Mono.Posix 
+Origin:  https://github.com/mono/mono/tree/master/mcs/class/Mono.Posix
+Notice:  (no explicit copyright claim found in upstream distribution)
+License: MIT license
+         mit.txt - http://opensource.org/licenses/MIT
+
+Name:    OpenCSV
+Origin:  http://opencsv.sourceforge.net/
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    OpenJDK
+Origin:  http://openjdk.java.net/
+License: GNU General Public License, version 2, with the Classpath Exception
+         gpl-2.0+ce.txt - http://openjdk.java.net/legal/gplv2+ce.html
+
+Name:    Picocli
+Origin:  https://picocli.info/
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    PMD
+Origin:  https://github.com/pmd/pmd
+License: Custom BSD-style license for this project
+         pmd.txt - https://github.com/pmd/pmd/blob/master/LICENSE
+
+Name:    RE2/J
+Origin:  https://github.com/google/re2j
+Notice:  Copyright (c) 2009 The Go Authors. All rights reserved.
+License: The BSD 3-Clause License
+         bsd-3-clause.txt - https://opensource.org/licenses/BSD-3-Clause
+
+Name:    Roslyn
+Origin:  https://github.com/dotnet/roslyn
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    SHA2 implementation
+Origin:  https://bitbucket.org/mjl/sha2
+License: Public domain
+
+Name:    SLF4J
+Origin:  http://www.slf4j.org/
+Notice:  Copyright (c) 2004-2017 QOS.ch. All rights reserved.
+License: MIT license
+         mit.txt - http://opensource.org/licenses/MIT
+
+Name:    SnakeYAML
+Origin:  http://snakeyaml.org/
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    Snappy in Java
+Origin:  https://github.com/dain/snappy
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    SparseBitSet
+Origin:  https://github.com/brettwooldridge/SparseBitSet
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    Storage units
+Origin:  https://github.com/sebhoss/storage-units
+License: Creative Commons "No Rights Reserved"
+         cc-0.txt - https://creativecommons.org/share-your-work/public-domain/cc0/
+
+Name:    TypeScript compiler
+Origin:  https://github.com/Microsoft/TypeScript
+Notice:  See typescript-notice.txt
+License: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    Unsign
+Origin:  https://github.com/steakknife/unsign.git
+License: ISC license
+         isc.txt - https://www.isc.org/licenses/
+
+Name:    Woodstox (com.ctc.wstx, org.codehous.stax2)
+Origin:  http://woodstox.codehaus.org/
+License: GNU Library General Public License, version 2.1
+         lgpl-2.1.txt - http://www.gnu.org/licenses/lgpl-2.1.html
+     Or: Apache License, Version 2.0
+         apache-2.0.txt - http://www.apache.org/licenses/LICENSE-2.0
+
+Name:    Zlib
+Origin:  http://www.zlib.net/
+License: zlib license
+         zlib.txt - http://www.zlib.net/zlib_license.html
+

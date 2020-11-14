@@ -1,0 +1,147 @@
+#!/bin/bash -x
+
+TOOLS_DIR="${CODEQL_EXTRACTOR_CPP_ROOT}/tools"
+
+"${TOOLS_DIR}/detect_source_root"
+
+if [ -L _lgtm_detected_source_root ]; then
+  cd "$(readlink _lgtm_detected_source_root)"
+fi
+
+export CXXFLAGS=-fpermissive
+
+configure_prefix_opt=
+if [ -f configure.ac ] || [ -f configure.in ]; then
+  # If a project seems to be autoconf-based, add this option to configure. It
+  # is required by glibc, and it should do no harm for other projects.
+  configure_prefix_opt="--prefix=/usr"
+fi
+
+function try_configure() {
+  build_dir=.
+  root_dir=.
+  if grep -q 'AC_MSG_.* configure in a separate.* directory' \
+        configure.in configure.ac 2>/dev/null; then
+    # Keeping build artifacts separate from the source is always good practice,
+    # but it is likely to be the least tested mode for most projects, so we only
+    # do it if the configure script seems to require or suggest it. It is
+    # required by glibc.
+    build_dir=_lgtm_build_dir
+    root_dir=..
+    mkdir -p "$build_dir"
+  fi
+
+  # The name `configure.gnu` is mentioned as an alternative to `configure` in
+  # the autoconf manual and is used by Perl 5.
+  for configure in configure configure.gnu; do
+    if [ -x $configure ]; then
+      cd $build_dir
+      "${TOOLS_DIR}/configure-wrapper" \
+        $root_dir/$configure $configure_prefix_opt  \
+        && [ -f Makefile ] \
+        && exit 0
+      cd $root_dir
+    fi
+  done
+  # In case configure failed, don't leave a broken _lgtm_build_dir that will
+  # get picked up by `do-build`.
+  rm -rf _lgtm_build_dir
+}
+
+if [ -f CMakeLists.txt ]; then
+  mkdir -p _lgtm_build_dir
+  cd _lgtm_build_dir
+  # Previous versions of the lgtm.com docker image for C++ had the CMake
+  # wrapper in this location. As long as they may still be in use, we try this
+  # location first.
+  CMAKE_WRAPPER=/opt/work/autobuild/cmake-wrapper
+  if ! [ -x $CMAKE_WRAPPER ]; then
+    CMAKE_WRAPPER=cmake
+  fi
+  $CMAKE_WRAPPER \
+    -DCMAKE_VERBOSE_MAKEFILE=ON \
+    -DBUILD_DOCS=OFF \
+    -DCATKIN_ENABLE_TESTING=OFF \
+    -DBUILD_DOCUMENTATION=OFF \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_CXX_FLAGS="$CXXFLAGS" \
+    .. \
+    && exit 0
+  cd ..
+  # In case CMake failed, don't leave a broken _lgtm_build_dir that will
+  # get picked up by `do-build`.
+  rm -rf _lgtm_build_dir
+fi
+
+if [ -f meson.build ]; then
+  mkdir -p _lgtm_build_dir
+  cd _lgtm_build_dir
+  meson .. && exit 0
+  cd ..
+  # In case meson failed, don't leave a broken _lgtm_build_dir that will
+  # get picked up by `do-build`.
+  rm -rf _lgtm_build_dir
+fi
+
+try_configure
+
+# The script that invokes autotools is by convention most often called
+# autogen.sh, but we also try a few other names. The following are the most
+# popular names according to the build instructions in OS X Homebrew, found
+# with:
+# $ find /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core/Formula \
+#     -name \*.rb | xargs cat \
+#     | grep -o 'system .* if build.head' | sort | uniq -c | sort -n
+for bootstrap in bootstrap.sh bootstrap autogen.sh; do
+  if [ -x $bootstrap ]; then
+    ./$bootstrap && try_configure
+    break
+  elif [ -f $bootstrap ]; then
+    bash $bootstrap && try_configure
+    break
+  fi
+done
+
+# The Waf "meta build system"
+if [ -f wscript ]; then
+  # Projects using the Waf build system often have it embedded in the
+  # repository. If not, we will copy it in.
+  if ! [ -x waf ] && [ -x /opt/work/autobuild/waf ]; then
+    cp /opt/work/autobuild/waf .
+  fi
+
+  if [ -x waf ]; then
+    ./waf configure && exit 0
+  fi
+fi
+
+if [ -f Kbuild ] && [ -f Kconfig ]; then
+  # This is some variation of the Linux kernel build system
+  make defconfig && exit 0
+fi
+
+# If we've fallen through to here then configure has failed. But if the project
+# still seems to use autotools then we run autoreconf, which is a wrapper that
+# runs autoconf, automake and releated tools.
+if [ -f configure.ac ] || [ -f configure.in ]; then
+  # configure refuses to run if this file does not exist. This is a lint check
+  # to help the author, not something we should stop the build on.
+  # See https://www.gnu.org/software/autoconf/manual/autoconf.html, in the
+  # bullet labeled "Macro: AC_PROG_INSTALL".
+  touch install-sh
+
+  libtoolize -ci
+  autoreconf -i
+
+  try_configure
+fi
+
+# If there is one or more *.pro files, it may be a Qt project. A successful
+# run of QMake will overwrite `Makefile`, so we only try QMake if there is no
+# `Makefile` already.
+if [ "$(echo ./*.pro)" != "./*.pro" ] && ! [ -f Makefile ]; then
+  qmake && exit 0
+fi
+
+# Nothing worked. Hopefully that just means nothing had to be done.
+exit 0

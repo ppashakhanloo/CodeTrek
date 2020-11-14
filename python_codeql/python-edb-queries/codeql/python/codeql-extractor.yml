@@ -1,0 +1,10 @@
+name: "python"
+display_name: "Python"
+version: 1.22.1
+column_kind: utf32
+file_types:
+  - name: python
+    display_name: Python sources
+    extensions:
+      - .py
+legacy_qltest_extraction: true
