@@ -1,9 +1,0 @@
-name: "csv"
-display_name: "CSV"
-version: 1.22.1
-column_kind: "utf16"
-file_types:
-  - name: csv
-    display_name: CSV files
-    extensions:
-      - .csv

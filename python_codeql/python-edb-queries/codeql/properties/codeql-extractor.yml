@@ -1,9 +1,0 @@
-name: "properties"
-display_name: "Java Properties Files"
-version: 1.22.1
-column_kind: "utf16"
-file_types:
-  - name: properties
-    display_name: Java Properties files
-    extensions:
-      - .properties
