@@ -1,11 +1,11 @@
 #!/usr/local/bin/bash
 
-dir=$1
+dir="$1"
 
-for file in `ls -1 $dir`
+for file in `ls -1 "$dir"`
 do
-  tail -n +2 "$dir/$file" > "$dir/temp"
-  cat "$dir/temp" > "$dir/$file"
-  #sed 's/,/	/g' "$dir/temp" > "$dir/$file.facts"
-  rm -f "$dir/temp"
+  if [[ "$file" == *csv ]]
+  then
+    tail -n +2 "$dir/$file" > "$dir/$file.facts"
+  fi
 done

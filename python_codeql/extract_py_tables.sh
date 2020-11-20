@@ -1,7 +1,9 @@
 #!/usr/local/bin/bash
 
-declare -A headers
+dir="$1"
+db="$2"
 
+declare -A headers
 headers["ClassObject"]="id,inferredType"
 headers["Location"]="id,beginLine,beginColumn,endLine,endColumn"
 headers["Class"]="id,parent"
@@ -16,9 +18,7 @@ headers["Function"]="id,location,parent"
 
 for i in "${!headers[@]}"
 do
-    codeql query run -o "$i".bqrs  -d pardis-database vscode-codeql-starter/codeql-custom-queries-python/"$i".ql
-    codeql bqrs decode --output="$i".csv --format=csv --entities=id "$i".bqrs
-    new_header="${headers[$i]}"
-    sed -i.bk "1s/.*/$new_header/" "$i".csv
-    rm "$i".csv.bk "$i".bqrs
+    codeql query run -o "$dir"/"$i".bqrs -d $db "/Users/pardis/Google Drive/[University]/Sem 7/Research/CodeQL/vscode-codeql-starter/codeql-custom-queries-python/$i".ql
+    codeql bqrs decode --output="$dir/$i".csv --format=csv --entities=id "$dir/$i".bqrs
+    rm -rf "$dir/$i".bqrs
 done

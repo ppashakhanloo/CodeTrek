@@ -138,4 +138,3 @@ if __name__ == "__main__":
     graph, edges = build_graph(db, joins, keys)
     graph.render(output_file)
     save_edges(edges, output_file+'.edges')
-    print(edges)
