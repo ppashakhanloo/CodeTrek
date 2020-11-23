@@ -1,8 +1,3 @@
-/**
- * @kind path-problem
- * @id your-query-id
- */
-
 import python
 
 from Location loc, int beginLine, int beginColumn, int endLine, int endColumn

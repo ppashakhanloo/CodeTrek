@@ -1,5 +1,11 @@
 #!/usr/local/bin/bash
 
+if [ $# -ne 2 ]
+then
+    echo "Usage ./extract_py_tables.sh <query-dir> <db-dir>"
+    exit 1
+fi
+
 dir="$1"
 db="$2"
 
@@ -18,7 +24,7 @@ headers["Function"]="id,location,parent"
 
 for i in "${!headers[@]}"
 do
-    codeql query run -o "$dir"/"$i".bqrs -d $db "/Users/pardis/Google Drive/[University]/Sem 7/Research/CodeQL/vscode-codeql-starter/codeql-custom-queries-python/$i".ql
+    codeql query run -o "$dir"/"$i".bqrs -d $db "python-edb-queries/$i".ql
     codeql bqrs decode --output="$dir/$i".csv --format=csv --entities=id "$dir/$i".bqrs
     rm -rf "$dir/$i".bqrs
 done

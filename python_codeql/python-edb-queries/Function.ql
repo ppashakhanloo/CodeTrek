@@ -1,8 +1,3 @@
-/**
- * @kind path-problem
- * @id your-query-id
- */
-
 import python
 
 from Function id

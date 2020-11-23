@@ -6,3 +6,9 @@
 # Python
 __pycache__
 *.pyc
+
+# temp files
+python_codeql/python-edb-queries/.cache
+python_codeql/python-edb-queries/*.csv
+python_codeql/pysrc
+python_codeql/pydb
