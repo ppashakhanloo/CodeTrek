@@ -1,9 +1,9 @@
-#!/usr/local/bin/bash
+#!/bin/bash
 
 correct_data_dir="$1"
 incorrect_data_dir="$2"
 db_dir="$3"
-
+classifier_script="$4"
 
 rm -rf "$db_dir"
 mkdir "$db_dir"
@@ -30,12 +30,12 @@ do
   ./tables2facts.sh "$db_dir"/correct-"$f"
   
   # run build_graph to create edges file
-  python3 build_graph.py "$db_dir"/correct-"$f" table_joins.txt "$db_dir"/correct-"$f"/graph
+  python3 build_graph.py "$db_dir"/correct-"$f" table_joins.txt "$db_dir"/correct-"$f"/graph-$f
 
   rm -rf source_root
 
   # copy the edges
-  cp "$db_dir"/correct-"$f"/graph.edges edges/correct/
+  cp "$db_dir"/correct-"$f"/graph-$f.edges edges/correct/
 done
 
 for f in `ls -1 "$incorrect_data_dir"`
@@ -54,13 +54,13 @@ do
   ./tables2facts.sh "$db_dir"/incorrect-"$f"
   
   # run build_graph to create edges file
-  python3 build_graph.py "$db_dir"/incorrect-"$f" table_joins.txt "$db_dir"/incorrect-"$f"/graph
+  python3 build_graph.py "$db_dir"/incorrect-"$f" table_joins.txt "$db_dir"/incorrect-"$f"/graph-$f
 
   rm -rf source_root
 
   # copy the edges
-  cp "$db_dir"/incorrect-"$f"/graph.edges edges/incorrect/
+  cp "$db_dir"/incorrect-"$f"/graph-$f.edges edges/incorrect/
 done
 
 # train
-python3.7 create_classifier.py edges/correct edges/incorrect
+python3 "$classifier_script" edges/correct edges/incorrect

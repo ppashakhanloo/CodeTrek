@@ -20,7 +20,6 @@ def node_kind(node):
 ast_nodes = []
 def ast_visit(node, level=0):
     ast_nodes.append((node, level))
-    print('  ' * level + node_kind(node))
     for field, value in ast.iter_fields(node):
         if isinstance(value, list):
             for item in value:
@@ -56,8 +55,6 @@ def construct_edges():
 with open(input_code_file, 'r') as infile:
   code = infile.readlines()
   code = ''.join(code)
-  print(code)
-  print('----')
   ast_visit(ast.parse(code))
 
   node_ids = dict()

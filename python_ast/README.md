@@ -1,5 +1,3 @@
-How to run the script
-
 ```
-python3 get_ast_edges.py input_python_code.py graph.edges
+./all.sh <correct_data_dir> <incorrect_data_dir> <path_to_classifier_script> 
 ```

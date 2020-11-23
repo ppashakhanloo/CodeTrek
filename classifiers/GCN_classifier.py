@@ -45,8 +45,8 @@ def create_graph_from_edges(edges_file):
   node_degrees = {}
   for node in nodes:
     node_degrees[node] = 1
-  #for node in nodes:
-  #  node_degrees[node] += 1
+  for node in nodes:
+    node_degrees[node] += 1
   
   nodes = pd.DataFrame({"d": node_degrees}, index=nodes)
 
@@ -72,12 +72,12 @@ def train(graphs, graph_labels, epochs=200, folds=10, n_repeats=5):
 
     # Let's create the Keras model and prepare it for training
     model = Model(inputs=x_inp, outputs=predictions)
-    model.compile(optimizer=Adam(0.005), loss=binary_crossentropy, metrics=["acc"])
+    model.compile(optimizer=Adam(0.0005), loss=binary_crossentropy, metrics=["acc"])
 
     return model
 
   es = EarlyStopping(
-    monitor="val_loss", min_delta=0, patience=25, restore_best_weights=True
+    monitor="loss", min_delta=0, patience=25, restore_best_weights=True
   )
 
   def train_fold(model, train_gen, test_gen, es, epochs):
@@ -105,18 +105,19 @@ def train(graphs, graph_labels, epochs=200, folds=10, n_repeats=5):
   stratified_folds = model_selection.RepeatedStratifiedKFold(
     n_splits=folds, n_repeats=n_repeats).split(graph_labels, graph_labels)
 
+  max_acc = 0
   for i, (train_index, test_index) in enumerate(stratified_folds):
     print(f"Training and evaluating on fold {i+1} out of {folds * n_repeats}...")
-    train_gen, test_gen = get_generators(train_index, test_index, graph_labels, batch_size=30)
+    train_gen, test_gen = get_generators(train_index, test_index, graph_labels, batch_size=5)
     model = create_graph_classification_model(generator)
     history, acc = train_fold(model, train_gen, test_gen, es, epochs)
     test_accs.append(acc)
-
-  print(
-    f"Accuracy over all folds mean: {np.mean(test_accs)*100:.3}% and std: {np.std(test_accs)*100:.2}%"
-  )
-
-
+    print(acc)
+    if acc > max_acc:
+      tf.keras.models.save_model(model, "model", save_format='tf')
+      max_acc = acc
+  
+  print("Maximum accuracy is: " + str(max_acc*100) + "%")
 
 
 if __name__ == '__main__':
@@ -126,12 +127,19 @@ if __name__ == '__main__':
 
   print("~~~ Preparing the data ~~~")
 
+  index = 0
   for f in os.listdir(correct_data_dir):
+    index += 1
+    if index == 25:
+      break
     graphs.append(create_graph_from_edges(correct_data_dir+'/'+f))
-    print(graphs[0].info())
     graph_labels.append(1)
 
+  index = 0
   for f in os.listdir(incorrect_data_dir):
+    index += 1
+    if index  == 25:
+      break
     graphs.append(create_graph_from_edges(incorrect_data_dir+'/'+f))
     graph_labels.append(-1)
   

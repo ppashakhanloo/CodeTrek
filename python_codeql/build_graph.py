@@ -136,5 +136,5 @@ if __name__ == "__main__":
     db = load_db(facts_dir)
     joins, keys = load_joins(join_filepath)
     graph, edges = build_graph(db, joins, keys)
-    graph.render(output_file)
+    #graph.render(output_file)
     save_edges(edges, output_file+'.edges')
