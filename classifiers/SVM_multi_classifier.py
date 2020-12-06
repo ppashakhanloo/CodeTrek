@@ -8,26 +8,30 @@ from sklearn.metrics import accuracy_score
 from sklearn import datasets
 from sklearn.svm import SVC
 from sklearn.linear_model import SGDClassifier
+from sklearn.neighbors import KNeighborsClassifier
 
-data_path = sys.argv[1]
+data_dir = sys.argv[1]
 
-TRAIN = 1000
-TEST = 300
+TRAIN = 500
+TEST = 200
+EDGE_LIMIT = 3000
 
-def create_graph_from_edges(edges_file, counter):
+def create_graph_from_edges(edges_file, counter, label):
   G = nx.Graph()
 
   with open(edges_file, 'r') as f:
     lines = f.readlines()
     sources = []
     targets = []
+    if len(lines) > EDGE_LIMIT:
+      return None
 
     for line in lines:
-      if len(line.strip().split(" ").strip()) < 2:
+      if len(line.split(" ")) < 2:
       	continue
       
-      source = str(line.split(" ")[0].strip())
-      target = str(line.split(" ")[1].strip())
+      source = int(line.split(" ")[0].strip())
+      target = int(line.split(" ")[1].strip())
       
       sources.append(source)
       targets.append(target)
@@ -35,34 +39,30 @@ def create_graph_from_edges(edges_file, counter):
   
   for i in range(len(sources)):
     G.add_edge(sources[i], targets[i])
-
-  node_degrees = {}
-  for node in G.nodes():
-    node_degrees[node] = 1
-
-  for node in node_degrees:
-    G.nodes[node]['label'] = node_degrees[node]
+    G.nodes[sources[i]]['label'] = label
+    G.nodes[targets[i]]['label'] = label
 
   return G
-
 
 def train(train_graphs, test_graphs, train_labels, test_labels):
   G_train = list(graph_from_networkx(train_graphs, node_labels_tag='label'))
   G_test = list(graph_from_networkx(test_graphs, node_labels_tag='label'))
-
+  
+  print(" ~~~ WeisfeilerLehman ~~~")
   gk = WeisfeilerLehman(n_iter=5, normalize=False, base_graph_kernel=VertexHistogram)
   
-  # Construct kernel matrices
   K_train = gk.fit_transform(G_train)
   K_test = gk.transform(G_test)
   
-  print(K_train)
-  # Train an SVM classifier and make predictions
-  clf = SVC(gamma='auto')
+  clf = SVC()
   clf.fit(K_train, train_labels)
+  
+  print(" ~~~ Predict ~~~")
   pred_labels = clf.predict(K_test)
   
-  print(accuracy_score(pred_labels, test_labels))
+  print("Train data: " + str(TRAIN))
+  print("Test data: " + str(TEST))
+  print("Accuracy: " + str(accuracy_score(pred_labels, test_labels)))
   
 
 def prepare_data(data_dir, mode, threshold):
@@ -72,17 +72,22 @@ def prepare_data(data_dir, mode, threshold):
 
   graphs_dict = {}
   with open(data_dir+'/'+mode+'/'+'labels.txt') as f:
-    lines = l.readlines()
+    lines = f.readlines()
     for line in lines:
-      filename = "graph-"+line.strip().split(" ")[0]+".py"
+      filename = "graph-"+line.strip().split(" ")[0]+".py.edges"
       labelname = line.strip().split(" ")[1]
       graphs_dict[filename] = labelname
 
   index = 0
   for f in os.listdir(data_dir+'/'+mode):
-    graphs.append(create_graph_from_edges(data_dir+'/'+mode+'/'+f, index))
-    labels.append(graphs_dict[f])
-    index += 1
+    if f.endswith(".txt"):
+      continue
+    
+    graph = create_graph_from_edges(data_dir+'/'+mode+'/'+f, index, graphs_dict[f])
+    if graph:
+      graphs.append(graph)
+      labels.append(graphs_dict[f])
+      index += 1
     if index == threshold:
       break
 

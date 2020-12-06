@@ -9,18 +9,20 @@ from sklearn import datasets
 from sklearn.svm import SVC
 from sklearn.linear_model import SGDClassifier
 
-
 correct_data_dir = sys.argv[1]
 incorrect_data_dir = sys.argv[2]
 
-TRAIN = 500
-TEST = 300
+TRAIN = 65
+TEST = 65
+EDGE_LIMIT = 50000
 
-def create_graph_from_edges(edges_file, counter):
+def create_graph_from_edges(edges_file, label):
   G = nx.Graph()
 
   with open(edges_file, 'r') as f:
     lines = f.readlines()
+    if len(lines) > EDGE_LIMIT:
+      return None
     sources = []
     targets = []
 
@@ -38,14 +40,8 @@ def create_graph_from_edges(edges_file, counter):
   for i in range(len(sources)):
     G.add_edge(sources[i], targets[i])
 
-  node_degrees = {}
-  for node in G.nodes():
-    node_degrees[node] = 1
-  #for node in G.nodes():
-  #  node_degrees[node] += 1
-
-  for node in node_degrees:
-    G.nodes[node]['label'] = node_degrees[node]
+  for node in G.nodes:
+    G.nodes[node]['label'] = label
 
   return G
 
@@ -61,49 +57,48 @@ def train(train_graphs, test_graphs, train_labels, test_labels):
   K_test = gk.transform(G_test)
   
   # Train an SVM classifier and make predictions
-  clf = SVC(gamma='auto')
+  clf = SVC()
   clf.fit(K_train, train_labels)
+  
   pred_labels = clf.predict(K_test)
+  print("Train data: " + str(TRAIN))
+  print("Test data: " + str(TEST))
+  print("Accuracy: " + str(accuracy_score(pred_labels, test_labels)))
   
-  print(accuracy_score(pred_labels, test_labels))
-  
-
 
 if __name__ == '__main__':
-  # prepare the data
-  test_graphs = []
-  test_labels = []
-  train_graphs = []
-  train_labels = []
   
-  corr_graphs = []
-  corr_labels = []
-  incorr_graphs = []
-  incorr_labels = []
+  correct_graphs, correct_labels = [], []
+  incorrect_graphs, incorrect_labels = [], []
 
   print("~~~ Preparing the training data ~~~")
 
-  index = 0
-  for f in os.listdir(correct_data_dir):
-    corr_graphs.append(create_graph_from_edges(correct_data_dir+'/'+f, index))
-    corr_labels.append(1)
+  index  = 0
+  for f in os.listdir(correct_data_dir): 
+    res = create_graph_from_edges(correct_data_dir+'/'+f, '1')
+    if res:
+      correct_graphs.append(res)
+      correct_labels.append('1')
+    
     index += 1
-    if index == (TEST+TRAIN)/2+1:
+    if index == TEST+TRAIN:
       break
  
-  index = 0
   for f in os.listdir(incorrect_data_dir):
-    incorr_graphs.append(create_graph_from_edges(incorrect_data_dir+'/'+f, index))
-    incorr_labels.append(-1)
-    index += 1
-    if index == (TEST+TRAIN)/2+1:
-      break
-  
-  train_graphs = corr_graphs[0:int(TRAIN/2)] + incorr_graphs[0:int(TRAIN/2)]
-  test_graphs = corr_graphs[int(TRAIN/2)+1:] + incorr_graphs[int(TRAIN/2)+1:]
+    res = create_graph_from_edges(incorrect_data_dir+'/'+f, '-1')
+    if res:
+      incorrect_graphs.append(res)
+      incorrect_labels.append('-1')
 
-  train_labels = corr_labels[0:int(TRAIN/2)] + incorr_labels[0:int(TRAIN/2)]
-  test_labels = corr_labels[int(TRAIN/2)+1:] + incorr_labels[int(TRAIN/2)+1:]
+  train_low_index = 0
+  train_high_index = int(TRAIN/2)
+  train_graphs = correct_graphs[train_low_index:train_high_index] + incorrect_graphs[train_low_index:train_high_index]
+  train_labels = correct_labels[train_low_index:train_high_index] + incorrect_labels[train_low_index:train_high_index]
+  
+  test_low_index = int(TRAIN/2)
+  test_high_index = int(TRAIN/2)+int(TEST/2)
+  test_graphs = correct_graphs[test_low_index:test_high_index] + incorrect_graphs[test_low_index:test_high_index]
+  test_labels = correct_labels[test_low_index:test_high_index] + incorrect_labels[test_low_index:test_high_index]
 
   print("~~~ Training ~~~")
 
