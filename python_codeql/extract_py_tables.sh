@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/local/bin/bash
 
 if [ $# -ne 2 ]
 then
@@ -16,10 +16,11 @@ headers["Class"]="id,parent"
 headers["Expression_location"]="id,location"
 headers["Statement_location"]="id,location"
 headers["Module"]="id"
-headers["Expression"]="id,kind,idx,module,parent"
-headers["Statement"]="id,kind,parent"
-headers["Variable"]="id,scope"
-headers["Function"]="id,location,parent"
+headers["Expression"]="id,kind,parent,idx"
+headers["Statement"]="id,kind,parent,idx"
+headers["Variable"]="id,scope,name"
+headers["VarAccess"]="id,parent"
+headers["Function"]="id,parent"
 
 
 for i in "${!headers[@]}"

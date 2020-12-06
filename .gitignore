@@ -10,5 +10,10 @@ __pycache__
 # temp files
 python_codeql/python-edb-queries/.cache
 python_codeql/python-edb-queries/*.csv
+python_codeql/python-edb-queries/*.facts
 python_codeql/pysrc
 python_codeql/pydb
+python_codeql/edges
+python_codeql/example
+classifiers/databases
+
