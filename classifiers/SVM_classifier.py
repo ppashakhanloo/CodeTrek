@@ -12,7 +12,7 @@ from sklearn.linear_model import SGDClassifier
 correct_data_dir = sys.argv[1]
 incorrect_data_dir = sys.argv[2]
 
-TRAIN = 65
+TRAIN = 100
 TEST = 65
 EDGE_LIMIT = 50000
 
@@ -57,7 +57,7 @@ def train(train_graphs, test_graphs, train_labels, test_labels):
   K_test = gk.transform(G_test)
   
   # Train an SVM classifier and make predictions
-  clf = SVC()
+  clf = SVC(kernel='poly')
   clf.fit(K_train, train_labels)
   
   pred_labels = clf.predict(K_test)
@@ -79,16 +79,19 @@ if __name__ == '__main__':
     if res:
       correct_graphs.append(res)
       correct_labels.append('1')
-    
     index += 1
     if index == TEST+TRAIN:
       break
  
+  index = 0
   for f in os.listdir(incorrect_data_dir):
     res = create_graph_from_edges(incorrect_data_dir+'/'+f, '-1')
     if res:
       incorrect_graphs.append(res)
       incorrect_labels.append('-1')
+    index += 1
+    if index == TEST+TRAIN:
+      break
 
   train_low_index = 0
   train_high_index = int(TRAIN/2)
