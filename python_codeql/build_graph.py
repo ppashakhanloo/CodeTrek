@@ -33,6 +33,8 @@ def load_joins(filepath):
             if right_rel not in joins[left_rel]:
                 joins[left_rel][right_rel] = set()
             joins[left_rel][right_rel].add((left_index, right_index))
+            if left_rel == right_rel:
+                joins[left_rel][right_rel].add((right_index, left_index))
             
             # keys
             if left_rel not in keys:

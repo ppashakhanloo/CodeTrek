@@ -1,5 +1,5 @@
 import python
 
-from Stmt id, int kind, StmtList parent
-where py_stmts(id, kind, parent, _)
-select id, kind, parent
+from Stmt id, int kind, int idx
+where py_stmts(id, kind, _, idx)
+select id, kind, id.getParent(), idx

@@ -1,6 +1,5 @@
 import python
 
-from Variable id
-where py_variables(id, _)
-select id, id.getScope()
-/* id.getId() */
+from Variable id, Scope scope, string name
+where variable(id, scope, name)
+select id, scope, name
