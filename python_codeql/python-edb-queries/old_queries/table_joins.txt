@@ -1,0 +1,12 @@
+Expression.0 <----> Expression_location.0
+Expression.0 <----> VarAccess.1
+Expression.0 <----> Function.1
+Expression.2 <----> Expression.0
+Expression.2 <----> Statement.0
+Expression.2 <----> Function.0
+Expression.2 <----> Class.0
+Expression.2 <----> Module.0
+Variable.0 <----> VarAccess.0
+Statement.0 <----> Statement_location.0
+Expression_location.1 <----> Location.0
+Statement_location.1 <----> Location.0

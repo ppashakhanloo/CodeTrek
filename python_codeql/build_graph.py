@@ -33,9 +33,12 @@ def load_joins(filepath):
             if right_rel not in joins[left_rel]:
                 joins[left_rel][right_rel] = set()
             joins[left_rel][right_rel].add((left_index, right_index))
-            if left_rel == right_rel:
-                joins[left_rel][right_rel].add((right_index, left_index))
-            
+            if right_rel not in joins:
+                joins[right_rel] = {}
+            if left_rel not in joins[right_rel]:
+                joins[right_rel][left_rel] = set()
+            joins[right_rel][left_rel].add((right_index, left_index))
+
             # keys
             if left_rel not in keys:
                 keys[left_rel] = set()
@@ -77,8 +80,6 @@ def joinable(joins: dict, l_rel: str, l_tuple: tuple, r_rel: str, r_tuple: tuple
     if l_rel not in joins:
         return False
     if r_rel not in joins[l_rel]:
-        return False
-    if r_rel == l_rel:
         return False
     pkfk_set = joins[l_rel][r_rel]
     for pkfk in pkfk_set:
@@ -138,5 +139,5 @@ if __name__ == "__main__":
     db = load_db(facts_dir)
     joins, keys = load_joins(join_filepath)
     graph, edges = build_graph(db, joins, keys)
-    #graph.render(output_file)
+    # graph.render(output_file)
     save_edges(edges, output_file+'.edges')
