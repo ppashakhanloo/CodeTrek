@@ -1,22 +1,31 @@
 #!/bin/bash
 
-correct_data_dir="$1"
-incorrect_data_dir="$2"
+train_data_dir="$1"
+test_data_dir="$2"
 db_dir="$3"
 classifier_script="$4"
 
 rm -rf "$db_dir"
 mkdir "$db_dir"
+
 rm -rf source_root
 
 rm -rf "edges"
 mkdir edges
-mkdir edges/correct
-mkdir edges/incorrect
+mkdir edges/train
+mkdir edges/test
+
+cp "$train_data_dir"/labels.txt edges/train/labels.txt
+cp "$test_data_dir"/labels.txt edges/test/labels.txt
 
 run_for_dir() { # arg: data_dir
   for f in `ls -1 "$1"`
   do
+    # ignore txt files
+    if [[ $f == *.txt ]]
+    then
+      continue
+    fi
     # make source-root
     mkdir source_root
     cp "$1"/"$f" source_root/"$f"
@@ -34,13 +43,14 @@ run_for_dir() { # arg: data_dir
     python3 build_graph.py "$db_dir" python_full_table_joins.txt "$db_dir"/graph-$f
 
     # copy the edges
-    cp "$db_dir"/graph-$f.edges edges/correct/
+    cp "$db_dir"/graph-$f.edges edges/"$2"
+    
     rm -rf source_root "$db_dir"
   done
 }
 
-run_for_dir "$correct_data_dir"
-run_for_dir "$incorrect_data_dir"
+run_for_dir "$train_data_dir" "train"
+run_for_dir "$test_data_dir" "test"
 
 # train
-python3 "$classifier_script" edges/correct edges/incorrect
+python3 "$classifier_script" edges

@@ -8,30 +8,30 @@ from sklearn.metrics import accuracy_score
 from sklearn import datasets
 from sklearn.svm import SVC
 from sklearn.linear_model import SGDClassifier
+from sklearn.neighbors import KNeighborsClassifier
 
-correct_data_dir = sys.argv[1]
-incorrect_data_dir = sys.argv[2]
+data_dir = sys.argv[1]
 
-TRAIN = 100
-TEST = 65
-EDGE_LIMIT = 50000
+TRAIN = 500
+TEST = 200
+EDGE_LIMIT = 3000
 
-def create_graph_from_edges(edges_file, label):
+def create_graph_from_edges(edges_file, counter, label):
   G = nx.Graph()
 
   with open(edges_file, 'r') as f:
     lines = f.readlines()
-    if len(lines) > EDGE_LIMIT:
-      return None
     sources = []
     targets = []
+    if len(lines) > EDGE_LIMIT:
+      return None
 
     for line in lines:
       if len(line.split(" ")) < 2:
       	continue
       
-      source = str(line.split(" ")[0].strip())
-      target = str(line.split(" ")[1].strip())
+      source = int(line.split(" ")[0].strip())
+      target = int(line.split(" ")[1].strip())
       
       sources.append(source)
       targets.append(target)
@@ -39,69 +39,66 @@ def create_graph_from_edges(edges_file, label):
   
   for i in range(len(sources)):
     G.add_edge(sources[i], targets[i])
-
-  for node in G.nodes:
-    G.nodes[node]['label'] = label
+    G.nodes[sources[i]]['label'] = label
+    G.nodes[targets[i]]['label'] = label
 
   return G
-
 
 def train(train_graphs, test_graphs, train_labels, test_labels):
   G_train = list(graph_from_networkx(train_graphs, node_labels_tag='label'))
   G_test = list(graph_from_networkx(test_graphs, node_labels_tag='label'))
-
+  
+  print(" ~~~ WeisfeilerLehman ~~~")
   gk = WeisfeilerLehman(n_iter=5, normalize=False, base_graph_kernel=VertexHistogram)
   
-  # Construct kernel matrices
   K_train = gk.fit_transform(G_train)
   K_test = gk.transform(G_test)
   
-  # Train an SVM classifier and make predictions
-  clf = SVC(kernel='poly')
+  clf = SVC()
   clf.fit(K_train, train_labels)
   
+  print(" ~~~ Predict ~~~")
   pred_labels = clf.predict(K_test)
+  
   print("Train data: " + str(TRAIN))
   print("Test data: " + str(TEST))
   print("Accuracy: " + str(accuracy_score(pred_labels, test_labels)))
   
 
+def prepare_data(data_dir, mode, threshold):
+  # mode = test, train
+  edges, labels = [], []
+  graphs = []
+
+  graphs_dict = {}
+  with open(data_dir+'/'+mode+'/'+'labels.txt') as f:
+    lines = f.readlines()
+    for line in lines:
+      filename = "graph-"+line.strip().split(" ")[0]+".py.edges"
+      labelname = line.strip().split(" ")[1]
+      graphs_dict[filename] = labelname
+
+  index = 0
+  for f in os.listdir(data_dir+'/'+mode):
+    if f.endswith(".txt"):
+      continue
+    
+    graph = create_graph_from_edges(data_dir+'/'+mode+'/'+f, index, graphs_dict[f])
+    if graph:
+      graphs.append(graph)
+      labels.append(graphs_dict[f])
+      index += 1
+    if index == threshold:
+      break
+
+  return graphs, labels
+
 if __name__ == '__main__':
   
-  correct_graphs, correct_labels = [], []
-  incorrect_graphs, incorrect_labels = [], []
-
   print("~~~ Preparing the training data ~~~")
 
-  index  = 0
-  for f in os.listdir(correct_data_dir): 
-    res = create_graph_from_edges(correct_data_dir+'/'+f, '1')
-    if res:
-      correct_graphs.append(res)
-      correct_labels.append('1')
-    index += 1
-    if index == TEST+TRAIN:
-      break
- 
-  index = 0
-  for f in os.listdir(incorrect_data_dir):
-    res = create_graph_from_edges(incorrect_data_dir+'/'+f, '-1')
-    if res:
-      incorrect_graphs.append(res)
-      incorrect_labels.append('-1')
-    index += 1
-    if index == TEST+TRAIN:
-      break
-
-  train_low_index = 0
-  train_high_index = int(TRAIN/2)
-  train_graphs = correct_graphs[train_low_index:train_high_index] + incorrect_graphs[train_low_index:train_high_index]
-  train_labels = correct_labels[train_low_index:train_high_index] + incorrect_labels[train_low_index:train_high_index]
-  
-  test_low_index = int(TRAIN/2)
-  test_high_index = int(TRAIN/2)+int(TEST/2)
-  test_graphs = correct_graphs[test_low_index:test_high_index] + incorrect_graphs[test_low_index:test_high_index]
-  test_labels = correct_labels[test_low_index:test_high_index] + incorrect_labels[test_low_index:test_high_index]
+  train_graphs, train_labels = prepare_data(data_dir, 'train', TRAIN)
+  test_graphs, test_labels = prepare_data(data_dir, 'test', TEST)
 
   print("~~~ Training ~~~")
 
