@@ -7,14 +7,13 @@ from grakel.kernels import WeisfeilerLehman, VertexHistogram
 from sklearn.metrics import accuracy_score
 from sklearn import datasets
 from sklearn.svm import SVC
-from sklearn.linear_model import SGDClassifier
-from sklearn.neighbors import KNeighborsClassifier
 
 data_dir = sys.argv[1]
 
-TRAIN = 500
-TEST = 200
-EDGE_LIMIT = 3000
+TRAIN = 300
+TEST = 100
+EDGE_LIMIT = 20000
+
 
 def create_graph_from_edges(edges_file, counter, label):
   G = nx.Graph()
@@ -24,6 +23,7 @@ def create_graph_from_edges(edges_file, counter, label):
     sources = []
     targets = []
     if len(lines) > EDGE_LIMIT:
+      print("SKIPPED >>> "+str(len(lines)))
       return None
 
     for line in lines:
@@ -39,10 +39,20 @@ def create_graph_from_edges(edges_file, counter, label):
   
   for i in range(len(sources)):
     G.add_edge(sources[i], targets[i])
-    G.nodes[sources[i]]['label'] = 0
-    G.nodes[targets[i]]['label'] = 0
+
+  for node in G.nodes:
+    G.nodes[node]['label'] = 0
 
   return G
+
+
+def train_with_kernel(K_train, K_test, train_labels, test_labels, kernel):
+  print(kernel)
+  clf = SVC(gamma='auto', kernel=kernel)
+  clf.fit(K_train, train_labels)
+  pred_labels = clf.predict(K_test)
+
+  return pred_labels
 
 def train(train_graphs, test_graphs, train_labels, test_labels):
   G_train = list(graph_from_networkx(train_graphs, node_labels_tag='label'))
@@ -54,22 +64,16 @@ def train(train_graphs, test_graphs, train_labels, test_labels):
   K_train = gk.fit_transform(G_train)
   K_test = gk.transform(G_test)
   
-  clf = SVC()
-  clf.fit(K_train, train_labels)
-  
-  print(" ~~~ Predict ~~~")
-  pred_labels = clf.predict(K_test)
-  
+  pred_labels = train_with_kernel(K_train, K_test, train_labels, test_labels, 'precomputed')
   print("Train data: " + str(TRAIN))
   print("Test data: " + str(TEST))
   print("Accuracy: " + str(accuracy_score(pred_labels, test_labels)))
-  
+
 
 def prepare_data(data_dir, mode, threshold):
   # mode = test, train
   edges, labels = [], []
   graphs = []
-
   graphs_dict = {}
   with open(data_dir+'/'+mode+'/'+'labels.txt') as f:
     lines = f.readlines()
@@ -88,6 +92,7 @@ def prepare_data(data_dir, mode, threshold):
       graphs.append(graph)
       labels.append(graphs_dict[f])
       index += 1
+    
     if index == threshold:
       break
 
