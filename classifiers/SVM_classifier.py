@@ -39,8 +39,8 @@ def create_graph_from_edges(edges_file, counter, label):
   
   for i in range(len(sources)):
     G.add_edge(sources[i], targets[i])
-    G.nodes[sources[i]]['label'] = label
-    G.nodes[targets[i]]['label'] = label
+    G.nodes[sources[i]]['label'] = 0
+    G.nodes[targets[i]]['label'] = 0
 
   return G
 
