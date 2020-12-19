@@ -7,9 +7,9 @@ output_edges_file = sys.argv[2]
 
 def node_str(node):
     if isinstance(node, ast.AST):
-        fields = [(name, node_str(val)) for name, val in ast.iter_fields(node) if name not in ('left', 'right')]
-        rv = '%s(%s' % (node.__class__.__name__, ', '.join('%s=%s' % field for field in fields))
-        return rv + ')'
+        fields = (f"{name}={node_str(val)}" for name, val in ast.iter_fields(node) if name not in ('left', 'right'))
+        rv = f"{node.__class__.__name__}({', '.join(fields)})"
+        return rv
     else:
         return repr(node)
 
@@ -53,16 +53,11 @@ def construct_edges():
 
 
 with open(input_code_file, 'r') as infile:
-  code = infile.readlines()
-  code = ''.join(code)
+  code = infile.read()
   ast_visit(ast.parse(code))
 
-  node_ids = dict()
-  index = 0
-  for node in ast_nodes:
-    node_ids[node[0]] = index
-    index += 1
+  node_ids = { node[0]: index for index, node in enumerate(ast_nodes) }
   
   with open(output_edges_file, 'w') as outfile:
     for item in construct_edges():
-      outfile.write(str(node_ids[item[0]]) + " " + str(node_ids[item[1]]) + "\n")
+      outfile.write(f"{node_ids[item[0]]} {node_ids[item[1]]}\n")
