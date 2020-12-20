@@ -16,16 +16,19 @@ def node_kind(node):
   if isinstance(node, ast.AST):
     return node.__class__.__name__
 
-ast_nodes = []
-def ast_visit(node):
-    ast_nodes.append(node)
+
+def nodes(node):
+    """
+    Yields all the nodes in the ast sub-tree rooted at node in depth-first order.
+    """
+    yield node
     for _, value in ast.iter_fields(node):
         if isinstance(value, list):
             for item in value:
                 if isinstance(item, ast.AST):
-                    ast_visit(item)
+                    yield from nodes(item)
         elif isinstance(value, ast.AST):
-            ast_visit(value)
+            yield from nodes(value)
 
 
 def edges(node):
@@ -44,11 +47,10 @@ def edges(node):
 
 
 with open(input_code_file, 'r') as infile:
-  ast_root_node = ast.parse(infile.read())
-  ast_visit(ast_root_node)
+  root_node = ast.parse(infile.read())
 
-  node_ids = { node: index for index, node in enumerate(ast_nodes) }
+  node_ids = { node: index for index, node in enumerate(nodes(root_node)) }
   
   with open(output_edges_file, 'w') as outfile:
-    for src, dest in edges(ast_root_node):
+    for src, dest in edges(root_node):
       outfile.write(f"{node_ids[src]} {node_ids[dest]}\n")
