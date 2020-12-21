@@ -131,6 +131,10 @@ def save_edges(edges, output_file):
         for entry in edges:
             f.write(str(entry[0])+' '+str(entry[1])+'\n')
 
+def save_gv(graph, output_file):
+    with open(output_file, 'w') as f:
+        f.write(str(graph))
+
 if __name__ == "__main__":
     facts_dir = sys.argv[1]
     join_filepath = sys.argv[2]
@@ -140,4 +144,5 @@ if __name__ == "__main__":
     joins, keys = load_joins(join_filepath)
     graph, edges = build_graph(db, joins, keys)
     # graph.render(output_file)
-    save_edges(edges, output_file+'.edges')
+    save_gv(graph, output_file+'.gv')
+    # save_edges(edges, output_file+'.edges')
