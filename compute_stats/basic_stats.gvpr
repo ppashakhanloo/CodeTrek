@@ -1,0 +1,5 @@
+BEG_G {
+    int n = nNodes($G);
+    int e = nEdges($G);
+    printf("%d\t%d", n, e);
+}
