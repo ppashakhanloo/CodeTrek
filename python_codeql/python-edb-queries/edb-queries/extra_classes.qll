@@ -1,7 +1,6 @@
 import python
 
-class ExprOrStmt extends ExprOrStmt_ {
-}
+class ExprOrStmt extends ExprOrStmt_ {}
 
 class StrParent extends StrParent_ {}
 
@@ -16,3 +15,7 @@ class MyDictItemListParent extends DictItemListParent {}
 class MyDictItem extends DictItem {}
 
 class LocationParent extends LocationParent_ {}
+
+class SourceLine extends @sourceline {
+    string toString() { result = "SourceLine" }
+}
