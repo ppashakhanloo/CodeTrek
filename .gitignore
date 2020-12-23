@@ -7,6 +7,9 @@
 __pycache__
 *.pyc
 
+# IDE
+.idea
+
 # temp files
 python_codeql/**/.cache
 python_codeql/**/*.bqrs
