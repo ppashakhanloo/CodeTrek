@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+echo "Installing TQDM dependency for data extraction"
+
+pip install tqdm
+
+echo "Downloading data from cloud bucket with gsutil"
+
+gsutil cp \
+  gs://cubert/20200621_Python/variable_misuse_datasets/dev.jsontxt-00000-of-00004 \
+  gs://cubert/20200621_Python/variable_misuse_datasets/dev.jsontxt-00001-of-00004 \
+  gs://cubert/20200621_Python/variable_misuse_datasets/dev.jsontxt-00002-of-00004 \
+  gs://cubert/20200621_Python/variable_misuse_datasets/dev.jsontxt-00003-of-00004 \
+  gs://cubert/20200621_Python/variable_misuse_datasets/eval.jsontxt-00000-of-00004 \
+  gs://cubert/20200621_Python/variable_misuse_datasets/eval.jsontxt-00001-of-00004 \
+  gs://cubert/20200621_Python/variable_misuse_datasets/eval.jsontxt-00002-of-00004 \
+  gs://cubert/20200621_Python/variable_misuse_datasets/eval.jsontxt-00003-of-00004 \
+  gs://cubert/20200621_Python/variable_misuse_datasets/train.jsontxt-00000-of-00004 \
+  gs://cubert/20200621_Python/variable_misuse_datasets/train.jsontxt-00001-of-00004 \
+  gs://cubert/20200621_Python/variable_misuse_datasets/train.jsontxt-00002-of-00004 \
+  gs://cubert/20200621_Python/variable_misuse_datasets/train.jsontxt-00003-of-00004 \
+  . | exit 1
+
+./extract_pyscripts
