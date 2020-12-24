@@ -13,6 +13,47 @@ class GraphBuilder:
         self.facts_dir = facts_dir
         self.join_filepath = join_filepath
 
+    @staticmethod
+    def load_columns() -> Dict[str, List[str]]:
+        return {
+            'variable': ['id', 'scope', 'name'],
+            'locations_ast': ['id', 'module', 'beginLine', 'beginColumn', 'endLine', 'endColumn'],
+            'py_Classes': ['id', 'parent'],
+            'py_Functions': ['id', 'parent'],
+            'py_Modules': ['id'],
+            'py_boolops': ['id', 'kind', 'parent'],
+            'py_bytes': ['id', 'parent', 'idx'],
+            'py_cmpops': ['id', 'kind', 'parent', 'idx'],
+            'py_cmpop_lists': ['id', 'parent'],
+            'py_comprehensions': ['id', 'parent', 'idx'],
+            'py_comprehension_lists': ['id', 'parent'],
+            'py_dict_items': ['id', 'kind', 'parent', 'idx'],
+            'py_dict_item_lists': ['id', 'parent'],
+            'py_exprs': ['id', 'kind', 'parent', 'idx'],
+            'py_expr_contexts': ['id', 'kind', 'parent'],
+            'py_expr_lists': ['id', 'parent', 'idx'],
+            'py_ints': ['id', 'parent'],
+            'py_locations': ['id', 'parent'],
+            'py_numbers': ['id', 'parent', 'idx'],
+            'py_operators': ['id', 'kind', 'parent'],
+            'py_parameter_lists': ['id', 'parent'],
+            'py_stmts': ['id', 'kind', 'parent', 'idx'],
+            'py_stmt_lists': ['id', 'parent', 'idx'],
+            'py_strs': ['id', 'parent', 'idx'],
+            'py_str_lists': ['id', 'parent'],
+            'py_unaryops': ['id', 'kind', 'parent'],
+            'py_variables': ['id', 'parent'],
+            'py_successors': ['predecessor', 'successor'],
+            'py_true_successors': ['predecessor', 'successor'],
+            'py_exception_successors': ['predecessor', 'successor'],
+            'py_false_successors': ['predecessor', 'successor'],
+            'py_flow_bb_node': ['flownode', 'realnode', 'basicblock', 'index'],
+            'py_scope_flow': ['flow', 'scope', 'kind'],
+            'py_idoms': ['node', 'immediate_dominator'],
+            'py_scopes': ['node', 'scope'],
+            'py_scope_location': ['id', 'scope']
+        }
+
     def load_table(self, fact_file: str) -> List[Tuple]:
         table = []
         with open(self.facts_dir + '/' + fact_file, 'r') as f:
@@ -81,24 +122,35 @@ class GraphBuilder:
         return val_tuple_map
 
     @staticmethod
-    def joinable(joins: dict, l_rel: str, l_tuple: tuple, r_rel: str, r_tuple: tuple) -> bool:
-        if l_rel not in joins:
-            return False
-        if r_rel not in joins[l_rel]:
-            return False
-        pkfk_set = joins[l_rel][r_rel]
-        for pkfk in pkfk_set:
-            l_col = pkfk[0]
-            r_col = pkfk[1]
-            if l_tuple[l_col] == r_tuple[r_col]:
-                return True
-        return False
-
-    @staticmethod
     def edb_tuple_label(t: tuple, rel: str) -> str:
         return rel + '(' + ','.join(t) + ')'
 
-    def build_graph(self, db: Dict, joins: Dict, keys: Dict) -> graphviz.Graph:
+    @staticmethod
+    def edb_edge_label(table1: str, col1: int, table2: str, col2: int) -> str:
+        label1 = table1 + '.' + col1
+        label2 = table2 + '.' + col2
+        return '({l1},{l2})'.format(l1=label1, l2=label2)
+
+    # returns a list of edge labels if two tuples are joinable
+    # returns an empty list if two tuples are not joinable
+    @staticmethod
+    def labels_if_joinable(joins: Dict, columns: Dict, l_rel: str, l_tuple: Tuple, r_rel: str, r_tuple: Tuple) -> List[str]:
+        if l_rel not in joins:
+            return []
+        if r_rel not in joins[l_rel]:
+            return []
+        labels = []
+        pkfk_set = joins[l_rel][r_rel]
+        for pkfk in pkfk_set:
+            l_col_index = pkfk[0]
+            r_col_index = pkfk[1]
+            if l_tuple[l_col_index] == r_tuple[r_col_index]:
+                l_col = columns[l_rel][l_col_index]
+                r_col = columns[r_rel][r_col_index]
+                labels.append(GraphBuilder.edb_edge_label(l_rel, l_col, r_rel, r_col))
+        return labels
+
+    def build_graph(self, db: Dict, joins: Dict, keys: Dict, columns: Dict) -> graphviz.Graph:
         val_tuple_map = self.build_value_to_tuple_map(db, keys)  # type: Dict[str, Set[(Tuple, str)]]
         tuple_index_map = {}  # type: Dict[Tuple, int]
         index_rel_map = {}    # type: Dict[int, str]
@@ -126,14 +178,17 @@ class GraphBuilder:
                     table_j = tuples[j][1]
                     tuple_j = tuples[j][0]
                     index_j = tuple_index_map[tuple_j]
-                    if self.joinable(joins, table_i, tuple_i, table_j, tuple_j):
-                        graph.edge(str(index_i), str(index_j))
+                    # generate all edges between two tuples
+                    edge_labels = self.labels_if_joinable(joins, columns, table_i, tuple_i, table_j, tuple_j)
+                    for edge_label in edge_labels:
+                        graph.edge(str(index_i), str(index_j), edge_label)
         return graph
 
     def build(self) -> graphviz.Graph:
         db = self.load_db()
         joins, keys = self.load_joins()
-        graph = self.build_graph(db, joins, keys)
+        columns = self.load_columns()
+        graph = self.build_graph(db, joins, keys, columns)
         return graph
 
     @staticmethod
