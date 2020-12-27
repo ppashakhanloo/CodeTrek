@@ -78,16 +78,16 @@ class WalkUtils:
     def gen_node_label(relname: str, values: List[str]) -> str:
         # Use variable ID as the label
         if relname == 'variable':
-            return 'v' + values[0]
+            return 'v_' + values[0]
         # Distinguish different kinds of expressions
         if relname == 'py_exprs':
             kind_index = 1
-            kind = values[kind_index]
+            kind = int(values[kind_index])
             return 'expr_' + WalkUtils.expr_kinds[kind]
         # Distinguish different kinds of statements
         if relname == 'py_stmts':
             kind_index = 1
-            kind = values[kind_index]
+            kind = int(values[kind_index])
             return 'stmt_' + WalkUtils.stmt_kinds[kind]
         # Otherwise, use relation name as the label
         return relname

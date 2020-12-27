@@ -11,6 +11,7 @@ __pycache__
 .idea
 
 # temp files
+*.json
 python_codeql/**/.cache
 python_codeql/**/*.bqrs
 python_codeql/**/*.csv

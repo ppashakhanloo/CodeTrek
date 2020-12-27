@@ -1,3 +1,4 @@
+import json
 from typing import List, Dict
 
 
@@ -57,3 +58,7 @@ class DataPoint:
             'hints': [hint for hint in self.hints],
             'label': self.label
         }
+
+    def dump_json(self, filepath: str) -> None:
+        with open(filepath, 'w') as outfile:
+            json.dump(self.to_dict(), outfile)
