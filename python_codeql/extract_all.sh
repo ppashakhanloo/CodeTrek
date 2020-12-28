@@ -26,6 +26,6 @@ do
 done
 echo "Waiting for all jobs to finish"
 wait
-# rm -rf $bqrs_dir
+rm -rf $bqrs_dir
 echo "Done"
 
