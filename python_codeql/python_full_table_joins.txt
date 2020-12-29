@@ -139,7 +139,6 @@ py_scope_flow.1 <----> py_scopes.1
 containerparent.0 <----> file_contents.0
 py_extracted_version.0 <----> py_strs.1
 numlines.0 <----> py_exports.0
-py_ssa_phi.1 <----> py_ssa_phi.1
 containerparent.1 <----> xmlHasNs.2
 py_true_successors.1 <----> py_ssa_defn.1
 py_StringPart_lists.1 <----> py_exprs.0
@@ -173,7 +172,6 @@ py_commentlines.0 <----> py_Modules.0
 py_variables.0 <----> py_ssa_var.1
 py_arguments.1 <----> py_arguments.1
 py_Functions.0 <----> py_scope_flow.1
-py_ssa_use.0 <----> py_ssa_use.0
 py_alllines.0 <----> py_stmt_lists.1
 py_flow_bb_node.2 <----> ext_proptype.1
 py_cobjectnames.0 <----> ext_argreturn.0
@@ -214,7 +212,6 @@ py_ints.1 <----> py_strs.1
 numlines.0 <----> py_scope_location.1
 py_exports.0 <----> py_scope_flow.1
 py_commentlines.0 <----> py_module_path.0
-py_ssa_var.1 <----> py_ssa_var.1
 ext_rettype.1 <----> ext_proptype.1
 xmlHasNs.0 <----> xmlChars.2
 py_dict_item_lists.1 <----> py_dict_item_lists.1
@@ -441,7 +438,6 @@ py_cobjecttypes.1 <----> py_cmembers_versioned.2
 py_bools.0 <----> py_strs.1
 py_idoms.0 <----> ext_argreturn.0
 py_flow_bb_node.2 <----> py_idoms.0
-py_ssa_var.0 <----> py_ssa_var.0
 py_successors.0 <----> ext_argtype.2
 ext_rettype.0 <----> ext_proptype.1
 externalMetrics.2 <----> py_locations.0
@@ -522,7 +518,6 @@ py_scope_location.0 <----> py_syntax_error_versioned.0
 py_cobjecttypes.0 <----> py_cobject_sources.0
 variable.1 <----> py_scope_location.1
 py_locations.1 <----> py_strs.1
-py_ssa_defn.0 <----> py_ssa_defn.0
 py_successors.0 <----> ext_proptype.0
 py_cmembers_versioned.2 <----> py_cmembers_versioned.2
 svnchurn.1 <----> xmlEncoding.0
@@ -600,7 +595,6 @@ py_true_successors.0 <----> ext_proptype.1
 containerparent.0 <----> xmlElements.4
 py_flow_bb_node.1 <----> py_scope_flow.1
 py_str_lists.1 <----> py_scopes.0
-py_ssa_defn.1 <----> py_ssa_defn.1
 py_alllines.0 <----> py_absolute_names.0
 py_cmembers_versioned.2 <----> py_special_objects.0
 py_false_successors.0 <----> ext_rettype.0
@@ -621,7 +615,6 @@ xmlElements.4 <----> xmlChars.2
 py_bools.0 <----> py_scopes.0
 py_false_successors.0 <----> py_ssa_use.0
 py_bools.0 <----> py_exprs.2
-py_ssa_phi.0 <----> py_ssa_phi.0
 svnchurn.1 <----> containerparent.0
 py_successors.1 <----> py_idoms.1
 svnchurn.1 <----> xmlHasNs.2
@@ -1021,7 +1014,6 @@ xmlAttrs.0 <----> xmllocations.0
 py_commentlines.0 <----> py_exprs.2
 locations_ast.1 <----> py_scopes.1
 py_dict_items.0 <----> py_flow_bb_node.1
-py_ssa_use.1 <----> py_ssa_use.1
 py_module_path.1 <----> xmlNs.3
 py_variables.1 <----> py_scopes.0
 py_idoms.0 <----> ext_rettype.1

@@ -51,7 +51,11 @@ class GraphBuilder:
             'py_scope_flow': ['flow', 'scope', 'kind'],
             'py_idoms': ['node', 'immediate_dominator'],
             'py_scopes': ['node', 'scope'],
-            'py_scope_location': ['id', 'scope']
+            'py_scope_location': ['id', 'scope'],
+            'py_ssa_phi': ['phi', 'arg'],
+            'py_ssa_var': ['id', 'var'],
+            'py_ssa_use': ['node', 'var'],
+            'py_ssa_defn': ['id', 'node']
         }
 
     def load_table(self, fact_file: str) -> List[Tuple]:

@@ -55,3 +55,11 @@ py_scopes.0 <----> py_scopes.0
 py_scopes.1 <----> py_scopes.1
 py_scope_location.0 <----> py_scope_location.0
 py_scope_location.1 <----> py_scope_location.1
+py_ssa_phi.0 <----> py_ssa_phi.0
+py_ssa_phi.1 <----> py_ssa_phi.1
+py_ssa_var.0 <----> py_ssa_var.0
+py_ssa_var.1 <----> py_ssa_var.1
+py_ssa_use.0 <----> py_ssa_use.0
+py_ssa_use.1 <----> py_ssa_use.1
+py_ssa_defn.0 <----> py_ssa_defn.0
+py_ssa_defn.1 <----> py_ssa_defn.1
