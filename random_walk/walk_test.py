@@ -20,14 +20,16 @@ def main(args: List[str]) -> None:
 
     gv_file = args[1]
     out_file = args[2]
-
+    
     graph = load_graph_from_gv(gv_file)
     node = choice(list(graph.nodes()))
-    walks = random_walk(graph, node, num_walks=10, num_steps=8)
+    walks = random_walk(graph, node, max_num_walks=10, min_num_steps=1,
+        max_num_steps=8)
     while not walks:
         print('Empty walks starting with node:', node)
         node = choice(list(graph.nodes()))
-        walks = random_walk(graph, node, num_walks=10, num_steps=8)
+        walks = random_walk(graph, node, max_num_walks=10, min_num_steps=1,
+            max_num_steps=8)
 
     print('Generated random walks:')
     for walk in walks:

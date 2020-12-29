@@ -1,5 +1,5 @@
 # Example usage
 
 ```
-python3 random_walk.py example.gv
+python3 walk_test.py example.gv out.json
 ```
