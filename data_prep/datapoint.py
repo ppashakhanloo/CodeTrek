@@ -44,19 +44,22 @@ class DataPoint:
     trajectories = []  # type: List[Trajectory]
     hints = []         # type: List[str]
     label = None       # type: str
+    source = None      # type: str
 
-    def __init__(self, anchor: TrajNode, trajectories: List[Trajectory], hints: List[str], label: str):
+    def __init__(self, anchor: TrajNode, trajectories: List[Trajectory], hints: List[str], label: str, source: str):
         self.anchor = anchor
         self.trajectories = trajectories
         self.hints = hints
         self.label = label
+        self.source = source
 
     def to_dict(self) -> Dict:
         return {
             'anchor': self.anchor.to_dict(),
             'trajectories': [traj.to_dict() for traj in self.trajectories],
             'hints': [hint for hint in self.hints],
-            'label': self.label
+            'label': self.label,
+            'source': self.source
         }
 
     def dump_json(self, filepath: str) -> None:

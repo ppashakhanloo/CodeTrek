@@ -3,7 +3,7 @@ import networkx as nx
 from pygraphviz import AGraph
 from random import choice
 from random_walk import random_walk
-from data_prep.datapoint import DataPoint
+from data_prep.datapoint import DataPoint, TrajNode
 from data_prep.walkutils import WalkUtils
 from typing import List
 
@@ -22,6 +22,7 @@ def main(args: List[str]) -> None:
     out_file = args[2]
     
     graph = load_graph_from_gv(gv_file)
+    # TODO: use the real anchor node
     node = choice(list(graph.nodes()))
     walks = random_walk(graph, node, max_num_walks=10, min_num_steps=1,
         max_num_steps=8)
@@ -36,12 +37,14 @@ def main(args: List[str]) -> None:
         print(walk)
 
     # generate the Json file
-    anchor_with_label = (node, graph.nodes[node]['label'])
-    anchor = WalkUtils.parse_node(anchor_with_label)
+    source = gv_file
+    anchor = TrajNode(graph.nodes[node]['label'])
     trajectories = [WalkUtils.parse_trajectory(walk) for walk in walks]
-    hints = []  # unknown
-    label = 'good'
-    data_point = DataPoint(anchor, trajectories, hints, label)
+    # TODO: use the real hints
+    hints = []
+    # TODO: use the real label
+    label = 'used'
+    data_point = DataPoint(anchor, trajectories, hints, label, source)
     data_point.dump_json(out_file)
     print('JSON file saved to', out_file)
 
