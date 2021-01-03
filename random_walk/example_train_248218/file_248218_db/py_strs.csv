@@ -1,0 +1,17 @@
+"col0","ID of parent","idx"
+"stop",4312,3
+"test_run_should_pass_when_all_examples_pass",4213,2
+"test_run_should_pass_when_all_examples_pass",4216,0
+"foo.feature",4228,2
+"'",4228,3
+"'",4230,3
+"'",4231,3
+"Scenario Outline",4230,2
+"foo",4231,2
+"_scenarios",4251,3
+"_scenarios",4259,3
+"run",4270,3
+"run",4318,3
+"return_value",4269,3
+"context",4291,3
+"config",4303,3
