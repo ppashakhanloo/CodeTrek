@@ -67,7 +67,6 @@ py_comprehensions.0 <----> py_expr_lists.1
 py_comprehensions.0 <----> py_exprs.2
 py_comprehensions.0 <----> py_flow_bb_node.1
 py_comprehensions.0 <----> py_locations.1
-py_dict_item_lists.1 <----> py_dict_item_lists.1
 py_dict_item_lists.1 <----> py_expr_lists.1
 py_dict_item_lists.1 <----> py_exprs.0
 py_dict_item_lists.1 <----> py_exprs.2
@@ -79,6 +78,7 @@ py_dict_items.0 <----> py_exprs.2
 py_dict_items.0 <----> py_flow_bb_node.1
 py_dict_items.0 <----> py_locations.1
 py_dict_items.0 <----> py_strs.1
+py_dict_items.2 <----> py_dict_item_lists.0
 py_exception_successors.0 <----> py_exception_successors.1
 py_exception_successors.0 <----> py_false_successors.0
 py_exception_successors.0 <----> py_false_successors.1
@@ -190,7 +190,6 @@ py_ints.1 <----> py_locations.1
 py_ints.1 <----> py_scopes.0
 py_ints.1 <----> py_strs.1
 py_locations.0 <----> py_scope_location.0
-py_locations.0 <----> py_syntax_error_versioned.0
 py_locations.1 <----> py_flow_bb_node.1
 py_locations.1 <----> py_numbers.1
 py_locations.1 <----> py_operators.2

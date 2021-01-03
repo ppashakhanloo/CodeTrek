@@ -16,6 +16,7 @@ py_cmpop_lists.1 <----> py_cmpop_lists.1
 py_comprehensions.0 <----> py_comprehensions.0
 py_comprehension_lists.1 <----> py_comprehension_lists.1
 py_dict_items.0 <----> py_dict_items.0
+py_dict_item_lists.1 <----> py_dict_item_lists.1
 py_exprs.0 <----> py_exprs.0
 py_expr_contexts.0 <----> py_expr_contexts.0
 py_expr_contexts.2 <----> py_expr_contexts.2
