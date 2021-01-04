@@ -143,9 +143,11 @@ class GraphBuilder:
 
     @staticmethod
     def edb_edge_label(table1: str, col1: int, table2: str, col2: int) -> str:
-        label1 = table1 + '.' + col1
-        label2 = table2 + '.' + col2
-        return '({l1},{l2})'.format(l1=label1, l2=label2)
+        label1 = table1 + '.' + str(col1)
+        label2 = table2 + '.' + str(col2)
+        small = label1 if label1 <= label2 else label2
+        large = label2 if label1 <= label2 else label1
+        return '({l1},{l2})'.format(l1=small, l2=large)
 
     # returns a list of edge labels if two tuples are joinable
     # returns an empty list if two tuples are not joinable
@@ -167,18 +169,19 @@ class GraphBuilder:
         return labels
 
     def build_graph(self, db: Dict, joins: Dict, keys: Dict, columns: Dict) -> graphviz.Graph:
-        val_tuple_map = self.build_value_to_tuple_map(db, keys)  # type: Dict[str, Set[(Tuple, str)]]
-        tuple_index_map = {}  # type: Dict[Tuple, int]
+        val_tuple_map = self.build_value_to_tuple_map(db, keys)  # type: Dict[str, Set[Tuple[Tuple, str]]]
+        tuple_index_map = {}  # type: Dict[str, Dict[Tuple, int]]
         index_rel_map = {}    # type: Dict[int, str]
         index_tuple_map = {}  # type: Dict[int, Tuple]
         index = 1             # type: int
         # Build auxiliary maps
         for table_name in db:
             table = db[table_name]
+            tuple_index_map[table_name] = {}
             for entry in table:
                 index_rel_map[index] = table_name
                 index_tuple_map[index] = entry
-                tuple_index_map[entry] = index
+                tuple_index_map[table_name][entry] = index
                 index += 1
         # Build the graph
         graph = graphviz.Graph()
@@ -189,11 +192,11 @@ class GraphBuilder:
             for i in range(len(tuples)):
                 table_i = tuples[i][1]
                 tuple_i = tuples[i][0]
-                index_i = tuple_index_map[tuple_i]
+                index_i = tuple_index_map[table_i][tuple_i]
                 for j in range(i+1, len(tuples)):
                     table_j = tuples[j][1]
                     tuple_j = tuples[j][0]
-                    index_j = tuple_index_map[tuple_j]
+                    index_j = tuple_index_map[table_j][tuple_j]
                     # generate all edges between two tuples
                     edge_labels = self.labels_if_joinable(joins, columns, table_i, tuple_i, table_j, tuple_j)
                     for edge_label in edge_labels:
