@@ -63,6 +63,7 @@ py_ssa_phi.1 <----> py_ssa_var.0
 py_ssa_use.0 <----> py_flow_bb_node.0
 py_ssa_use.1 <----> py_ssa_var.0
 py_ssa_var.1 <----> variable.0
+py_ssa_var.1 <----> local_variable.0
 py_stmt_lists.1 <----> py_Classes.0
 py_stmt_lists.1 <----> py_Functions.0
 py_stmt_lists.1 <----> py_Modules.0
@@ -81,7 +82,12 @@ py_true_successors.0 <----> py_flow_bb_node.0
 py_true_successors.1 <----> py_flow_bb_node.0
 py_unaryops.2 <----> py_exprs.0
 py_variables.0 <----> variable.0
+py_variables.0 <----> local_variable.0
 py_variables.1 <----> py_exprs.0
 variable.1 <----> py_Classes.0
 variable.1 <----> py_Functions.0
 variable.1 <----> py_Modules.0
+local_variable.1 <----> py_Classes.0
+local_variable.1 <----> py_Functions.0
+local_variable.1 <----> py_Modules.0
+variable.0 <----> local_variable.0
