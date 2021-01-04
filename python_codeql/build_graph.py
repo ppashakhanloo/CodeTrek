@@ -58,11 +58,20 @@ class GraphBuilder:
             'py_ssa_defn': ['id', 'node']
         }
 
-    def load_table(self, fact_file: str) -> List[Tuple]:
+    def load_fact_table(self, fact_file: str) -> List[Tuple]:
         table = []
         with open(self.facts_dir + '/' + fact_file, 'r') as f:
             reader = csv.reader(f, delimiter=',')
             for line in reader:
+                table.append(tuple(line))
+        return table
+
+    def load_csv_table(self, fact_file: str) -> List[Tuple]:
+        table = []
+        with open(self.facts_dir + '/' + fact_file, 'r') as f:
+            reader = csv.reader(f, delimiter=',')
+            rowlist = list(reader)
+            for line in rowlist[1:]:
                 table.append(tuple(line))
         return table
 
@@ -107,7 +116,10 @@ class GraphBuilder:
         for fact_file in os.listdir(self.facts_dir):
             if fact_file.endswith('.csv.facts'):
                 table_name = fact_file[:-10]  # remove ".csv.facts"
-                database[table_name] = self.load_table(fact_file)
+                database[table_name] = self.load_fact_table(fact_file)
+            elif fact_file.endswith('.csv'):
+                table_name = fact_file[:-4]  # remove ".csv"
+                database[table_name] = self.load_csv_table(fact_file)
         return database
 
     @staticmethod
