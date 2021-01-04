@@ -1,2 +1,0 @@
-"unused","v","col2","col3","col4"
-"response","Local Variable response","The value assigned to local variable 'response' is never used.","response","/home/aadityanaik/relational-representation/datasets/cubert/py_files/train/correct/file_234474/source.py:3"
