@@ -17,6 +17,7 @@ class GraphBuilder:
     def load_columns() -> Dict[str, List[str]]:
         return {
             'variable': ['id', 'scope', 'name'],
+            'local_variable': ['id', 'scope', 'name'],
             'locations_ast': ['id', 'module', 'beginLine', 'beginColumn', 'endLine', 'endColumn'],
             'py_Classes': ['id', 'parent'],
             'py_Functions': ['id', 'parent'],
