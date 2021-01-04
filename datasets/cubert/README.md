@@ -2,7 +2,7 @@
 
 You need gsutil installed on your system. You can install by running
 ```
-pip install gsutil
+pip3 install gsutil
 ```
 
 Then run

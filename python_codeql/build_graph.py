@@ -17,7 +17,6 @@ class GraphBuilder:
     def load_columns() -> Dict[str, List[str]]:
         return {
             'variable': ['id', 'scope', 'name'],
-            'local_variable': ['id', 'scope', 'name'],
             'locations_ast': ['id', 'module', 'beginLine', 'beginColumn', 'endLine', 'endColumn'],
             'py_Classes': ['id', 'parent'],
             'py_Functions': ['id', 'parent'],
@@ -112,15 +111,17 @@ class GraphBuilder:
 
         return joins, keys
 
-    def load_db(self) -> Dict[str, List[Tuple]]:
+    def load_db(self, col_dict: Dict) -> Dict[str, List[Tuple]]:
         database = {}  # type: Dict[str, List[Tuple]]
         for fact_file in os.listdir(self.facts_dir):
             if fact_file.endswith('.csv.facts'):
                 table_name = fact_file[:-10]  # remove ".csv.facts"
-                database[table_name] = self.load_fact_table(fact_file)
+                if table_name in col_dict:
+                    database[table_name] = self.load_fact_table(fact_file)
             elif fact_file.endswith('.csv'):
                 table_name = fact_file[:-4]  # remove ".csv"
-                database[table_name] = self.load_csv_table(fact_file)
+                if table_name in col_dict:
+                    database[table_name] = self.load_csv_table(fact_file)
         return database
 
     @staticmethod
@@ -205,9 +206,9 @@ class GraphBuilder:
         return graph
 
     def build(self) -> graphviz.Graph:
-        db = self.load_db()
-        joins, keys = self.load_joins()
         columns = self.load_columns()
+        db = self.load_db(columns)
+        joins, keys = self.load_joins()
         graph = self.build_graph(db, joins, keys, columns)
         return graph
 

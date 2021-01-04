@@ -1,6 +1,7 @@
 import sys
 import csv
 import json
+import os
 import networkx as nx
 from pygraphviz import AGraph
 from random import choice
@@ -17,36 +18,49 @@ def load_graph_from_gv(path: str) -> AGraph:
 
 def main(args: List[str]) -> None:
     if not len(args) == 5:
-        print('Usage: python3 gen_walks.py <gv-file> <anchor-rel> <ground-truth> <out-file>')
+        print('Usage: python3 gen_walks.py <gv-file> <edb_path> <ground-truth> <out-file>')
         exit(1)
 
     gv_file = args[1]
-    anchor_rel = args[2]
+    edb_path = args[2]
     gt_path = args[3]
     out_file = args[4]
 
     gt_vars = set()
     anchor_nodes = set()
+    local_variable_rows = []
 
+    print("Loading Ground Truth")
     with open(gt_path, 'r') as gt_file:
         reader = csv.reader(gt_file, delimiter=',')
         rows = list(reader)
         for gt in rows[1:]:
             gt_vars.add(gt[1])
+    print("Ground Truth Loaded")
+
+    print("Loading Anchors")
+    with open(os.path.join(edb_path, "local_variable.csv"), 'r') as local_variable_file:
+        reader = csv.reader(local_variable_file, delimiter=',')
+        rows = list(reader)
+        for row in rows[1:]:
+            local_variable_rows.append(row)
+    print("Anchors Loaded")
     
+    print("Loading Graph")
     graph = load_graph_from_gv(gv_file)
+    print("Graph Loaded")
     for node in graph.nodes():
         element = graph.nodes[node]['label']
         relname = element[:element.find('(')]
         cols = element[element.find('(')+1:element.find(')')].split(',')
-        if relname == anchor_rel:
+        if relname == 'variable' and cols in local_variable_rows:
             label = 'used'
             if cols[0] in gt_vars:
                 label = 'unused'
             anchor_nodes.add((node, label))
     
-    # for node, label in anchor_nodes:
-    #     print(node, graph.nodes[node]['label'], label)
+    for node, label in anchor_nodes:
+        print(node, graph.nodes[node]['label'], label)
 
     walklist = []
     for anchor, label in anchor_nodes:
