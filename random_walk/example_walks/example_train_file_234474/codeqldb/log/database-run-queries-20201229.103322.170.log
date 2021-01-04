@@ -1,0 +1,11 @@
+[2020-12-29 10:33:22] This is codeql database run-queries --threads=8 ../datasets/cubert/py_files/train/correct/file_234474/codeqldb python-edb-queries/edb-queries
+[2020-12-29 10:33:22] Log file was started late.
+[2020-12-29 10:33:22] Calling plumbing command: codeql resolve ram --format=json
+[2020-12-29 10:33:22] Plumbing command codeql resolve ram completed:
+                      [
+                        "-J-Xmx15344M",
+                        "--off-heap-ram=15344"
+                      ]
+[2020-12-29 10:33:22] Spawning plumbing command: execute queries -J-Xmx15344M --off-heap-ram=15344 --verbosity=progress --logdir=/home/aadityanaik/relational-representation/datasets/cubert/py_files/train/correct/file_234474/codeqldb/log --threads=8 --ml-model-path= --native-library-path= --warnings=show --output=/home/aadityanaik/relational-representation/datasets/cubert/py_files/train/correct/file_234474/codeqldb/results -- /home/aadityanaik/relational-representation/datasets/cubert/py_files/train/correct/file_234474/codeqldb/db-python python-edb-queries/edb-queries
+[2020-12-29 10:33:52] Plumbing command codeql execute queries terminated with status 0.
+[2020-12-29 10:33:52] Exiting with code 0

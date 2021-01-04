@@ -1,0 +1,4 @@
+Initializing database at /home/aadityanaik/relational-representation/datasets/cubert/py_files/train/correct/file_243386/codeqldb.
+Running command [/home/aadityanaik/codeql/codeql/python/tools/autobuild.sh] in /home/aadityanaik/relational-representation/datasets/cubert/py_files/train/correct/file_243386.
+Finalizing database at /home/aadityanaik/relational-representation/datasets/cubert/py_files/train/correct/file_243386/codeqldb.
+Successfully created database at /home/aadityanaik/relational-representation/datasets/cubert/py_files/train/correct/file_243386/codeqldb.

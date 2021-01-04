@@ -1,0 +1,165 @@
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_expr_contexts.ql.
+[1/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_expr_contexts.ql (2.8s).
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/local_variable.ql.
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_Classes.ql.
+[2/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_Classes.ql (1.5s).
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_cmpops.ql.
+[3/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/local_variable.ql (1.7s).
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_stmt_lists.ql.
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_comprehensions.ql.
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_ssa_defn.ql.
+[4/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_cmpops.ql (901ms).
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_false_successors.ql.
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_true_successors.ql.
+[5/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_stmt_lists.ql (997ms).
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/locations_ast.ql.
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_idoms.ql.
+[6/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_comprehensions.ql (1.3s).
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_parameter_lists.ql.
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_locations.ql.
+[7/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_false_successors.ql (1.1s).
+[8/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_true_successors.ql (1.1s).
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_expr_lists.ql.
+[9/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_ssa_defn.ql (2s).
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_boolops.ql.
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_scopes.ql.
+[10/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_parameter_lists.ql (834ms).
+[11/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_idoms.ql (1.1s).
+[12/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/locations_ast.ql (1.1s).
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_scope_flow.ql.
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_ssa_use.ql.
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_exception_successors.ql.
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/variable.ql.
+[13/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_locations.ql (1.1s).
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_numbers.ql.
+[14/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_scopes.ql (890ms).
+[15/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_boolops.ql (914ms).
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_Functions.ql.
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_ssa_phi.ql.
+[16/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_expr_lists.ql (1.2s).
+[17/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/variable.ql (805ms).
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_successors.ql.
+[18/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_ssa_use.ql (918ms).
+[19/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_exception_successors.ql (903ms).
+[20/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_numbers.ql (800ms).
+[21/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_scope_flow.ql (1s).
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_dict_items.ql.
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_unaryops.ql.
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_stmts.ql.
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_ints.ql.
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_ssa_var.ql.
+[22/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_ssa_phi.ql (1s).
+[23/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_Functions.ql (1.1s).
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_dict_item_lists.ql.
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_exprs.ql.
+[24/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_successors.ql (1.1s).
+[25/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_unaryops.ql (970ms).
+[26/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_stmts.ql (947ms).
+[27/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_ssa_var.ql (908ms).
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_cmpop_lists.ql.
+[28/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_dict_items.ql (993ms).
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_operators.ql.
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_Modules.ql.
+[29/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_ints.ql (986ms).
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_str_lists.ql.
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_bytes.ql.
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_comprehension_lists.ql.
+[30/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_exprs.ql (1.1s).
+[31/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_operators.ql (916ms).
+[32/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_cmpop_lists.ql (958ms).
+[33/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_dict_item_lists.ql (1.1s).
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_flow_bb_node.ql.
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_strs.ql.
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_scope_location.ql.
+Compiling query plan for /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_variables.ql.
+[34/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_str_lists.ql (1.2s).
+[35/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_Modules.ql (1.3s).
+[36/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_bytes.ql (1.3s).
+[37/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_comprehension_lists.ql (1.2s).
+[38/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_strs.ql (1s).
+[39/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_scope_location.ql (1s).
+[40/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_flow_bb_node.ql (1.2s).
+[41/41] Compiled /home/aadityanaik/relational-representation/python_codeql/python-edb-queries/whitelist-queries/py_variables.ql (1.1s).
+Starting evaluation of python-edb-queries/py_expr_contexts.ql.
+Starting evaluation of python-edb-queries/py_Classes.ql.
+Starting evaluation of python-edb-queries/local_variable.ql.
+Starting evaluation of python-edb-queries/py_cmpops.ql.
+Starting evaluation of python-edb-queries/py_stmt_lists.ql.
+Starting evaluation of python-edb-queries/py_comprehensions.ql.
+Starting evaluation of python-edb-queries/py_false_successors.ql.
+Starting evaluation of python-edb-queries/py_true_successors.ql.
+[1/41] Evaluation done (2.7s); writing results to python-edb-queries/py_cmpops.bqrs.
+[2/41] Evaluation done (3.3s); writing results to python-edb-queries/py_comprehensions.bqrs.
+[3/41] Evaluation done (4.2s); writing results to python-edb-queries/py_stmt_lists.bqrs.
+Starting evaluation of python-edb-queries/py_ssa_defn.ql.
+Starting evaluation of python-edb-queries/py_parameter_lists.ql.
+[4/41] Evaluation done (4.2s); writing results to python-edb-queries/py_Classes.bqrs.
+Starting evaluation of python-edb-queries/py_idoms.ql.
+Starting evaluation of python-edb-queries/locations_ast.ql.
+[5/41] Evaluation done (4.9s); writing results to python-edb-queries/py_expr_contexts.bqrs.
+[6/41] Evaluation done (5.1s); writing results to python-edb-queries/local_variable.bqrs.
+Starting evaluation of python-edb-queries/py_locations.ql.
+Starting evaluation of python-edb-queries/py_scopes.ql.
+[7/41] Evaluation done (1.1s); writing results to python-edb-queries/py_parameter_lists.bqrs.
+Starting evaluation of python-edb-queries/py_boolops.ql.
+[8/41] Evaluation done (899ms); writing results to python-edb-queries/locations_ast.bqrs.
+Starting evaluation of python-edb-queries/py_expr_lists.ql.
+[9/41] Evaluation done (536ms); writing results to python-edb-queries/py_boolops.bqrs.
+Starting evaluation of python-edb-queries/variable.ql.
+[10/41] Evaluation done (368ms); writing results to python-edb-queries/py_expr_lists.bqrs.
+Starting evaluation of python-edb-queries/py_ssa_use.ql.
+[11/41] Evaluation done (998ms); writing results to python-edb-queries/py_scopes.bqrs.
+[12/41] Evaluation done (1s); writing results to python-edb-queries/py_locations.bqrs.
+Starting evaluation of python-edb-queries/py_exception_successors.ql.
+Starting evaluation of python-edb-queries/py_numbers.ql.
+[13/41] Evaluation done (369ms); writing results to python-edb-queries/variable.bqrs.
+Starting evaluation of python-edb-queries/py_scope_flow.ql.
+[14/41] Evaluation done (620ms); writing results to python-edb-queries/py_numbers.bqrs.
+Starting evaluation of python-edb-queries/py_ssa_phi.ql.
+[15/41] Evaluation done (649ms); writing results to python-edb-queries/py_ssa_phi.bqrs.
+Starting evaluation of python-edb-queries/py_Functions.ql.
+[16/41] Evaluation done (135ms); writing results to python-edb-queries/py_Functions.bqrs.
+Starting evaluation of python-edb-queries/py_successors.ql.
+Starting evaluation of python-edb-queries/py_unaryops.ql.
+Starting evaluation of python-edb-queries/py_stmts.ql.
+Starting evaluation of python-edb-queries/py_ssa_var.ql.
+[17/41] Evaluation done (245ms); writing results to python-edb-queries/py_unaryops.bqrs.
+Starting evaluation of python-edb-queries/py_dict_items.ql.
+[18/41] Evaluation done (270ms); writing results to python-edb-queries/py_stmts.bqrs.
+[19/41] Evaluation done (240ms); writing results to python-edb-queries/py_ssa_var.bqrs.
+Starting evaluation of python-edb-queries/py_ints.ql.
+[20/41] Evaluation done (446ms); writing results to python-edb-queries/py_dict_items.bqrs.
+Starting evaluation of python-edb-queries/py_exprs.ql.
+Starting evaluation of python-edb-queries/py_operators.ql.
+Starting evaluation of python-edb-queries/py_cmpop_lists.ql.
+[21/41] Evaluation done (461ms); writing results to python-edb-queries/py_operators.bqrs.
+Starting evaluation of python-edb-queries/py_dict_item_lists.ql.
+[22/41] Evaluation done (558ms); writing results to python-edb-queries/py_cmpop_lists.bqrs.
+[23/41] Evaluation done (629ms); writing results to python-edb-queries/py_ints.bqrs.
+Starting evaluation of python-edb-queries/py_str_lists.ql.
+Starting evaluation of python-edb-queries/py_Modules.ql.
+[24/41] Evaluation done (40ms); writing results to python-edb-queries/py_str_lists.bqrs.
+Starting evaluation of python-edb-queries/py_bytes.ql.
+[25/41] Evaluation done (318ms); writing results to python-edb-queries/py_dict_item_lists.bqrs.
+[26/41] Evaluation done (10.8s); writing results to python-edb-queries/py_ssa_use.bqrs.
+[27/41] Evaluation done (177ms); writing results to python-edb-queries/py_bytes.bqrs.
+[28/41] Evaluation done (16.8s); writing results to python-edb-queries/py_false_successors.bqrs.
+[29/41] Evaluation done (839ms); writing results to python-edb-queries/py_exprs.bqrs.
+[30/41] Evaluation done (12.7s); writing results to python-edb-queries/py_ssa_defn.bqrs.
+Starting evaluation of python-edb-queries/py_comprehension_lists.ql.
+Starting evaluation of python-edb-queries/py_strs.ql.
+[31/41] Evaluation done (17.1s); writing results to python-edb-queries/py_true_successors.bqrs.
+[32/41] Evaluation done (195ms); writing results to python-edb-queries/py_strs.bqrs.
+[33/41] Evaluation done (702ms); writing results to python-edb-queries/py_Modules.bqrs.
+Starting evaluation of python-edb-queries/py_scope_location.ql.
+Starting evaluation of python-edb-queries/py_flow_bb_node.ql.
+Starting evaluation of python-edb-queries/py_variables.ql.
+[34/41] Evaluation done (419ms); writing results to python-edb-queries/py_comprehension_lists.bqrs.
+[35/41] Evaluation done (11.2s); writing results to python-edb-queries/py_scope_flow.bqrs.
+[36/41] Evaluation done (13.3s); writing results to python-edb-queries/py_idoms.bqrs.
+[37/41] Evaluation done (11.3s); writing results to python-edb-queries/py_exception_successors.bqrs.
+[38/41] Evaluation done (434ms); writing results to python-edb-queries/py_scope_location.bqrs.
+[39/41] Evaluation done (559ms); writing results to python-edb-queries/py_variables.bqrs.
+[40/41] Evaluation done (10.8s); writing results to python-edb-queries/py_successors.bqrs.
+[41/41] Evaluation done (8.4s); writing results to python-edb-queries/py_flow_bb_node.bqrs.
+Shutting down query evaluator.

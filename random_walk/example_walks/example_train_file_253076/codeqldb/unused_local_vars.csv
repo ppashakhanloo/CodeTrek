@@ -1,0 +1,2 @@
+"unused","v","col2","col3","col4"
+"obj","Local Variable obj","The value assigned to local variable 'obj' is never used.","obj","/home/aadityanaik/relational-representation/datasets/cubert/py_files/train/correct/file_253076/source.py:3"

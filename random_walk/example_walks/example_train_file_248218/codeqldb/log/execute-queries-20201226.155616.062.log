@@ -1,0 +1,588 @@
+[2020-12-26 15:56:16] This is codeql execute queries -J-Xmx15344M --off-heap-ram=15344 --verbosity=progress --logdir=/home/aadityanaik/relational-representation/datasets/cubert/py_files/train/correct/file_248218/codeqldb/log --ml-model-path= --native-library-path= --warnings=show --output=/home/aadityanaik/relational-representation/datasets/cubert/py_files/train/correct/file_248218/codeqldb/unused_local_vars.bqrs -- /home/aadityanaik/relational-representation/datasets/cubert/py_files/train/correct/file_248218/codeqldb/db-python /home/aadityanaik/relational-representation/datasets/cubert/unusedlocalvar.ql
+[2020-12-26 15:56:16] Creating executor with 1 threads.
+[2020-12-26 15:56:16] Calling plumbing command: codeql resolve library-path --query=/home/aadityanaik/relational-representation/datasets/cubert/unusedlocalvar.ql --format=json
+[2020-12-26 15:56:16] [DETAILS] resolve library-path> Resolving query at normalized path /home/aadityanaik/relational-representation/datasets/cubert/unusedlocalvar.ql.
+[2020-12-26 15:56:16] [DETAILS] resolve library-path> Found enclosing pack 'python-edb-queries' at /home/aadityanaik/relational-representation/datasets/cubert.
+[2020-12-26 15:56:16] [DETAILS] resolve library-path> Adding compilation cache at /home/aadityanaik/relational-representation/datasets/cubert/.cache.
+[2020-12-26 15:56:16] [DETAILS] resolve library-path> Resolving library dependencies from /home/aadityanaik/relational-representation/datasets/cubert/qlpack.yml.
+[2020-12-26 15:56:16] [SPAMMIER] resolve library-path> Recursing into /home/aadityanaik/codeql.
+[2020-12-26 15:56:16] [SPAMMIER] resolve library-path> Recursing into /home/aadityanaik/codeql/codeql-repo.
+[2020-12-26 15:56:16] [SPAMMIER] resolve library-path> Recursing into /home/aadityanaik/codeql/codeql-repo/misc/legacy-support.
+[2020-12-26 15:56:16] [DETAILS] resolve library-path> QL pack dependencies for /home/aadityanaik/relational-representation/datasets/cubert resolved OK.
+[2020-12-26 15:56:16] [DETAILS] resolve library-path> Found dbscheme through QL packs: /home/aadityanaik/codeql/codeql-repo/python/ql/src/semmlecode.python.dbscheme.
+[2020-12-26 15:56:16] Plumbing command codeql resolve library-path completed:
+                      {
+                        "libraryPath" : [
+                          "/home/aadityanaik/relational-representation/datasets/cubert",
+                          "/home/aadityanaik/codeql/codeql-repo/python/ql/src"
+                        ],
+                        "dbscheme" : "/home/aadityanaik/codeql/codeql-repo/python/ql/src/semmlecode.python.dbscheme",
+                        "compilationCache" : [
+                          "/home/aadityanaik/relational-representation/datasets/cubert/.cache"
+                        ],
+                        "relativeName" : "python-edb-queries/unusedlocalvar.ql"
+                      }
+[2020-12-26 15:56:16] [PROGRESS] execute queries> Compiling query plan for /home/aadityanaik/relational-representation/datasets/cubert/unusedlocalvar.ql.
+[2020-12-26 15:56:16] [DETAILS] execute queries> Resolving imports for /home/aadityanaik/relational-representation/datasets/cubert/unusedlocalvar.ql.
+[2020-12-26 15:56:17] Resolved file set for /home/aadityanaik/relational-representation/datasets/cubert/unusedlocalvar.ql hashes to c8361c92f564335be24cb9f52d265601858f7913.
+[2020-12-26 15:56:17] [DETAILS] execute queries> Compilation cache hit for /home/aadityanaik/relational-representation/datasets/cubert/unusedlocalvar.ql.
+[2020-12-26 15:56:17] [PROGRESS] execute queries> [1/1] Compiled /home/aadityanaik/relational-representation/datasets/cubert/unusedlocalvar.ql (634ms).
+[2020-12-26 15:56:17] Of 320 predicates, 0 are used in more than one query.
+[2020-12-26 15:56:17] [PROGRESS] execute queries> Starting evaluation of python-edb-queries/unusedlocalvar.ql.
+[2020-12-26 15:56:17] Starting evaluation of /home/aadityanaik/relational-representation/datasets/cubert/unusedlocalvar.ql
+[2020-12-26 15:56:17] (0s) Start query execution
+[2020-12-26 15:56:17] (0s) Prepared IMB program for execution: took 0ms
+[2020-12-26 15:56:17] (0s) Beginning execution of program...
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_idoms with 54 rows and 2 columns.
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_flow_bb_node with 56 rows and 4 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate project#py_flow_bb_node/1@650b27
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation project#py_flow_bb_node with 5 rows and 1 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Flow::BasicBlock::getImmediateDominator_dispred#ff/2@0c1c29
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Flow::BasicBlock::getImmediateDominator_dispred#ff with 3 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) No need to promote strings for predicate Flow::BasicBlock::getImmediateDominator_dispred#ff  as it does not contain computed strings.
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Flow::BasicBlock::getImmediateDominator_dispred#ff with 3 rows and 2 columns.
+[2020-12-26 15:56:17] CSV_CACHE_DIFF: Operation,Overall time,NONE,LOAD_EXTENSIONAL,PAGE_RELATION,SORT_RELATION,NODUPS_RELATION,GLOBAL_DISK_SYNC,GLOBAL_TRIM_DISK,GLOBAL_TRIM_STRINGS,GLOBAL_EVICTOR,SCAN_DISK,IO_TRIMMING,IO_WRITING
+[2020-12-26 15:56:17] CSV_CACHE_DIFF: Flow::BasicBlock::getImmediateDominator_dispred#ff (unusedlocalvar.ql),0.097,0.034,0.023,0.01,0,0,0,0,0,0,0,0,0
+[2020-12-26 15:56:17] CSV_IMB_QUERIES: Query type,Query predicate,Query name,Stage,Success,Time,Number of results,Cumulative time in query
+[2020-12-26 15:56:17] CSV_IMB_QUERIES: Stage,Flow::BasicBlock::getImmediateDominator_dispred#ff,unusedlocalvar.ql,1,Success,0.097,3,228
+[2020-12-26 15:56:17] (0s) Prepared IMB program for execution: took 0ms
+[2020-12-26 15:56:17] (0s) Beginning execution of program...
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation variable with 16 rows and 3 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Variables::Variable::getScope_dispred#ff/2@67d73f
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Variables::Variable::getScope_dispred#ff with 15 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Variables::Variable::getScope_dispred#ff_10#join_rhs/2@1048bd
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Variables::Variable::getScope_dispred#ff_10#join_rhs with 15 rows and 2 columns.
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_scope_location with 2 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate py_scope_location_1#antijoin_rhs/1@927232
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_scope_location_1#antijoin_rhs with 2 rows and 1 columns.
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation locations_ast with 64 rows and 6 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate locations_ast_234501#join_rhs/6@510f55
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation locations_ast_234501#join_rhs with 64 rows and 6 columns.
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_Modules with 1 rows and 1 columns.
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_Functions with 1 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate py_scope_location_10#join_rhs/2@53dc18
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_scope_location_10#join_rhs with 2 rows and 2 columns.
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_Classes with 0 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Scope::Scope::getLocation_dispred#ff/2@a4b741
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Scope::Scope::getLocation_dispred#ff with 2 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Variables::Variable::getId_dispred#ff/2@33c7e3
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Variables::Variable::getId_dispred#ff with 15 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate #select#ffff#shared/4@bcce32
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation #select#ffff#shared with 15 rows and 4 columns.
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_exprs with 51 rows and 4 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Variables::LocalVariable#class#f/1@d86dbc
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Variables::LocalVariable#class#f with 7 rows and 1 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate py_flow_bb_node_10#join_rhs/2@0888d5
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_flow_bb_node_10#join_rhs with 56 rows and 2 columns.
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_variables with 28 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate AstGenerated::Name_::getVariable_dispred#ff/2@a665dd
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation AstGenerated::Name_::getVariable_dispred#ff with 28 rows and 2 columns.
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_stmts with 11 rows and 4 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate py_stmts_10#join_rhs/2@a78a1e
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_stmts_10#join_rhs with 11 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate py_exprs_1230#join_rhs/4@91b91e
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_exprs_1230#join_rhs with 51 rows and 4 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate AstGenerated::AugAssign_::getOperation_dispred#ff/2@ad6e1f
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation AstGenerated::AugAssign_::getOperation_dispred#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Inferred that non-rec relation Stmts::AugAssign::getTarget_dispred#ff/2 is empty
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Stmts::AugAssign::getTarget_dispred#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_expr_contexts with 37 rows and 3 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate py_expr_contexts_12#join_rhs/2@2dc77a
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_expr_contexts_12#join_rhs with 37 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate py_exprs_10#join_rhs/2@74cf2a
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_exprs_10#join_rhs with 51 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Exprs::Name::isDefinition_dispred#f/1@86ecca
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Exprs::Name::isDefinition_dispred#f with 8 rows and 1 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Exprs::Name::defines_dispred#ff/2@e7134c
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Exprs::Name::defines_dispred#ff with 8 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Flow::NameNode::defines_dispred#ff#shared/2@298aea
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Flow::NameNode::defines_dispred#ff#shared with 8 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate AstExtended::AstNode_not_Attribute_Call_IfExp_ImportMember_Name_NameConstant_PlaceHolder_Subscript#f#antijoin_rhs#6/1@4e7488
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation AstExtended::AstNode_not_Attribute_Call_IfExp_ImportMember_Name_NameConstant_PlaceHolder_Subscript#f#antijoin_rhs#6 with 0 rows and 1 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate AstExtended::AstNode_not_Attribute_Call_IfExp_ImportMember_Name_NameConstant_PlaceHolder_Subscript#f#antijoin_rhs/1@aea0ce
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation AstExtended::AstNode_not_Attribute_Call_IfExp_ImportMember_Name_NameConstant_PlaceHolder_Subscript#f#antijoin_rhs with 28 rows and 1 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Flow::NameNode#f/1@064eb7
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Flow::NameNode#f with 28 rows and 1 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Variables::Variable::getId_dispred#ff_10#join_rhs/2@bf225a
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Variables::Variable::getId_dispred#ff_10#join_rhs with 15 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Exprs::name_consts#ff/2@e55f6f
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Exprs::name_consts#ff with 3 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Exprs::name_consts#ff_10#join_rhs/2@68c55d
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Exprs::name_consts#ff_10#join_rhs with 3 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Exprs::NameConstant#class#f/1@2520a1
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Exprs::NameConstant#class#f with 3 rows and 1 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Flow::NameConstantNode#class#f/1@308d9c
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Flow::NameConstantNode#class#f with 3 rows and 1 columns.
+[2020-12-26 15:56:17] (0s) Inferred that non-rec relation Flow::augstore#ff/2 is empty
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Flow::augstore#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Inferred that non-rec relation Flow::augstore#ff_1#antijoin_rhs/1 is empty
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Flow::augstore#ff_1#antijoin_rhs with 0 rows and 1 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Flow::ControlFlowNode::isLoad_dispred#f/1@7d817e
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Flow::ControlFlowNode::isLoad_dispred#f with 24 rows and 1 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Flow::NameNode::defines_dispred#ff#antijoin_rhs/2@28cae4
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Flow::NameNode::defines_dispred#ff#antijoin_rhs with 0 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Flow::NameNode::defines_dispred#ff/2@35fff9
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Flow::NameNode::defines_dispred#ff with 8 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate py_exprs_230#join_rhs/3@bf6d49
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_exprs_230#join_rhs with 51 rows and 3 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate AstGenerated::For_::getTarget_dispred#ff/2@bfc483
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation AstGenerated::For_::getTarget_dispred#ff with 1 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate AstGenerated::For_::getTarget_dispred#ff_1#join_rhs/1@b27178
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation AstGenerated::For_::getTarget_dispred#ff_1#join_rhs with 1 rows and 1 columns.
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_expr_lists with 14 rows and 3 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate py_expr_lists_120#join_rhs/3@ffe87e
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_expr_lists_120#join_rhs with 14 rows and 3 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate py_exprs_20#join_rhs/2@2be581
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_exprs_20#join_rhs with 51 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate AstGenerated::ExprList_::getAnItem_dispred#ff/2@d2e7be
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation AstGenerated::ExprList_::getAnItem_dispred#ff with 21 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate AstGenerated::List_::getAnElt_dispred#ff/2@695d52
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation AstGenerated::List_::getAnElt_dispred#ff with 3 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate AstGenerated::List_::getAnElt_dispred#ff_10#join_rhs/2@0f6cec
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation AstGenerated::List_::getAnElt_dispred#ff_10#join_rhs with 3 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate AstGenerated::Tuple_::getAnElt_dispred#ff/2@3444d2
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation AstGenerated::Tuple_::getAnElt_dispred#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Inferred that non-rec relation AstGenerated::Tuple_::getAnElt_dispred#ff_10#join_rhs/2 is empty
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation AstGenerated::Tuple_::getAnElt_dispred#ff_10#join_rhs with 0 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Flow::list_or_tuple_nested_element#ff#cur_delta/2[1]@2efdc2 (iteration 1)
+[2020-12-26 15:56:17] (0s) 			 - Flow::list_or_tuple_nested_element#ff_delta has 3 rows (order for disjuncts: delta=<standard>).
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Flow::list_or_tuple_nested_element#ff#cur_delta/2[2]@e06a09 (iteration 2)
+[2020-12-26 15:56:17] (0s) Empty delta for Flow::list_or_tuple_nested_element#ff_delta (order for disjuncts: delta=100).
+[2020-12-26 15:56:17] (0s) Accumulating deltas
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Flow::list_or_tuple_nested_element#ff with 3 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Flow::list_or_tuple_nested_element#ff_10#join_rhs/2@519954
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Flow::list_or_tuple_nested_element#ff_10#join_rhs with 3 rows and 2 columns.
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_aliases with 0 rows and 3 columns.
+[2020-12-26 15:56:17] (0s) Inferred that non-rec relation AstGenerated::Alias_::getAsname_dispred#ff/2 is empty
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation AstGenerated::Alias_::getAsname_dispred#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Inferred that non-rec relation AstGenerated::Alias_::getAsname_dispred#ff_1#join_rhs/1 is empty
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation AstGenerated::Alias_::getAsname_dispred#ff_1#join_rhs with 0 rows and 1 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate AstGenerated::Assign_::getATarget_dispred#ff/2@5899a7
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation AstGenerated::Assign_::getATarget_dispred#ff with 11 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate AstGenerated::Assign_::getATarget_dispred#ff_1#join_rhs/1@099f1b
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation AstGenerated::Assign_::getATarget_dispred#ff_1#join_rhs with 11 rows and 1 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Exprs::Name_not_NameConstant#f/1@4c2011
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Exprs::Name_not_NameConstant#f with 25 rows and 1 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate py_flow_bb_node_1023#join_rhs/4@66f1c6
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_flow_bb_node_1023#join_rhs with 56 rows and 4 columns.
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_dict_items with 0 rows and 4 columns.
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_comprehensions with 0 rows and 3 columns.
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_StringParts with 0 rows and 3 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate @py_scope#f/1@ea5aec
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation @py_scope#f with 2 rows and 1 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate AstExtended::AstNode#class#f/1@27d142
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation AstExtended::AstNode#class#f with 64 rows and 1 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate AstExtended::AstNode_not_Attribute_Call_IfExp_ImportMember_Name_NameConstant_PlaceHolder_Subscript#f#antijoin_rhs#5/1@f21c71
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation AstExtended::AstNode_not_Attribute_Call_IfExp_ImportMember_Name_NameConstant_PlaceHolder_Subscript#f#antijoin_rhs#5 with 0 rows and 1 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate AstExtended::AstNode_not_Attribute_Call_IfExp_ImportMember_Name_NameConstant_PlaceHolder_Subscript#f#antijoin_rhs#4/1@39ed87
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation AstExtended::AstNode_not_Attribute_Call_IfExp_ImportMember_Name_NameConstant_PlaceHolder_Subscript#f#antijoin_rhs#4 with 0 rows and 1 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate AstExtended::AstNode_not_Attribute_Call_IfExp_ImportMember_Name_NameConstant_PlaceHolder_Subscript#f#antijoin_rhs#3/1@9b84e8
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation AstExtended::AstNode_not_Attribute_Call_IfExp_ImportMember_Name_NameConstant_PlaceHolder_Subscript#f#antijoin_rhs#3 with 0 rows and 1 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate AstExtended::AstNode_not_Attribute_Call_IfExp_ImportMember_Name_NameConstant_PlaceHolder_Subscript#f#antijoin_rhs#2/1@f41ea6
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation AstExtended::AstNode_not_Attribute_Call_IfExp_ImportMember_Name_NameConstant_PlaceHolder_Subscript#f#antijoin_rhs#2 with 9 rows and 1 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate AstExtended::AstNode_not_Attribute_Call_IfExp_ImportMember_Name_NameConstant_PlaceHolder_Subscript#f#antijoin_rhs#1/1@22d15c
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation AstExtended::AstNode_not_Attribute_Call_IfExp_ImportMember_Name_NameConstant_PlaceHolder_Subscript#f#antijoin_rhs#1 with 8 rows and 1 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate AstExtended::AstNode_not_Attribute_Call_IfExp_ImportMember_Name_NameConstant_PlaceHolder_Subscript#f/1@416915
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation AstExtended::AstNode_not_Attribute_Call_IfExp_ImportMember_Name_NameConstant_PlaceHolder_Subscript#f with 19 rows and 1 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate AstExtended::AstNode::getAFlowNode_dispred#ff/2@59fe3e
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation AstExtended::AstNode::getAFlowNode_dispred#ff with 56 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Definition::Definition#class#f/1@fd0887
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Definition::Definition#class#f with 7 rows and 1 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Definition::Definition::getVariable_dispred#ff/2@8bf915
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Definition::Definition::getVariable_dispred#ff with 7 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate Definition::Definition::getVariable_dispred#ff_10#join_rhs/2@69f837
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Definition::Definition::getVariable_dispred#ff_10#join_rhs with 7 rows and 2 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate m#Flow::ControlFlowNode::getScope_dispred#bf/1@694748
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation m#Flow::ControlFlowNode::getScope_dispred#bf with 7 rows and 1 columns.
+[2020-12-26 15:56:17] (0s) Inferred that non-rec relation Module::Module::hasFromFuture_dispred#fb#cpe#1/1 is empty
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation Module::Module::hasFromFuture_dispred#fb#cpe#1 with 0 rows and 1 columns.
+[2020-12-26 15:56:17] (0s) Starting to evaluate predicate py_Functions_10#join_rhs/2@7d53e2
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_Functions_10#join_rhs with 1 rows and 2 columns.
+[2020-12-26 15:56:17] (0s)  >>> Wrote relation py_scopes with 62 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Exprs::Expr::getScope_dispred#ff/2@ea27d5
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Exprs::Expr::getScope_dispred#ff with 51 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Function::Function::getEnclosingScope_dispred#ff/2@064e45
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Function::Function::getEnclosingScope_dispred#ff with 1 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation Scope::Scope::getEnclosingScope_dispred#bf#shared/2 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Scope::Scope::getEnclosingScope_dispred#bf#shared with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Scope::Scope::getEnclosingScope_dispred#bf/2@1bf6bd
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Scope::Scope::getEnclosingScope_dispred#bf with 1 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Scope::Scope::getEnclosingScope_dispred#bf_10#join_rhs/2@dcf3bd
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Scope::Scope::getEnclosingScope_dispred#bf_10#join_rhs with 1 rows and 2 columns.
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_StringPart_lists with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation AstGenerated::Str_::getAnImplicitlyConcatenatedPart_dispred#ff/2 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation AstGenerated::Str_::getAnImplicitlyConcatenatedPart_dispred#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation project#AstGenerated::Str_::getAnImplicitlyConcatenatedPart_dispred#ff/1 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation project#AstGenerated::Str_::getAnImplicitlyConcatenatedPart_dispred#ff with 0 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation m#Scope::Scope::getEnclosingModule_dispred#bf#shared/1 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation m#Scope::Scope::getEnclosingModule_dispred#bf#shared with 0 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Stmts::Stmt::getScope_dispred#ff/2@5fead4
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Stmts::Stmt::getScope_dispred#ff with 11 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation m#Stmts::Stmt::getEnclosingModule_dispred#bf/1 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation m#Stmts::Stmt::getEnclosingModule_dispred#bf with 0 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate m#Scope::Scope::getEnclosingModule_dispred#bf#cur_delta/1[1]@f03344 (iteration 1)
+[2020-12-26 15:56:18] (0s) Empty delta for m#Scope::Scope::getEnclosingModule_dispred#bf_delta (order for disjuncts: delta=<standard>).
+[2020-12-26 15:56:18] (0s) Accumulating deltas
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation m#Scope::Scope::getEnclosingModule_dispred#bf with 0 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation Scope::Scope::getEnclosingModule_dispred#bf#join_rhs/2 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Scope::Scope::getEnclosingModule_dispred#bf#join_rhs with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Scope::Scope::getEnclosingModule_dispred#bf#cur_delta/2[1]@e6794b (iteration 1)
+[2020-12-26 15:56:18] (0s) Empty delta for Scope::Scope::getEnclosingModule_dispred#bf_delta (order for disjuncts: delta=<standard>).
+[2020-12-26 15:56:18] (0s) Accumulating deltas
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Scope::Scope::getEnclosingModule_dispred#bf with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_flags_versioned with 70 rows and 3 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Constants::major_version#f#antijoin_rhs/0@9379cc
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Constants::major_version#f#antijoin_rhs with 0 rows and 0 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Constants::explicit_major_version#f/1@bb6c14
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Constants::explicit_major_version#f with 0 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation Constants::explicit_major_version#f#nonempty/0 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Constants::explicit_major_version#f#nonempty with 0 rows and 0 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Constants::major_version#f/1@346577
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Constants::major_version#f with 1 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation AstGenerated::Str_::getPrefix_dispred#bf/2 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation AstGenerated::Str_::getPrefix_dispred#bf with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Exprs::StrConst::isUnicode_dispred#b/1@6b2c74
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Exprs::StrConst::isUnicode_dispred#b with 0 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation py_dict_items_10#join_rhs/2 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_dict_items_10#join_rhs with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation Keywords::Keyword::getValue_dispred#ff/2 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Keywords::Keyword::getValue_dispred#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation Keywords::KeyValuePair::getValue_dispred#ff/2 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Keywords::KeyValuePair::getValue_dispred#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation Keywords::DictUnpacking::getValue_dispred#ff/2 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Keywords::DictUnpacking::getValue_dispred#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation AstGenerated::ListComp_::getAGenerator_dispred#ff/2 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation AstGenerated::ListComp_::getAGenerator_dispred#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate AstExtended::AstNode::getScope_dispred#ff/2@18f3e6
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation AstExtended::AstNode::getScope_dispred#ff with 63 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Flow::ControlFlowNode::getScope_dispred#bf#antijoin_rhs/1@e5d76b
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Flow::ControlFlowNode::getScope_dispred#bf#antijoin_rhs with 0 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Flow::ControlFlowNode::getScope_dispred#bf/2@fb4a30
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Flow::ControlFlowNode::getScope_dispred#bf with 7 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::Definition::isUnused_dispred#f#shared/1@2d4b81
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::isUnused_dispred#f#shared with 7 rows and 1 columns.
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_ssa_defn with 6 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate py_ssa_defn_1#join_rhs/1@12e2e4
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_ssa_defn_1#join_rhs with 6 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::Definition::isUnused_dispred#f#antijoin_rhs/1@435829
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::isUnused_dispred#f#antijoin_rhs with 6 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::Definition::isUnused_dispred#f#shared#1/1@c5baaa
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::isUnused_dispred#f#shared#1 with 1 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Variables::Variable::getAnAccess_dispred#ff/2@363ec0
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Variables::Variable::getAnAccess_dispred#ff with 28 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Variables::Variable::escapes_dispred#f/1@f4ad2d
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Variables::Variable::escapes_dispred#f with 5 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::Definition::isUnused_dispred#f#antijoin_rhs#1/1@355121
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::isUnused_dispred#f#antijoin_rhs#1 with 0 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::Definition::isUnused_dispred#f#shared#2/1@9ff243
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::isUnused_dispred#f#shared#2 with 1 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Exprs::Expr::getScope_dispred#ff_10#join_rhs/2@e9adaf
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Exprs::Expr::getScope_dispred#ff_10#join_rhs with 51 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate AstGenerated::Call_::getFunc_dispred#ff/2@a3b6a9
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation AstGenerated::Call_::getFunc_dispred#ff with 9 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Exprs::Name::getId_dispred#ff/2@d67534
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Exprs::Name::getId_dispred#ff with 28 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::Definition::isUnused_dispred#f#antijoin_rhs#2/1@bcfdc5
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::isUnused_dispred#f#antijoin_rhs#2 with 0 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::Definition::isUnused_dispred#f/1@2dba0b
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::isUnused_dispred#f with 1 rows and 1 columns.
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_stmt_lists with 3 rows and 3 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate py_stmt_lists_021#join_rhs/3@003881
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_stmt_lists_021#join_rhs with 3 rows and 3 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate py_stmts_102#join_rhs/3@870830
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_stmts_102#join_rhs with 11 rows and 3 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation AstGenerated::Import_::getAName_dispred#ff/2 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation AstGenerated::Import_::getAName_dispred#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation AstGenerated::Import_::getAName_dispred#ff_10#join_rhs/2 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation AstGenerated::Import_::getAName_dispred#ff_10#join_rhs with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation Import::Import::getASubExpression_dispred#ff/2 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Import::Import::getASubExpression_dispred#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate AstGenerated::Assign_::getValue_dispred#ff/2@e5e397
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation AstGenerated::Assign_::getValue_dispred#ff with 9 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate AstGenerated::Function_::getKwarg_dispred#ff/2@6e345f
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation AstGenerated::Function_::getKwarg_dispred#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate AstGenerated::Function_::getVararg_dispred#ff/2@64c2f1
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation AstGenerated::Function_::getVararg_dispred#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_parameter_lists with 1 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate m#Function::Parameter#class#b/1@e6d55e
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation m#Function::Parameter#class#b with 1 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate @py_parameter#b/1@4831c7
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation @py_parameter#b with 1 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Function::Parameter#class#b/1@dc411e
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Function::Parameter#class#b with 1 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Function::FunctionExpr::getADecoratorCall#ff#join_rhs/1@0b1c99
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Function::FunctionExpr::getADecoratorCall#ff#join_rhs with 1 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Function::FunctionExpr::getInnerScope_dispred#ff/2@be4da9
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Function::FunctionExpr::getInnerScope_dispred#ff with 1 rows and 2 columns.
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_arguments with 1 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Function::Arguments::getASubExpression_dispred#ff/2@ef2129
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Function::Arguments::getASubExpression_dispred#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate py_arguments_10#join_rhs/2@c9a1a6
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_arguments_10#join_rhs with 1 rows and 2 columns.
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_dict_item_lists with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation py_dict_item_lists_10#join_rhs/2 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_dict_item_lists_10#join_rhs with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Keywords::DictUnpackingOrKeyword::getValue_dispred#ff/2@78ec0c
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Keywords::DictUnpackingOrKeyword::getValue_dispred#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation Class::ClassExpr::getAKeyword_dispred#ff/2 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Class::ClassExpr::getAKeyword_dispred#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate AstGenerated::ClassExpr_::getABase_dispred#ff/2@d45da3
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation AstGenerated::ClassExpr_::getABase_dispred#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation py_dict_items_20#join_rhs/2 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_dict_items_20#join_rhs with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate AstGenerated::Call_::getPositionalArgs_dispred#ff/2@178eda
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation AstGenerated::Call_::getPositionalArgs_dispred#ff with 3 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate AstGenerated::Starred_::getValue_dispred#ff/2@5f39d0
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation AstGenerated::Starred_::getValue_dispred#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate AstGenerated::ImportMember_::getModule_dispred#ff/2@7af122
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation AstGenerated::ImportMember_::getModule_dispred#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate py_exprs_1302#join_rhs/4@d90887
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_exprs_1302#join_rhs with 51 rows and 4 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate AstGenerated::BinaryExpr_::getLeft_dispred#ff/2@841e5c
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation AstGenerated::BinaryExpr_::getLeft_dispred#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate py_stmts_20#join_rhs/2@ef0c02
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_stmts_20#join_rhs with 11 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate py_stmt_lists_120#join_rhs/3@83fb01
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_stmt_lists_120#join_rhs with 3 rows and 3 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate AstExtended::AstNode::getAChildNode_dispred#ff/2@14bddc
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation AstExtended::AstNode::getAChildNode_dispred#ff with 62 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::Definition::isRelevant_dispred#f#shared/1@677ef4
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::isRelevant_dispred#f#shared with 6 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::name_acceptable_for_unused_variable#f/1@0e90ee
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::name_acceptable_for_unused_variable#f with 2 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::Definition::isRelevant_dispred#f#antijoin_rhs/1@be7fde
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::isRelevant_dispred#f#antijoin_rhs with 0 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::Definition::isRelevant_dispred#f#shared#1/1@4f7ab0
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::isRelevant_dispred#f#shared#1 with 6 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate AstExtended::AstNode::getAChildNode_dispred#ff_10#join_rhs/2@159f00
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation AstExtended::AstNode::getAChildNode_dispred#ff_10#join_rhs with 62 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate AstGenerated::Assign_::getValue_dispred#ff_10#join_rhs/2@1e2f4d
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation AstGenerated::Assign_::getValue_dispred#ff_10#join_rhs with 9 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate py_exprs_203#join_rhs/3@d410dd
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_exprs_203#join_rhs with 51 rows and 3 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate AstGenerated::Call_::getPositionalArg_dispred#ffb/3@9ce1f7
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation AstGenerated::Call_::getPositionalArg_dispred#ffb with 7 rows and 3 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Exprs::Call::getArg_dispred#ffb#antijoin_rhs#1/1@85bcc4
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Exprs::Call::getArg_dispred#ffb#antijoin_rhs#1 with 0 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Exprs::Call::getArg_dispred#ffb#antijoin_rhs/3@259c61
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Exprs::Call::getArg_dispred#ffb#antijoin_rhs with 0 rows and 3 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Exprs::Call::getArg_dispred#ffb/3@dba4cc
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Exprs::Call::getArg_dispred#ffb with 7 rows and 3 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Exprs::Call::getArg_dispred#ffb_120#join_rhs/3@af4eaa
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Exprs::Call::getArg_dispred#ffb_120#join_rhs with 7 rows and 3 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Function::FunctionExpr::getADecoratorCall#ff#cur_delta/2[1]@0756ac (iteration 1)
+[2020-12-26 15:56:18] (0s) Empty delta for Function::FunctionExpr::getADecoratorCall#ff_delta (order for disjuncts: delta=<standard>).
+[2020-12-26 15:56:18] (0s) Accumulating deltas
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Function::FunctionExpr::getADecoratorCall#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Function::FunctionDef#class#f/1@6cbaa7
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Function::FunctionDef#class#f with 1 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate AstExtended::AstNode::getScope_dispred#ff_10#join_rhs/2@4925ce
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation AstExtended::AstNode::getScope_dispred#ff_10#join_rhs with 63 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate #AstExtended::AstNode::getAChildNode_dispred#bfPlus#cur_delta/2[1]@9795c7 (iteration 1)
+[2020-12-26 15:56:18] (0s) 			 - #AstExtended::AstNode::getAChildNode_dispred#bfPlus_delta has 2 rows (order for disjuncts: delta=<standard>).
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate #AstExtended::AstNode::getAChildNode_dispred#bfPlus#cur_delta/2[2]@908381 (iteration 2)
+[2020-12-26 15:56:18] (0s) 			 - #AstExtended::AstNode::getAChildNode_dispred#bfPlus_delta has 1 rows (order for disjuncts: delta=100).
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate #AstExtended::AstNode::getAChildNode_dispred#bfPlus#cur_delta/2[3]@f800f6 (iteration 3)
+[2020-12-26 15:56:18] (0s) 			 - #AstExtended::AstNode::getAChildNode_dispred#bfPlus_delta has 10 rows (order for disjuncts: delta=100).
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate #AstExtended::AstNode::getAChildNode_dispred#bfPlus#cur_delta/2[4]@ed92d6 (iteration 4)
+[2020-12-26 15:56:18] (0s) 			 - #AstExtended::AstNode::getAChildNode_dispred#bfPlus_delta has 20 rows (order for disjuncts: delta=100).
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate #AstExtended::AstNode::getAChildNode_dispred#bfPlus#cur_delta/2[5]@8a1571 (iteration 5)
+[2020-12-26 15:56:18] (0s) 			 - #AstExtended::AstNode::getAChildNode_dispred#bfPlus_delta has 23 rows (order for disjuncts: delta=100).
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate #AstExtended::AstNode::getAChildNode_dispred#bfPlus#cur_delta/2[6]@ec0606 (iteration 6)
+[2020-12-26 15:56:18] (0s) 			 - #AstExtended::AstNode::getAChildNode_dispred#bfPlus_delta has 5 rows (order for disjuncts: delta=100).
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate #AstExtended::AstNode::getAChildNode_dispred#bfPlus#cur_delta/2[7]@3f5a45 (iteration 7)
+[2020-12-26 15:56:18] (0s) 			 - #AstExtended::AstNode::getAChildNode_dispred#bfPlus_delta has 1 rows (order for disjuncts: delta=100).
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate #AstExtended::AstNode::getAChildNode_dispred#bfPlus#cur_delta/2[8]@a62ce7 (iteration 8)
+[2020-12-26 15:56:18] (0s) Empty delta for #AstExtended::AstNode::getAChildNode_dispred#bfPlus_delta (order for disjuncts: delta=100).
+[2020-12-26 15:56:18] (0s) Accumulating deltas
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation #AstExtended::AstNode::getAChildNode_dispred#bfPlus with 62 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate AstExtended::AstNode::containsInScope_dispred#bf/2@56f73f
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation AstExtended::AstNode::containsInScope_dispred#bf with 2 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Function::FunctionDef::getDefinedFunction_dispred#ff/2@9caf8a
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Function::FunctionDef::getDefinedFunction_dispred#ff with 1 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation Function::Function::getADecorator_dispred#ff/2 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Function::Function::getADecorator_dispred#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation project#Function::Function::getADecorator_dispred#ff/1 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation project#Function::Function::getADecorator_dispred#ff with 0 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation Definition::Definition::isRelevant_dispred#f#antijoin_rhs#1/1 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::isRelevant_dispred#f#antijoin_rhs#1 with 0 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::Definition::isRelevant_dispred#f#shared#2/1@eaba66
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::isRelevant_dispred#f#shared#2 with 6 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Class::ClassExpr::getADecoratorCall#ff#join_rhs/1@7e0c57
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Class::ClassExpr::getADecoratorCall#ff#join_rhs with 0 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation Class::ClassDef#class#f/1 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Class::ClassDef#class#f with 0 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation Class::ClassDef::getDefinedClass_dispred#ff/2 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Class::ClassDef::getDefinedClass_dispred#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation Definition::Definition::isRelevant_dispred#f#antijoin_rhs#2/1 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::isRelevant_dispred#f#antijoin_rhs#2 with 0 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::Definition::isRelevant_dispred#f/1@dd94bd
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::isRelevant_dispred#f with 6 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Flow::BasicBlock::getNode_dispred#fff/3@ac1d90
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Flow::BasicBlock::getNode_dispred#fff with 56 rows and 3 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Flow::BasicBlock::getNode_dispred#fff_201#join_rhs/3@4bf343
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Flow::BasicBlock::getNode_dispred#fff_201#join_rhs with 56 rows and 3 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::Definition::indexInBB_dispred#ffff/4@7d5600
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::indexInBB_dispred#ffff with 7 rows and 4 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::Definition::indexInBB_dispred#ffff_1203#rank_range/4@3367d3
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::indexInBB_dispred#ffff_1203#rank_range with 7 rows and 4 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::Definition::indexInBB_dispred#ffff_12033#rank_term/5@67ab0d
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::indexInBB_dispred#ffff_12033#rank_term with 7 rows and 5 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::Definition::rankInBB_dispred#ffff#join_rhs/4@c8de65
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::rankInBB_dispred#ffff#join_rhs with 7 rows and 4 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::Definition::rankInBB_dispred#ffff/4@5849b2
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::rankInBB_dispred#ffff with 7 rows and 4 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::Definition::rankInBB_dispred#ffff_1230#join_rhs/4@3e0d11
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::rankInBB_dispred#ffff_1230#join_rhs with 7 rows and 4 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Flow::NameNode::defines_dispred#ff_10#join_rhs/2@de7f6b
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Flow::NameNode::defines_dispred#ff_10#join_rhs with 8 rows and 2 columns.
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_successors with 55 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Flow::ControlFlowNode::getBasicBlock_dispred#ff/2@73c21a
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Flow::ControlFlowNode::getBasicBlock_dispred#ff with 56 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate py_flow_bb_node_23#max_range/2@5e2f78
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_flow_bb_node_23#max_range with 56 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate py_flow_bb_node_233#max_term/3@e25dd6
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_flow_bb_node_233#max_term with 56 rows and 3 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Flow::BasicBlock::getLastNode_dispred#ff/2@3fa582
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Flow::BasicBlock::getLastNode_dispred#ff with 5 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Flow::BasicBlock::getLastNode_dispred#ff_10#join_rhs/2@a6f4ab
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Flow::BasicBlock::getLastNode_dispred#ff_10#join_rhs with 5 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Flow::BasicBlock::getASuccessor_dispred#ff/2@07b65c
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Flow::BasicBlock::getASuccessor_dispred#ff with 4 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate m#Definition::reaches_without_redef#bbf#shared/2@fc130a
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation m#Definition::reaches_without_redef#bbf#shared with 1 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate m#Definition::reaches_without_redef#bbf/2@524f85
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation m#Definition::reaches_without_redef#bbf with 1 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::maybe_redefined#b#count_range/2@8c3021
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::maybe_redefined#b#count_range with 7 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate project#m#Definition::reaches_without_redef#bbf/1@0cfdb5
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation project#m#Definition::reaches_without_redef#bbf with 1 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::maybe_redefined#b/1@e6cad8
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::maybe_redefined#b with 0 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::reaches_without_redef#bbf#cur_delta/3[1]@a2cf44 (iteration 1)
+[2020-12-26 15:56:18] (0s) Empty delta for Definition::reaches_without_redef#bbf_delta (order for disjuncts: delta=<standard>).
+[2020-12-26 15:56:18] (0s) Accumulating deltas
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::reaches_without_redef#bbf with 0 rows and 3 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::Definition::rankInBB_dispred#ffff_03#join_rhs/2@fa87ea
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::rankInBB_dispred#ffff_03#join_rhs with 7 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::Definition::rankInBB_dispred#ffff_1203#max_range/4@efbfcc
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::rankInBB_dispred#ffff_1203#max_range with 7 rows and 4 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::Definition::rankInBB_dispred#ffff_12033#max_term/5@893b50
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::rankInBB_dispred#ffff_12033#max_term with 7 rows and 5 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::Definition::isLast_dispred#b#join_rhs/3@18cdfd
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::isLast_dispred#b#join_rhs with 7 rows and 3 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::Definition::isLast_dispred#b/1@1388b1
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::isLast_dispred#b with 1 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Definition::Definition::getARedef_dispred#bf/2@dd35b9
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Definition::Definition::getARedef_dispred#bf with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation project#Definition::Definition::getARedef_dispred#bf/1 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation project#Definition::Definition::getARedef_dispred#bf with 0 rows and 1 columns.
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_str_lists with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation py_str_lists_10#join_rhs/2 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_str_lists_10#join_rhs with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation Stmts::Nonlocal::getAVariable_dispred#ff/2 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Stmts::Nonlocal::getAVariable_dispred#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation Stmts::Nonlocal::getAVariable_dispred#ff_1#antijoin_rhs/1 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Stmts::Nonlocal::getAVariable_dispred#ff_1#antijoin_rhs with 0 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate unusedlocalvar::unused_local#ff#shared/2@a72f21
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation unusedlocalvar::unused_local#ff#shared with 1 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation unusedlocalvar::unused_local#ff#antijoin_rhs/2 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation unusedlocalvar::unused_local#ff#antijoin_rhs with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate unusedlocalvar::unused_local#ff#shared#1/2@9ce30c
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation unusedlocalvar::unused_local#ff#shared#1 with 1 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation unusedlocalvar::unused_local#ff#antijoin_rhs#1/2 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation unusedlocalvar::unused_local#ff#antijoin_rhs#1 with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate unusedlocalvar::unused_local#ff#shared#2/3@5d2a93
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation unusedlocalvar::unused_local#ff#shared#2 with 1 rows and 3 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate unusedlocalvar::unused_local#ff#shared#3/3@cc273d
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation unusedlocalvar::unused_local#ff#shared#3 with 1 rows and 3 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate unusedlocalvar::unused_local#ff#shared#4/3@48aeca
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation unusedlocalvar::unused_local#ff#shared#4 with 1 rows and 3 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation unusedlocalvar::unused_local#ff#antijoin_rhs#2/3 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation unusedlocalvar::unused_local#ff#antijoin_rhs#2 with 0 rows and 3 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate unusedlocalvar::unused_local#ff#shared#5/3@1ce9be
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation unusedlocalvar::unused_local#ff#shared#5 with 1 rows and 3 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation unusedlocalvar::unused_local#ff#antijoin_rhs#3/3 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation unusedlocalvar::unused_local#ff#antijoin_rhs#3 with 0 rows and 3 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate unusedlocalvar::unused_local#ff#antijoin_rhs#4/3@c41120
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation unusedlocalvar::unused_local#ff#antijoin_rhs#4 with 1 rows and 3 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate unusedlocalvar::unused_local#ff#antijoin_rhs#5/2@25f573
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation unusedlocalvar::unused_local#ff#antijoin_rhs#5 with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate unusedlocalvar::unused_local#ff/2@4fedaa
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation unusedlocalvar::unused_local#ff with 1 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate unusedlocalvar::unused_local#ff_10#join_rhs/2@a0e72b
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation unusedlocalvar::unused_local#ff_10#join_rhs with 1 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation #select#ffff#antijoin_rhs/4 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation #select#ffff#antijoin_rhs with 0 rows and 4 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate #select#ffff/4@f324f2
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation #select#ffff with 1 rows and 4 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate project##select#ffff#2/1@c21f7d
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation project##select#ffff#2 with 1 rows and 1 columns.
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_syntax_error_versioned with 0 rows and 3 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation py_syntax_error_versioned_201#join_rhs/3 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_syntax_error_versioned_201#join_rhs with 0 rows and 3 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation Files::SyntaxError::getMessage_dispred#ff/2 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Files::SyntaxError::getMessage_dispred#ff with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation Files::EncodingError#class#f/1 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Files::EncodingError#class#f with 0 rows and 1 columns.
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation locations_default with 0 rows and 6 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Files::Location::getStartLine_dispred#bf/2@dc4fd6
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Files::Location::getStartLine_dispred#bf with 1 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation py_syntax_error_versioned_20#join_rhs/2 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_syntax_error_versioned_20#join_rhs with 0 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Inferred that non-rec relation Files::SyntaxError#f/1 is empty
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Files::SyntaxError#f with 0 rows and 1 columns.
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation folders with 10 rows and 3 columns.
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation files with 1 rows and 5 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Files::Container::getAbsolutePath_dispred#ff/2@689a5d
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Files::Container::getAbsolutePath_dispred#ff with 11 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Files::Container#class#f/1@29db7e
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Files::Container#class#f with 11 rows and 1 columns.
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_module_path with 1 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Files::Location::getPath_dispred#bf/2@e48ec3
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Files::Location::getPath_dispred#bf with 1 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Files::Location::toString_dispred#bf/2@cc8409
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Files::Location::toString_dispred#bf with 1 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate project#Files::Location::toString_dispred#bf/1@b74ea7
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation project#Files::Location::toString_dispred#bf with 1 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate project##select#ffff/1@defa36
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation project##select#ffff with 1 rows and 1 columns.
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_locations with 62 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Exprs::Expr::getLocation_dispred#bf/2@707c9c
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Exprs::Expr::getLocation_dispred#bf with 1 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate m#Files::Location::hasLocationInfo_dispred#bfffff/1@590614
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation m#Files::Location::hasLocationInfo_dispred#bfffff with 2 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate locations_ast_102345#join_rhs/6@bbbab7
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation locations_ast_102345#join_rhs with 64 rows and 6 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate py_module_path_10#join_rhs/2@6b5024
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation py_module_path_10#join_rhs with 1 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Files::Location::hasLocationInfo_dispred#bfffff/6@eddfbc
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Files::Location::hasLocationInfo_dispred#bfffff with 2 rows and 6 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Files::Location::hasLocationInfo_dispred#bfffff_0#antijoin_rhs/1@dce024
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Files::Location::hasLocationInfo_dispred#bfffff_0#antijoin_rhs with 2 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Exprs::Name::toString_dispred#ff/2@dd6683
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Exprs::Name::toString_dispred#ff with 28 rows and 2 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate Exprs::Name::toString_dispred#ff_0#antijoin_rhs/1@20c24b
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation Exprs::Name::toString_dispred#ff_0#antijoin_rhs with 28 rows and 1 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate #select#query#ffffffffffffffff#shared/10@301bfc
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation #select#query#ffffffffffffffff#shared with 1 rows and 10 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate #select#query#ffffffffffffffff#shared#1/11@d2811b
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation #select#query#ffffffffffffffff#shared#1 with 1 rows and 11 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate #select#query#ffffffffffffffff#antijoin_rhs/10@0f5b56
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation #select#query#ffffffffffffffff#antijoin_rhs with 1 rows and 10 columns.
+[2020-12-26 15:56:18] (0s) Starting to evaluate predicate #select#query#ffffffffffffffff/16@64c17c
+[2020-12-26 15:56:18] (0s)  >>> Wrote relation #select#query#ffffffffffffffff with 1 rows and 16 columns.
+[2020-12-26 15:56:18] (0s) Query done
+[2020-12-26 15:56:18] CSV_CACHE_DIFF: #select#query#ffffffffffffffff (unusedlocalvar.ql),0.423,0.357,0.021,0.042,0.004,0.001,0,0,0,0,0,0,0
+[2020-12-26 15:56:18] (0s) Sequence stamp origin is -6643214137986900790
+[2020-12-26 15:56:18] (0s) Stopped the world to sync to disk at sequence stamp o+0
+[2020-12-26 15:56:18] (0s) Starting the world again
+[2020-12-26 15:56:18] CSV_IMB_QUERIES: Query,#select#query#ffffffffffffffff,unusedlocalvar.ql,2,Success,0.423,1,670
+[2020-12-26 15:56:18] Evaluation of /home/aadityanaik/relational-representation/datasets/cubert/unusedlocalvar.ql produced BQRS results
+[2020-12-26 15:56:18] [PROGRESS] execute queries> [1/1] Evaluation done (898ms); writing results to /home/aadityanaik/relational-representation/datasets/cubert/py_files/train/correct/file_248218/codeqldb/unused_local_vars.bqrs.
+[2020-12-26 15:56:18] [PROGRESS] execute queries> Shutting down query evaluator.
+[2020-12-26 15:56:18] Stopped the world to close the cache at sequence stamp o+1
+[2020-12-26 15:56:18] Doing closing disk-cache trim now.
+[2020-12-26 15:56:18] After trimming, disk cache uses 587 bytes
+[2020-12-26 15:56:18] Starting the world again
+[2020-12-26 15:56:18] Terminating normally.

@@ -1,0 +1,11 @@
+[2020-12-26 16:35:07] This is codeql query run -d py_files/train/correct/file_253076/codeqldb -o py_files/train/correct/file_253076/codeqldb/unused_local_vars.bqrs unusedlocalvar.ql
+[2020-12-26 16:35:07] Log file was started late.
+[2020-12-26 16:35:07] Calling plumbing command: codeql resolve ram --format=json
+[2020-12-26 16:35:07] Plumbing command codeql resolve ram completed:
+                      [
+                        "-J-Xmx15344M",
+                        "--off-heap-ram=15344"
+                      ]
+[2020-12-26 16:35:07] Spawning plumbing command: execute queries -J-Xmx15344M --off-heap-ram=15344 --verbosity=progress --logdir=/home/aadityanaik/relational-representation/datasets/cubert/py_files/train/correct/file_253076/codeqldb/log --ml-model-path= --native-library-path= --warnings=show --output=/home/aadityanaik/relational-representation/datasets/cubert/py_files/train/correct/file_253076/codeqldb/unused_local_vars.bqrs -- /home/aadityanaik/relational-representation/datasets/cubert/py_files/train/correct/file_253076/codeqldb/db-python /home/aadityanaik/relational-representation/datasets/cubert/unusedlocalvar.ql
+[2020-12-26 16:35:11] Plumbing command codeql execute queries terminated with status 0.
+[2020-12-26 16:35:11] Exiting with code 0
