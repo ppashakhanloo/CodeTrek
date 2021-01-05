@@ -64,7 +64,7 @@ def main(args: List[str]) -> None:
 
     walklist = []
     for anchor, label in anchor_nodes:
-        walks = random_walk(graph, anchor, max_num_walks=10, min_num_steps=6, max_num_steps=15)
+        walks = random_walk(graph, anchor, max_num_walks=100, min_num_steps=8, max_num_steps=16)
         # generate the Json file
         source = gv_file
         anchor = TrajNode(graph.nodes[anchor]['label'])
