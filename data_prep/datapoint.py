@@ -64,4 +64,4 @@ class DataPoint:
 
     def dump_json(self, filepath: str) -> None:
         with open(filepath, 'w') as outfile:
-            json.dump(self.to_dict(), outfile)
+            json.dump(self.to_dict(), outfile, indent=4)
