@@ -2,6 +2,7 @@ import csv
 import os
 import sys
 import graphviz
+from data_prep.walkutils import WalkUtils
 from typing import List, Set, Dict, Tuple
 
 
@@ -15,48 +16,7 @@ class GraphBuilder:
 
     @staticmethod
     def load_columns() -> Dict[str, List[str]]:
-        return {
-            'variable': ['id', 'scope', 'name'],
-            'locations_ast': ['id', 'module', 'beginLine', 'beginColumn', 'endLine', 'endColumn'],
-            'py_Classes': ['id', 'parent'],
-            'py_Functions': ['id', 'parent'],
-            'py_Modules': ['id'],
-            'py_boolops': ['id', 'kind', 'parent'],
-            'py_bytes': ['id', 'parent', 'idx'],
-            'py_cmpops': ['id', 'kind', 'parent', 'idx'],
-            'py_cmpop_lists': ['id', 'parent'],
-            'py_comprehensions': ['id', 'parent', 'idx'],
-            'py_comprehension_lists': ['id', 'parent'],
-            'py_dict_items': ['id', 'kind', 'parent', 'idx'],
-            'py_dict_item_lists': ['id', 'parent'],
-            'py_exprs': ['id', 'kind', 'parent', 'idx'],
-            'py_expr_contexts': ['id', 'kind', 'parent'],
-            'py_expr_lists': ['id', 'parent', 'idx'],
-            'py_ints': ['id', 'parent'],
-            'py_locations': ['id', 'parent'],
-            'py_numbers': ['id', 'parent', 'idx'],
-            'py_operators': ['id', 'kind', 'parent'],
-            'py_parameter_lists': ['id', 'parent'],
-            'py_stmts': ['id', 'kind', 'parent', 'idx'],
-            'py_stmt_lists': ['id', 'parent', 'idx'],
-            'py_strs': ['id', 'parent', 'idx'],
-            'py_str_lists': ['id', 'parent'],
-            'py_unaryops': ['id', 'kind', 'parent'],
-            'py_variables': ['id', 'parent'],
-            'py_successors': ['predecessor', 'successor'],
-            'py_true_successors': ['predecessor', 'successor'],
-            'py_exception_successors': ['predecessor', 'successor'],
-            'py_false_successors': ['predecessor', 'successor'],
-            'py_flow_bb_node': ['flownode', 'realnode', 'basicblock', 'index'],
-            'py_scope_flow': ['flow', 'scope', 'kind'],
-            'py_idoms': ['node', 'immediate_dominator'],
-            'py_scopes': ['node', 'scope'],
-            'py_scope_location': ['id', 'scope'],
-            'py_ssa_phi': ['phi', 'arg'],
-            'py_ssa_var': ['id', 'var'],
-            'py_ssa_use': ['node', 'var'],
-            'py_ssa_defn': ['id', 'node']
-        }
+        return WalkUtils.COLUMNS
 
     def load_fact_table(self, fact_file: str) -> List[Tuple]:
         table = []
