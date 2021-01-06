@@ -2,6 +2,7 @@ import csv
 import os
 import sys
 import graphviz
+from io import StringIO
 from data_prep.walkutils import WalkUtils
 from typing import List, Set, Dict, Tuple
 
@@ -29,7 +30,9 @@ class GraphBuilder:
     def load_csv_table(self, fact_file: str) -> List[Tuple]:
         table = []
         with open(self.facts_dir + '/' + fact_file, 'r') as f:
-            reader = csv.reader(f, delimiter=',')
+            data = f.read()
+            data = data.replace('\x00', '**NULLBYTE**', -1)
+            reader = csv.reader(StringIO(data), delimiter=',')
             rowlist = list(reader)
             for line in rowlist[1:]:
                 table.append(tuple(line))

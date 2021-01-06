@@ -3,12 +3,13 @@ start=0
 end=50
 width=50
 n=0
-for i in $(cat filelist)
+filelist="$1"
+for i in $(cat $filelist)
 do
     if (($n >= $start && $n < $end))
     then
-        fname=$(basename $i)
-        dname="../datasets/cubert/$(dirname $i)"
+        # fname=$(basename $i)
+        dname="../datasets/cubert/$i"
         echo "Running for $dname"
         ./cluster_script.sh "$dname" &
         echo "$n added till now"

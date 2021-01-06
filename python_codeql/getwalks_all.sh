@@ -19,8 +19,7 @@ do
     then
         bench="../datasets/cubert/$(dirname $p)"
         echo "Running for $bench"
-        exit
-        ./getwalks.sh "$bench" &
+        ./getwalks.sh "$bench" > /dev/null &
         echo "$n / $total added till now"
     else
         echo "Waiting for all background processes to finish"
