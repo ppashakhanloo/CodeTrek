@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-echo "Installing TQDM dependency for data extraction"
+echo "Installing GSUtil and TQDM dependency for data extraction"
 
-pip install tqdm
+pip install tqdm gsutil
 
 echo "Downloading data from cloud bucket with gsutil"
 

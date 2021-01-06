@@ -9,7 +9,7 @@ do
     if (($n >= $start && $n < $end))
     then
         # fname=$(basename $i)
-        dname="../datasets/cubert/$i"
+	dname="../datasets/cubert/$(dirname $i)"
         echo "Running for $dname"
         ./cluster_script.sh "$dname" &
         echo "$n added till now"
