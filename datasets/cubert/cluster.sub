@@ -1,0 +1,22 @@
+#!/bin/bash
+#PBS -N mcts
+#PBS -q debug
+#PBS -l walltime=00:15:00
+#PBS -l nodes=1:ppn=1
+#PBS -k oe
+#PBS -m ae
+
+# Note that any line starting with "#PBS" will be treated as a task configuration
+
+# qsub will start a new process to execute the following commands
+
+# rm -rf ${bench}/codeqldb
+# rm -rf ${bench}/cluster_logs
+
+mkdir -p ${bench}/cluster_logs
+
+codeql database create ${bench}/codeqldb --language=python --source-root=${bench} > ${bench}/cluster_logs/createlog.out 2>${bench}/cluster_logs/createlog.err
+rm -rf ${bench}/codeqldb/unused_local_vars*
+codeql query run -d ${bench}/codeqldb -o ${bench}/codeqldb/unused_local_vars.bqrs unusedlocalvar.ql > ${bench}/cluster_logs/runlog.out 2>${bench}/cluster_logs/runlog.err
+codeql bqrs decode -o ${bench}/codeqldb/unused_local_vars.csv --format=csv ${bench}/codeqldb/unused_local_vars.bqrs > ${bench}/cluster_logs/decodelog.out 2>${bench}/cluster_logs/decodelog.err
+codeql bqrs decode -o ${bench}/codeqldb/unused_local_vars_id.csv --entities=id --format=csv ${bench}/codeqldb/unused_local_vars.bqrs > ${bench}/cluster_logs/decodeidlog.out 2>${bench}/cluster_logs/decodeidlog.err
