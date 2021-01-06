@@ -136,11 +136,11 @@ class WalkUtils:
         return relname
 
     @staticmethod
-    def parse_node(node: Tuple[Node, str]) -> TrajNode:
-        orig_label = node[1]  # text: relname(val1,val2,...)
+    def parse_node_label(node_label: str) -> Tuple[str, List[str]]:
+        # text of node_label: relname(val1,val2,...)
         # only split on the first occurrence of '('
         # since it is possible that one of the elements will contain the same character
-        splits = orig_label.split('(', 1)
+        splits = node_label.split('(', 1)
         assert len(splits) == 2
         relname = splits[0].strip()
         if relname == 'py_strs':        # special case where there may be unquoted commas in the string
@@ -150,24 +150,36 @@ class WalkUtils:
             tokens = splits[1].strip()[:-1].split(',')
         assert len(tokens) == len(WalkUtils.COLUMNS[relname])
         values = [token.strip() for token in tokens]
+        return relname, values
+
+    @staticmethod
+    def build_traj_node(node: Tuple[Node, str]) -> TrajNode:
+        node_label = node[1]
+        relname, values = WalkUtils.parse_node_label(node_label)
         return TrajNode(WalkUtils.gen_node_label(relname, values))
 
     @staticmethod
-    def parse_edge(edge: Tuple[Node, Node, str]) -> TrajEdge:
-        label = edge[2]  # text: (label1,label2)
-        tokens = label.split(',')
+    def parse_edge_label(edge_label: str) -> Tuple[str, str]:
+        # text of edge_label: (label1,label2)
+        tokens = edge_label.split(',')
         assert len(tokens) == 2
         label1 = tokens[0].strip()[1:]
         label2 = tokens[1].strip()[:-1]
+        return label1, label2
+
+    @staticmethod
+    def build_traj_edge(edge: Tuple[Node, Node, str]) -> TrajEdge:
+        edge_label = edge[2]
+        label1, label2 = WalkUtils.parse_edge_label(edge_label)
         return TrajEdge(label1, label2)
 
     @staticmethod
-    def parse_trajectory(walk: List[Tuple]) -> Trajectory:
+    def build_trajectory(walk: List[Tuple]) -> Trajectory:
         nodes = []
         edges = []
         for i in range(len(walk)):
             if i % 2 == 0:  # node
-                nodes.append(WalkUtils.parse_node(walk[i]))
+                nodes.append(WalkUtils.build_traj_node(walk[i]))
             else:           # edge
-                edges.append(WalkUtils.parse_edge(walk[i]))
+                edges.append(WalkUtils.build_traj_edge(walk[i]))
         return Trajectory(nodes, edges)

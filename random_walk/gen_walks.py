@@ -3,10 +3,10 @@ import csv
 import json
 import os
 import networkx as nx
-from pygraphviz import AGraph
-from random import choice
+from pygraphviz import AGraph, Node
 from random_walk import random_walk
 from data_prep.datapoint import DataPoint, TrajNode
+from data_prep.hintutils import HintUtils
 from data_prep.walkutils import WalkUtils
 from typing import List
 
@@ -14,6 +14,10 @@ from typing import List
 def load_graph_from_gv(path: str) -> AGraph:
     graph = AGraph(path, directed=False)
     return nx.nx_agraph.from_agraph(graph)
+
+
+def used_var_hint(walk: List, var_node: Node) -> str:
+    return 'pos' if HintUtils.is_used_local_var(walk, var_node) else 'neg'
 
 
 def main(args: List[str]) -> None:
@@ -64,14 +68,14 @@ def main(args: List[str]) -> None:
 
     walklist = []
     for anchor, label in anchor_nodes:
+        anchor_label = graph.nodes[anchor]['label']
         walks = random_walk(graph, anchor, max_num_walks=100, min_num_steps=8, max_num_steps=16)
         # generate the Json file
         source = gv_file
-        anchor = TrajNode(graph.nodes[anchor]['label'])
-        trajectories = [WalkUtils.parse_trajectory(walk) for walk in walks]
-        # TODO: use the real hints
-        hints = []
-        data_point = DataPoint(anchor, trajectories, hints, label, source)
+        traj_anchor = TrajNode(anchor_label)
+        trajectories = [WalkUtils.build_trajectory(walk) for walk in walks]
+        hints = [used_var_hint(walk, anchor_label) for walk in walks]
+        data_point = DataPoint(traj_anchor, trajectories, hints, label, source)
         walklist.append(data_point.to_dict())
     # data_point.dump_json(out_file)
     js = json.dumps(walklist, indent=4)
