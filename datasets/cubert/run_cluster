@@ -3,7 +3,8 @@ start=0
 end=100
 width=100
 n=0
-for i in $(cat filelist)
+filelist="$1"
+for i in $(cat $filelist)
 do
     if (($n >= $start && $n < $end))
     then

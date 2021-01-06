@@ -10,8 +10,8 @@
 
 # qsub will start a new process to execute the following commands
 
-# rm -rf ${bench}/codeqldb
-# rm -rf ${bench}/cluster_logs
+rm -rf ${bench}/codeqldb
+rm -rf ${bench}/cluster_logs
 
 mkdir -p ${bench}/cluster_logs
 
