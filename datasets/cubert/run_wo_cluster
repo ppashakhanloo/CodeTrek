@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+start=0
+end=100
+width=100
+n=0
+for i in $(cat filelist)
+do
+    if (($n >= $start && $n < $end))
+    then
+        fname=$(basename $i)
+        dname=$(dirname $i)
+        echo "Adding for $dname"
+        # qsub -o /dev/null -v bench=$dname -V cluster.sub
+        ./not_cluster.sh $dname &
+        echo "$n added till now"
+    else
+        echo "Waiting for all background processes to finish"
+        wait
+        echo "Background processes finished"
+        start=$end
+        end=$((end+width))
+        echo "Setting start and end to $start and $end"
+    fi
+    n=$((n+1))
+done
