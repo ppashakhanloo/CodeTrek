@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+start=0
+end=50
+width=50
+n=0
+for i in $(cat filelist)
+do
+    if (($n >= $start && $n < $end))
+    then
+        fname=$(basename $i)
+        dname="../datasets/cubert/$(dirname $i)"
+        echo "Adding for $dname"
+        qsub -o /dev/null -v bench=$dname -V cluster.sub
+        echo "$n added till now"
+    else
+        while :
+        do
+            if [[ "$(qstat -q | tail -1 | awk '{print $1 $2}')" == "00" ]]
+            then
+                rm -rf cluster.sub.*
+                start=$end
+                end=$((end+width))
+                echo "Setting start and end to $start and $end"
+                break
+            else
+                echo "Waiting 1s"
+                sleep 1s
+            fi
+        done
+    fi
+    n=$((n+1))
+done
