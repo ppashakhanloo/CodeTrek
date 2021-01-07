@@ -8,8 +8,9 @@ fi
 
 bench="$1"
 dname=$(dirname "$bench")
+set=$(basename $(dirname $dname))
 fname=$(basename "$bench")
-outdir="allwalks/walks_$fname"
+outdir="allwalks/walks_${set}_$fname"
 
 rm -rf "$outdir"
 mkdir -p "$outdir"
