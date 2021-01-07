@@ -28,6 +28,10 @@ do
         start=$end
         end=$((end+width))
         echo "Setting start and end to $start and $end"
+        bench="../datasets/cubert/$(dirname $p)"
+        echo "Running for $bench"
+        ./getwalks.sh "$bench" > /dev/null &
+        echo "$n / $total added till now"
     fi
     n=$((n+1))
 done
