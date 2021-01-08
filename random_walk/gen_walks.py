@@ -2,18 +2,12 @@ import sys
 import csv
 import json
 import os
-import networkx as nx
-from pygraphviz import AGraph, Node
-from random_walk import random_walk
+from pygraphviz import Node
 from data_prep.datapoint import DataPoint, TrajNode
 from data_prep.hintutils import HintUtils
 from data_prep.walkutils import WalkUtils
+from random_walk.randomwalk import RandomWalker
 from typing import List
-
-
-def load_graph_from_gv(path: str) -> AGraph:
-    graph = AGraph(path, directed=False)
-    return nx.nx_agraph.from_agraph(graph)
 
 
 def used_var_hint(walk: List, var_node: Node) -> str:
@@ -49,9 +43,9 @@ def main(args: List[str]) -> None:
         for row in rows[1:]:
             local_variable_rows.append(row)
     print("Anchors Loaded")
-    
+
     print("Loading Graph")
-    graph = load_graph_from_gv(gv_file)
+    graph = RandomWalker.load_graph_from_gv(gv_file)
     print("Graph Loaded")
     for node in graph.nodes():
         element = graph.nodes[node]['label']
@@ -69,7 +63,7 @@ def main(args: List[str]) -> None:
     walklist = []
     for anchor, label in anchor_nodes:
         anchor_label = graph.nodes[anchor]['label']
-        walks = random_walk(graph, anchor, max_num_walks=100, min_num_steps=8, max_num_steps=16)
+        walks = RandomWalker.random_walk(graph, anchor, max_num_walks=100, min_num_steps=8, max_num_steps=16)
         # generate the Json file
         source = gv_file
         traj_anchor = TrajNode(anchor_label)
