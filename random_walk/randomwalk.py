@@ -1,9 +1,33 @@
 import networkx as nx
-from pygraphviz import AGraph
-from random import choice, randint
+from data_prep.walkutils import WalkUtils
+from pygraphviz import AGraph, Node
+from random import choice, choices, randint
+from typing import List, Dict
 
 
 class RandomWalker:
+    BIAS_WEIGHT = 5
+    BIAS_TABLES = {'py_variables', 'py_exprs', 'py_stmts'}
+
+    @staticmethod
+    def build_relname_map(graph: AGraph) -> Dict[Node, str]:
+        node_to_relname = {}
+        for node in graph.nodes():
+            relname, _ = WalkUtils.parse_node_label(graph.nodes[node]['label'])
+            node_to_relname[node] = relname
+        return node_to_relname
+
+    # Sample the next node to visit for a random walk.
+    # The probability of visiting a BIAS_TABLES node is
+    # BIAS_WEIGHT times as that of visiting other nodes.
+    @staticmethod
+    def sample_node(nodes: List[Node], node_to_relname: Dict[Node, str]) -> Node:
+        weights = []
+        for node in nodes:
+            relname = node_to_relname[node]
+            weight = RandomWalker.BIAS_WEIGHT if relname in RandomWalker.BIAS_TABLES else 1
+            weights.append(weight)
+        return choices(nodes, weights, k=1)[0]
 
     # The output is a list of simple walks starting from the specified node.
     # Each walk: [(n1, n1_lbl), (n1, n2, e1_lbl), (n2, n2_lbl), ...]
@@ -14,9 +38,11 @@ class RandomWalker:
     # The number of random walks can be less than max_num_walks if there are less
     # walks from the source than the requested number of walks.
     #
-    def random_walk(graph, source, max_num_walks, min_num_steps, max_num_steps):
+    @staticmethod
+    def random_walk(graph: AGraph, source: Node, max_num_walks: int, min_num_steps: int, max_num_steps: int) -> List[List]:
+        node_to_relname = RandomWalker.build_relname_map(graph)
+
         walks = list()
-        outer_loop = 0
         walk = 0
         while walk < max_num_walks * 3 and len(walks) < max_num_walks:
             walk += 1
@@ -29,7 +55,7 @@ class RandomWalker:
                 neighbors = list(graph.neighbors(curr_node))
                 if len(neighbors) > 0:
                     prev_node = curr_node
-                    curr_node = choice(neighbors)
+                    curr_node = RandomWalker.sample_node(neighbors, node_to_relname)
                     curr_edge = (prev_node, curr_node,
                                  choice(list(graph[prev_node][curr_node].values()))['label'])
                     curr_edge_rev = (curr_edge[1], curr_edge[0], curr_edge[2])
@@ -49,7 +75,8 @@ class RandomWalker:
 
     # find __all__ simple paths in the graph starting from the specified node,
     # with a maximum length specified by cutoff
-    def simple_walks(graph, node, cutoff):
+    @staticmethod
+    def simple_walks(graph: AGraph, node: Node, cutoff: int) -> List[List]:
         walks = list()
         for target in graph.nodes():
             all_paths = nx.algorithms.all_simple_paths(graph, node, target, cutoff)
@@ -58,6 +85,7 @@ class RandomWalker:
 
         return walks
 
-    def load_graph_from_gv(path):
+    @staticmethod
+    def load_graph_from_gv(path: str) -> AGraph:
         graph = AGraph(path, directed=False)
         return nx.nx_agraph.from_agraph(graph)
