@@ -18,12 +18,12 @@ numdev = 0
 
 def get_file_loc(string_loc, string):
   row = 1
-  col = 0
+  col = 1
   visited_chars = 0
   for i, char in enumerate(string):
     if char == "\n":
       row += 1
-      col = 0
+      col = 1
     else:
       col += 1
     visited_chars += 1
