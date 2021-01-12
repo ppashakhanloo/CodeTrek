@@ -1,17 +1,11 @@
 import sys
-import networkx as nx
-from pygraphviz import AGraph, Node
+from pygraphviz import Node
 from random import choice
-from random_walk import random_walk
 from data_prep.datapoint import DataPoint, TrajNode
 from data_prep.hintutils import HintUtils
 from data_prep.walkutils import WalkUtils
+from random_walk.randomwalk import RandomWalker
 from typing import List
-
-
-def load_graph_from_gv(path: str) -> AGraph:
-    graph = AGraph(path, directed=False)
-    return nx.nx_agraph.from_agraph(graph)
 
 
 def used_var_hint(walk: List, var_node: Node) -> str:
@@ -26,7 +20,7 @@ def main(args: List[str]) -> None:
     gv_file = args[1]
     out_file = args[2]
     
-    graph = load_graph_from_gv(gv_file)
+    graph = RandomWalker.load_graph_from_gv(gv_file)
     var_nodes = []
     for node in graph.nodes():
         relname, _ = WalkUtils.parse_node_label(graph.nodes[node]['label'])
@@ -35,11 +29,11 @@ def main(args: List[str]) -> None:
     anchor = choice(var_nodes)
     anchor_label = graph.nodes[anchor]['label']
 
-    walks = random_walk(graph, anchor, max_num_walks=10, min_num_steps=1, max_num_steps=8)
+    walks = RandomWalker.random_walk(graph, anchor, max_num_walks=10, min_num_steps=1, max_num_steps=8)
     while not walks:
         print('Empty walks starting with node:', anchor)
-        node = choice(var_nodes)
-        walks = random_walk(graph, anchor, max_num_walks=10, min_num_steps=1, max_num_steps=8)
+        anchor = choice(var_nodes)
+        walks = RandomWalker.random_walk(graph, anchor, max_num_walks=10, min_num_steps=1, max_num_steps=8)
 
     print('Generated random walks:')
     for walk in walks:
