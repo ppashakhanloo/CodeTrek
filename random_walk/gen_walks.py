@@ -6,7 +6,7 @@ from pygraphviz import Node
 from data_prep.datapoint import DataPoint, TrajNode
 from data_prep.hintutils import HintUtils
 from data_prep.walkutils import WalkUtils
-from random_walk.randomwalk import RandomWalker
+from randomwalk import RandomWalker
 from typing import List
 
 

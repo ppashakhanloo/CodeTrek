@@ -10,10 +10,10 @@ mkdir allwalks
 
 benchdir="../datasets/cubert/py_files"
 
-total=$(cat filelist | wc -l)
-echo $total
-
 filelist="$1"
+
+total=$(cat "$filelist" | wc -l)
+echo $total
 
 for p in $(cat "$filelist")
 do

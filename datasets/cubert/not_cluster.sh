@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 bench="$1"
-
 mkdir -p ${bench}/cluster_logs
 rm -rf ${bench}/codeqldb
 codeql database create ${bench}/codeqldb --language=python --source-root=${bench} > ${bench}/cluster_logs/createlog.out 2>${bench}/cluster_logs/createlog.err

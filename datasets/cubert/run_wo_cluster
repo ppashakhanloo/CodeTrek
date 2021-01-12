@@ -30,3 +30,4 @@ do
     fi
     n=$((n+1))
 done
+wait
