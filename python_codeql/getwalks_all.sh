@@ -13,7 +13,9 @@ benchdir="../datasets/cubert/py_files"
 total=$(cat filelist | wc -l)
 echo $total
 
-for p in $(cat filelist)
+filelist="$1"
+
+for p in $(cat "$filelist")
 do
     if (($n >= $start && $n < $end))
     then
@@ -35,3 +37,4 @@ do
     fi
     n=$((n+1))
 done
+wait
