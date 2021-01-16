@@ -25,4 +25,10 @@ python_codeql/pydb2
 python_codeql/edges
 python_codeql/example
 classifiers/databases
+java_codeql/**/.cache
+java_codeql/**/*.bqrs
+java_codeql/**/*.csv
+java_codeql/**/*.facts
+java_codeql/**/*.gv
+java_codeql/**/*.pdf
 
