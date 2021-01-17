@@ -1,21 +1,11 @@
 import java
 
-class MyLocatable extends @locatable {
-    string toString() { result = "Locatable" }
-}
+class MyLocatable extends @locatable, Top {}
 
-class MyTypeOrCallable extends @typeorcallable {
-    string toString() { result = "TypeOrCallable" }
-}
+class MyTypeOrCallable extends @typeorcallable, Top {}
 
-class MyClassOrArray extends @classorarray {
-    string toString() { result = "ClassOrArray" }
-}
+class MyClassOrArray extends @classorarray, Top {}
 
-class MyTypeOrPackage extends @typeorpackage {
-    string toString() { result = "TypeOrPackage" }
-}
+class MyTypeOrPackage extends @typeorpackage, Top {}
 
-class MyNamedExprOrStmt extends @namedexprorstmt {
-    string toString() { result = "NamedExprOrStmt" }
-}
+class MyNamedExprOrStmt extends @namedexprorstmt, Top {}

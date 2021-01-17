@@ -1,8 +1,6 @@
 import java
 
-class MyLocatable extends @locatable {
-    string toString() { result = "Locatable" }
-}
+class MyLocatable extends @locatable, Top {}
 
 class MyTypeOrCallable extends @typeorcallable, Top {}
 
