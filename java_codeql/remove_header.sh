@@ -1,0 +1,1 @@
+../python_codeql/remove_header.sh
