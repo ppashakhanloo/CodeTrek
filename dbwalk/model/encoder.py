@@ -54,5 +54,19 @@ class ProgDeepset(nn.Module):
         return prog_repr
 
 
+class ProgTransformer(nn.Module):
+    def __init__(self, d_model: int = 256, nhead: int = 4, num_encoder_layers: int = 3, 
+                 dim_feedforward: int = 512, dropout: float = 0.0, activation: str = "relu"):
+        super(ProgTransformer, self).__init__()
+        encoder_layer = TransformerEncoderLayer(d_model, nhead, dim_feedforward, dropout, activation)
+        encoder_norm = LayerNorm(d_model)
+        self.encoder = TransformerEncoder(encoder_layer, num_encoder_layers, encoder_norm)
+
+    def forward(self, walk_embed):
+        assert walk_embed.dim() == 4 # N x B x d_model
+        memory = self.encoder(walk_embed)
+        return memory[0]
+
+
 if __name__ == '__main__':
     pass

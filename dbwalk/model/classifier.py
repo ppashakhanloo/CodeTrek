@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from .encoder import ProgWalkTokEmbed, ProgWalkEncoder, ProgDeepset
+from .encoder import ProgWalkTokEmbed, ProgWalkEncoder, ProgDeepset, ProgTransformer
 
 from dbwalk.common.pytorch_util import MLP
 
@@ -11,7 +11,12 @@ class WalkSet2Embed(nn.Module):
         super(WalkSet2Embed, self).__init__()
         self.tok_encoding = ProgWalkTokEmbed(prog_dict, args.embed_dim, args.dropout)
         self.walk_encoding = ProgWalkEncoder(args.embed_dim, args.nhead, args.transformer_layers,  args.dim_feedforward, args.dropout)
-        self.prob_encoding = ProgDeepset(args.embed_dim, args.dropout)
+        if args.set_encoder == 'deepset':
+            self.prob_encoding = ProgDeepset(args.embed_dim, args.dropout)
+        elif args.set_encoder == 'transformer':
+            self.prob_encoding = ProgTransformer(args.embed_dim, args.nhead, args.transformer_layers,  args.dim_feedforward, args.dropout)
+        else:
+            raise ValueError("unknown set encoder %s" % args.set_encoder)
 
     def forward(self, node_idx, edge_idx):
         seq_tok_embed = self.tok_encoding(node_idx, edge_idx)

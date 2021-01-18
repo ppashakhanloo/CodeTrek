@@ -37,6 +37,7 @@ cmd_opt.add_argument('-iter_per_epoch', default=100, type=int, help='num iterati
 
 cmd_opt.add_argument('-epoch_load', default=None, type=int, help='epoch for loading')
 
+cmd_opt.add_argument('-set_encoder', default='deepset', help='deepset/transformer')
 
 # data process
 cmd_opt.add_argument('-data_chunk_size', default=1, type=int, help='# samples per data file')
