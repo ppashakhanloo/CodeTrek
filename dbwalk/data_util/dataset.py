@@ -74,7 +74,7 @@ class InMemDataest(Dataset):
                 d = cp.load(f)
                 for key in d:
                     node_mat, edge_mat, src, str_label = d[key]
-                    raw_sample = RawData(node_mat, edge_mat, src, self.prob_dict.label_map[str_label])
+                    raw_sample = RawData(node_mat, edge_mat, src, self.prog_dict.label_map[str_label])
                     self.list_samples.append((key, raw_sample))
                     self.labeled_samples[raw_sample.label].append((key, raw_sample))
 
@@ -112,13 +112,13 @@ class InMemDataest(Dataset):
             print('giving up %d samples in a batch' % len(label))
             return None, None, None
 
-        full_node_idx = np.zeros((max_node_len, len(list_samples), min_walks), dtype=np.int16)
-        full_edge_idx = np.zeros((max_edge_len, len(list_samples), min_walks), dtype=np.int16)
+        full_node_idx = np.zeros((max_node_len, min_walks, len(list_samples)), dtype=np.int16)
+        full_edge_idx = np.zeros((max_edge_len, min_walks, len(list_samples)), dtype=np.int16)
 
         for i, s in enumerate(list_samples):
             node_mat, edge_mat = s.node_idx, s.edge_idx
-            full_node_idx[:node_mat.shape[0], i, :] = node_mat
-            full_edge_idx[:edge_mat.shape[0], i, :] = edge_mat
+            full_node_idx[:node_mat.shape[0], :, i] = node_mat
+            full_edge_idx[:edge_mat.shape[0], :, i] = edge_mat
         
         full_node_idx = torch.LongTensor(full_node_idx)
         full_edge_idx = torch.LongTensor(full_edge_idx)

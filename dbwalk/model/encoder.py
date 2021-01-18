@@ -32,12 +32,12 @@ class ProgWalkEncoder(nn.Module):
         self.encoder = TransformerEncoder(encoder_layer, num_encoder_layers, encoder_norm)
 
     def forward(self, walk_token_embed):
-        assert walk_token_embed.dim() == 4 # L x B x N x d_model
-        L, B, N, _ = walk_token_embed.shape
+        assert walk_token_embed.dim() == 4 # L x N x B x d_model
+        L, N, B, _ = walk_token_embed.shape
         walk_token_embed = walk_token_embed.view(L, -1, self.d_model)
 
         memory = self.encoder(walk_token_embed)
-        memory = memory.view(L, B, N, -1)
+        memory = memory.view(L, N, B, -1)
         walk_repr = torch.mean(memory, dim=0)
         return walk_repr
 
@@ -49,8 +49,8 @@ class ProgDeepset(nn.Module):
 
     def forward(self, walk_repr):
         walk_hidden = self.mlp(walk_repr)
-        prog_repr, _ = torch.max(walk_hidden, dim=1)
-        #prog_repr = torch.mean(walk_hidden, dim=1)
+        prog_repr, _ = torch.max(walk_hidden, dim=0)
+        #prog_repr = torch.mean(walk_hidden, dim=0)
         return prog_repr
 
 
