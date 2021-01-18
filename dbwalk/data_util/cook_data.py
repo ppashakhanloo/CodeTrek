@@ -36,7 +36,13 @@ def make_mat(list_traj, max_n_nodes, max_n_edges):
 
 
 if __name__ == '__main__':
-
+    label_dict = {}
+    with open(os.path.join(cmd_args.data_dir, cmd_args.data, 'all_labels.txt'), 'r') as f:
+        for i, row in enumerate(f):
+            label = row.strip()
+            assert not label in label_dict, 'duplicated labels'
+            label_dict[label] = i
+    print(label_dict)
     node_types = {}
     edge_types = {}
 
@@ -115,6 +121,7 @@ if __name__ == '__main__':
                         seq_edges = [edge_types[e] for e in traj['edges']]
                         list_traj.append((seq_nodes, seq_edges))
                     node_mat, edge_mat = make_mat(list_traj, max_len_nodes, max_len_edges)
+                    assert sample['label'] in label_dict, 'unknown label %s' % sample['label']
                     chunk_buf['%s-%d' % (fname_prefix, sample_idx)] = (node_mat, edge_mat, sample['source'], sample['label'])
             if len(chunk_buf) >= cmd_args.data_chunk_size:
                 chunk_idx, chunk_buf = dump_data_chunk(out_folder, chunk_idx, chunk_buf) 

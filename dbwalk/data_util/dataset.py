@@ -51,6 +51,13 @@ class InMemDataest(Dataset):
         self.sample_prob = sample_prob
         assert self.prog_dict.node_idx(TOK_PAD) == self.prog_dict.edge_idx(TOK_PAD) == 0
 
+        f_label = os.path.join(data_dir, 'all_labels.txt')
+        self.label_map = {}
+        with open(f_label, 'r') as f:
+            for i, row in enumerate(f):
+                row = row.strip()
+                assert row not in self.label_map, 'duplicated label %s' % row
+                self.label_map[row] = i
         chunks = os.listdir(os.path.join(data_dir, 'cooked_' + phase))
         chunks = sorted(chunks)
 
@@ -61,7 +68,7 @@ class InMemDataest(Dataset):
                 d = cp.load(f)
                 for key in d:
                     node_mat, edge_mat, src, str_label = d[key]
-                    raw_sample = RawData(node_mat, edge_mat, src, int(str_label == 'used'))
+                    raw_sample = RawData(node_mat, edge_mat, src, self.label_map[str_label])
                     self.list_samples.append((key, raw_sample))
                     self.labeled_samples[raw_sample.label].append((key, raw_sample))
 
