@@ -16,12 +16,25 @@ class ProgDict(object):
     def __init__(self, data_dir):
         with open(os.path.join(data_dir, 'dict.pkl'), 'rb') as f:
             d = cp.load(f)
+        f_label = os.path.join(data_dir, 'all_labels.txt')
+        self.label_map = {}
+        with open(f_label, 'r') as f:
+            for i, row in enumerate(f):
+                row = row.strip()
+                assert row not in self.label_map, 'duplicated label %s' % row
+                self.label_map[row] = i
         self.node_types = d['node_types']
         self.edge_types = d['edge_types']
         self.max_num_vars = d['n_vars']
-        print('# node types', len(self.node_types))
-        print('# edge types', len(self.edge_types))
+
+        print('# class', self.num_class)
+        print('# node types', self.num_node_types)
+        print('# edge types', self.num_edge_types)
         print('max # vars per program', self.max_num_vars)
+
+    @property
+    def num_class(self):
+        return len(self.label_map)
 
     @property
     def num_node_types(self):
@@ -51,13 +64,6 @@ class InMemDataest(Dataset):
         self.sample_prob = sample_prob
         assert self.prog_dict.node_idx(TOK_PAD) == self.prog_dict.edge_idx(TOK_PAD) == 0
 
-        f_label = os.path.join(data_dir, 'all_labels.txt')
-        self.label_map = {}
-        with open(f_label, 'r') as f:
-            for i, row in enumerate(f):
-                row = row.strip()
-                assert row not in self.label_map, 'duplicated label %s' % row
-                self.label_map[row] = i
         chunks = os.listdir(os.path.join(data_dir, 'cooked_' + phase))
         chunks = sorted(chunks)
 
@@ -68,7 +74,7 @@ class InMemDataest(Dataset):
                 d = cp.load(f)
                 for key in d:
                     node_mat, edge_mat, src, str_label = d[key]
-                    raw_sample = RawData(node_mat, edge_mat, src, self.label_map[str_label])
+                    raw_sample = RawData(node_mat, edge_mat, src, self.prob_dict.label_map[str_label])
                     self.list_samples.append((key, raw_sample))
                     self.labeled_samples[raw_sample.label].append((key, raw_sample))
 
