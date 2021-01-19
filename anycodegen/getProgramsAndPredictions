@@ -13,7 +13,6 @@ if len(sys.argv) != 2:
 filename = sys.argv[1]
 
 op_filename = filename + "_prdnfiles.json"
-programs = []
 
 with open(filename, 'r') as json_file_collection:
         os.system('rm -rf ' + op_filename)
@@ -51,14 +50,16 @@ with open(filename, 'r') as json_file_collection:
                                 })
                 else:
                         predictions.append({"status": "ERROR"})
-                programs.append({
+                program = {
                         "filepath": obj['filepath'],
                         "target_seq": obj['target_seq'],
                         "line": obj['line'],
                         "code":        code,
                         "predictions": predictions
-                })
+                }
 
-with open(op_filename, 'w') as op_file:
-        print("Saving programs to " + op_filename)
-        json.dump(programs, op_file, indent=4)
+                with open(op_filename, 'a') as op_file:
+                        print("Saving programs to " + op_filename)
+                        json_str = json.dumps(program, indent=4)
+                        op_file.write(json_str)
+
