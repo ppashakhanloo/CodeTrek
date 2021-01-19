@@ -36,6 +36,7 @@ cmd_opt.add_argument('-epoch_save', default=100, type=int, help='num epochs betw
 cmd_opt.add_argument('-iter_per_epoch', default=100, type=int, help='num iterations per epoch')
 
 cmd_opt.add_argument('-epoch_load', default=None, type=int, help='epoch for loading')
+cmd_opt.add_argument('-shuffle_var', default=False, type=eval, help='shuffle var index?')
 
 cmd_opt.add_argument('-set_encoder', default='deepset', help='deepset/transformer')
 

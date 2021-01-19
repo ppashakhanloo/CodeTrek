@@ -55,6 +55,6 @@ if __name__ == '__main__':
         eval_dataset(model, db_test)
         sys.exit()
 
-    db_train = InMemDataest(prog_dict, cmd_args.data_dir, 'train', sample_prob=[0.5, 0.5])
+    db_train = InMemDataest(prog_dict, cmd_args.data_dir, 'train', sample_prob=[0.5, 0.5], shuffle_var=cmd_args.shuffle_var)
     db_dev = InMemDataest(prog_dict, cmd_args.data_dir, 'dev')
     train_loop(prog_dict, model, db_train, db_dev, eval_dataset)

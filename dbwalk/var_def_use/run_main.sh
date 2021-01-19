@@ -1,7 +1,7 @@
 #!/bin/bash
 
 data_root=$HOME/data/dataset/dbwalk
-data_name=walks
+data_name=walks-initial
 
 bsize=32
 embed=256
@@ -9,11 +9,12 @@ nlayer=2
 nhead=4
 hidden=512
 dropout=0
-setenc=transformer
+setenc=deepset
+shuffle_var=True
 
 export CUDA_VISIBLE_DEVICES=0
 
-save_dir=$HOME/scratch/results/dbwalk/b-$bsize-emb-$embed-nl-$nlayer-head-$nhead-hid-$hidden-dp-$dropout-set-$setenc
+save_dir=$HOME/scratch/results/dbwalk/b-$bsize-emb-$embed-nl-$nlayer-head-$nhead-hid-$hidden-dp-$dropout-set-$setenc-sv-$shuffle_var
 
 if [ ! -e $save_dir ];
 then
@@ -25,6 +26,7 @@ python main.py \
     -save_dir $save_dir \
     -data $data_name \
     -set_encoder $setenc \
+    -shuffle_var $shuffle_var \
     -batch_size $bsize \
     -embed_dim $embed \
     -nhead $nhead \

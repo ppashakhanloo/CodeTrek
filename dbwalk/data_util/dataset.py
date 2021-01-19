@@ -4,7 +4,7 @@ import os
 import torch
 import numpy as np
 import pickle as cp
-
+import random
 from torch.utils.data import Dataset, DataLoader
 from collections import namedtuple, defaultdict
 from dbwalk.common.consts import TOK_PAD, UNK
@@ -27,6 +27,8 @@ class ProgDict(object):
         self.edge_types = d['edge_types']
         self.max_num_vars = d['n_vars']
 
+        self.var_dict = d['var_dict']
+        self.var_reverse_dict = d['var_reverse_dict']
         print('# class', self.num_class)
         print('# node types', self.num_node_types)
         print('# edge types', self.num_edge_types)
@@ -56,12 +58,13 @@ class ProgDict(object):
 
 
 class InMemDataest(Dataset):
-    def __init__(self, prog_dict, data_dir, phase, sample_prob=None):
+    def __init__(self, prog_dict, data_dir, phase, sample_prob=None, shuffle_var=False):
         super(InMemDataest, self).__init__()
-                
+
         self.prog_dict = prog_dict
         self.phase = phase
         self.sample_prob = sample_prob
+        self.shuffle_var = shuffle_var
         assert self.prog_dict.node_idx(TOK_PAD) == self.prog_dict.edge_idx(TOK_PAD) == 0
 
         chunks = os.listdir(os.path.join(data_dir, 'cooked_' + phase))
@@ -92,6 +95,14 @@ class InMemDataest(Dataset):
             samples = self.labeled_samples[sample_cls]
             idx = np.random.randint(len(samples))
             _, raw_sample = samples[idx]
+        if self.shuffle_var:
+            var_remap = list(range(self.prog_dict.max_num_vars))
+            random.shuffle(var_remap)
+            for i in range(raw_sample.node_idx.shape[0]):
+                for j in range(raw_sample.node_idx.shape[1]):
+                    if raw_sample.node_idx[i, j] in self.prog_dict.var_reverse_dict:
+                        old_var_idx = self.prog_dict.var_reverse_dict[raw_sample.node_idx[i, j]]
+                        raw_sample.node_idx[i, j] = self.prog_dict.var_dict[var_remap[old_var_idx]]
         return raw_sample
 
     def collate_fn(self, list_samples):

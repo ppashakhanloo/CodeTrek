@@ -6,7 +6,7 @@ from tqdm import tqdm
 import numpy as np
 import random
 from dbwalk.common.configs import cmd_args
-from dbwalk.common.consts import TOK_PAD
+from dbwalk.common.consts import TOK_PAD, var_idx2name
 
 
 def get_or_add(type_dict, key):
@@ -76,14 +76,20 @@ if __name__ == '__main__':
     print('# edge types', len(edge_types))
     print('max # vars per program', max_num_vars)
 
+    var_dict = {}
+    var_reverse_dict = {}
     for i in range(max_num_vars):
-        get_or_add(node_types, 'var_%d' % i)
+        val = get_or_add(node_types, var_idx2name(i))
+        var_dict[i] = val
+        var_reverse_dict[val] = i
 
     with open(os.path.join(cmd_args.data_dir, cmd_args.data, 'dict.pkl'), 'wb') as f:
         d = {}
         d['node_types'] = node_types
         d['edge_types'] = edge_types
         d['n_vars'] = max_num_vars
+        d['var_dict'] = var_dict
+        d['var_reverse_dict'] = var_reverse_dict
         cp.dump(d, f, cp.HIGHEST_PROTOCOL)
 
     for phase in ['train', 'dev', 'test']:
