@@ -47,7 +47,8 @@ class BinaryNet(WalkSet2Embed):
 class MulticlassNet(WalkSet2Embed):
     def __init__(self, args, prog_dict):
         super(MulticlassNet, self).__init__(args, prog_dict)
-        self.out_classifier = MLP(args.embed_dim, [args.embed_dim * 2, prog_dict.num_class])
+        #self.out_classifier = MLP(args.embed_dim, [args.embed_dim * 2, prog_dict.num_class])
+        self.out_classifier = nn.Linear(args.embed_dim, prog_dict.num_class)
 
     def forward(self, node_idx, edge_idx, label=None):
         prog_repr = super(MulticlassNet, self).forward(node_idx, edge_idx)

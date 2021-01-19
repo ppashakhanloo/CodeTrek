@@ -63,7 +63,7 @@ class ProgTransformer(nn.Module):
         self.encoder = TransformerEncoder(encoder_layer, num_encoder_layers, encoder_norm)
 
     def forward(self, walk_embed):
-        assert walk_embed.dim() == 4 # N x B x d_model
+        assert walk_embed.dim() == 3 # N x B x d_model
         memory = self.encoder(walk_embed)
         return memory[0]
 

@@ -9,7 +9,7 @@ nlayer=4
 nhead=8
 hidden=512
 dropout=0
-setenc=transformer
+setenc=deepset
 export CUDA_VISIBLE_DEVICES=0
 
 save_dir=$HOME/scratch/results/dbwalk/exception/b-$bsize-emb-$embed-nl-$nlayer-head-$nhead-hid-$hidden-dp-$dropout-set-$setenc
