@@ -4,7 +4,7 @@ import os
 import torch
 import numpy as np
 import pickle as cp
-
+import random
 from torch.utils.data import Dataset, DataLoader
 from collections import namedtuple, defaultdict
 from dbwalk.common.consts import TOK_PAD, UNK
@@ -16,12 +16,27 @@ class ProgDict(object):
     def __init__(self, data_dir):
         with open(os.path.join(data_dir, 'dict.pkl'), 'rb') as f:
             d = cp.load(f)
+        f_label = os.path.join(data_dir, 'all_labels.txt')
+        self.label_map = {}
+        with open(f_label, 'r') as f:
+            for i, row in enumerate(f):
+                row = row.strip()
+                assert row not in self.label_map, 'duplicated label %s' % row
+                self.label_map[row] = i
         self.node_types = d['node_types']
         self.edge_types = d['edge_types']
         self.max_num_vars = d['n_vars']
-        print('# node types', len(self.node_types))
-        print('# edge types', len(self.edge_types))
+
+        self.var_dict = d['var_dict']
+        self.var_reverse_dict = d['var_reverse_dict']
+        print('# class', self.num_class)
+        print('# node types', self.num_node_types)
+        print('# edge types', self.num_edge_types)
         print('max # vars per program', self.max_num_vars)
+
+    @property
+    def num_class(self):
+        return len(self.label_map)
 
     @property
     def num_node_types(self):
@@ -43,12 +58,13 @@ class ProgDict(object):
 
 
 class InMemDataest(Dataset):
-    def __init__(self, prog_dict, data_dir, phase, sample_prob=None):
+    def __init__(self, prog_dict, data_dir, phase, sample_prob=None, shuffle_var=False):
         super(InMemDataest, self).__init__()
-                
+
         self.prog_dict = prog_dict
         self.phase = phase
         self.sample_prob = sample_prob
+        self.shuffle_var = shuffle_var
         assert self.prog_dict.node_idx(TOK_PAD) == self.prog_dict.edge_idx(TOK_PAD) == 0
 
         chunks = os.listdir(os.path.join(data_dir, 'cooked_' + phase))
@@ -61,7 +77,7 @@ class InMemDataest(Dataset):
                 d = cp.load(f)
                 for key in d:
                     node_mat, edge_mat, src, str_label = d[key]
-                    raw_sample = RawData(node_mat, edge_mat, src, int(str_label == 'used'))
+                    raw_sample = RawData(node_mat, edge_mat, src, self.prog_dict.label_map[str_label])
                     self.list_samples.append((key, raw_sample))
                     self.labeled_samples[raw_sample.label].append((key, raw_sample))
 
@@ -79,6 +95,14 @@ class InMemDataest(Dataset):
             samples = self.labeled_samples[sample_cls]
             idx = np.random.randint(len(samples))
             _, raw_sample = samples[idx]
+        if self.shuffle_var:
+            var_remap = list(range(self.prog_dict.max_num_vars))
+            random.shuffle(var_remap)
+            for i in range(raw_sample.node_idx.shape[0]):
+                for j in range(raw_sample.node_idx.shape[1]):
+                    if raw_sample.node_idx[i, j] in self.prog_dict.var_reverse_dict:
+                        old_var_idx = self.prog_dict.var_reverse_dict[raw_sample.node_idx[i, j]]
+                        raw_sample.node_idx[i, j] = self.prog_dict.var_dict[var_remap[old_var_idx]]
         return raw_sample
 
     def collate_fn(self, list_samples):
@@ -99,13 +123,13 @@ class InMemDataest(Dataset):
             print('giving up %d samples in a batch' % len(label))
             return None, None, None
 
-        full_node_idx = np.zeros((max_node_len, len(list_samples), min_walks), dtype=np.int16)
-        full_edge_idx = np.zeros((max_edge_len, len(list_samples), min_walks), dtype=np.int16)
+        full_node_idx = np.zeros((max_node_len, min_walks, len(list_samples)), dtype=np.int16)
+        full_edge_idx = np.zeros((max_edge_len, min_walks, len(list_samples)), dtype=np.int16)
 
         for i, s in enumerate(list_samples):
             node_mat, edge_mat = s.node_idx, s.edge_idx
-            full_node_idx[:node_mat.shape[0], i, :] = node_mat
-            full_edge_idx[:edge_mat.shape[0], i, :] = edge_mat
+            full_node_idx[:node_mat.shape[0], :, i] = node_mat
+            full_edge_idx[:edge_mat.shape[0], :, i] = edge_mat
         
         full_node_idx = torch.LongTensor(full_node_idx)
         full_edge_idx = torch.LongTensor(full_edge_idx)

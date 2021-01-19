@@ -1,7 +1,7 @@
 import sys
 import hashlib
-from os import listdir
-from os.path import isfile, join
+import os
+import os.path
 from typing import List, Dict
 
 
@@ -18,16 +18,19 @@ class OverlapChecker:
 
     @staticmethod
     def build_digest_map(directory: str) -> Dict[str, str]:
+        print('Hashing files in', directory)
         digest_file_map = {}
-        files = [f for f in listdir(directory) if isfile(join(directory, f))]
-        for f in files:
-            with open(join(directory, f), 'r') as file:
-                data = file.read()
-                data = "".join(data.split())
-                digest = hashlib.sha256(data.encode('utf-8')).hexdigest()
-                if digest in digest_file_map.keys():
-                    print(f'Overlap warning: {f} == {digest_file_map[digest]}')
-                digest_file_map[digest] = f
+        for path, subdirs, files in os.walk(directory):
+            for f in files:
+                full_path = os.path.join(path, f)
+                with open(full_path, 'r') as file:
+                    data = file.read()
+                    data = "".join(data.split())
+                    digest = hashlib.sha256(data.encode('utf-8')).hexdigest()
+                    if digest in digest_file_map.keys():
+                        print(f'Overlap warning: {full_path} == {digest_file_map[digest]}')
+                    digest_file_map[digest] = full_path
+        print(f'{len(digest_file_map.keys())} files hashed')
         return digest_file_map
 
     @staticmethod

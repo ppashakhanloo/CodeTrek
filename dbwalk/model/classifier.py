@@ -1,23 +1,39 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+from .encoder import ProgWalkTokEmbed, ProgWalkEncoder, ProgDeepset, ProgTransformer
 
-from .encoder import ProgWalkTokEmbed, ProgWalkEncoder, ProgDeepset
+from dbwalk.common.pytorch_util import MLP
 
 
-class BinaryNet(nn.Module):
+class WalkSet2Embed(nn.Module):
     def __init__(self, args, prog_dict):
-        super(BinaryNet, self).__init__()
+        super(WalkSet2Embed, self).__init__()
         self.tok_encoding = ProgWalkTokEmbed(prog_dict, args.embed_dim, args.dropout)
         self.walk_encoding = ProgWalkEncoder(args.embed_dim, args.nhead, args.transformer_layers,  args.dim_feedforward, args.dropout)
-        self.prob_encoding = ProgDeepset(args.embed_dim, args.dropout)
+        if args.set_encoder == 'deepset':
+            self.prob_encoding = ProgDeepset(args.embed_dim, args.dropout)
+        elif args.set_encoder == 'transformer':
+            self.prob_encoding = ProgTransformer(args.embed_dim, args.nhead, args.transformer_layers,  args.dim_feedforward, args.dropout)
+        else:
+            raise ValueError("unknown set encoder %s" % args.set_encoder)
 
+    def forward(self, node_idx, edge_idx):
+        seq_tok_embed = self.tok_encoding(node_idx, edge_idx)
+        walk_repr = self.walk_encoding(seq_tok_embed)
+        prog_repr = self.prob_encoding(walk_repr)
+        return prog_repr
+
+
+class BinaryNet(WalkSet2Embed):
+    def __init__(self, args, prog_dict):
+        super(BinaryNet, self).__init__(args, prog_dict)
+        assert prog_dict.num_class == 2
         self.out_classifier = nn.Linear(args.embed_dim, 1)
 
     def forward(self, node_idx, edge_idx, label=None):
-        seq_tok_embed = self.tok_encoding(node_idx, edge_idx)        
-        walk_repr = self.walk_encoding(seq_tok_embed)
-        prog_repr = self.prob_encoding(walk_repr)
-        
+        prog_repr = super(BinaryNet, self).forward(node_idx, edge_idx)
+
         logits = self.out_classifier(prog_repr)
         prob = torch.sigmoid(logits)
         if label is not None:
@@ -26,3 +42,21 @@ class BinaryNet(nn.Module):
             return torch.mean(loss)
         else:
             return prob
+
+
+class MulticlassNet(WalkSet2Embed):
+    def __init__(self, args, prog_dict):
+        super(MulticlassNet, self).__init__(args, prog_dict)
+        #self.out_classifier = MLP(args.embed_dim, [args.embed_dim * 2, prog_dict.num_class])
+        self.out_classifier = nn.Linear(args.embed_dim, prog_dict.num_class)
+
+    def forward(self, node_idx, edge_idx, label=None):
+        prog_repr = super(MulticlassNet, self).forward(node_idx, edge_idx)
+        logits = self.out_classifier(prog_repr)
+
+        if label is not None:
+            label = label.to(logits.device).view(logits.shape[0])
+            loss = F.cross_entropy(logits, label)
+            return loss
+        else:
+            return logits

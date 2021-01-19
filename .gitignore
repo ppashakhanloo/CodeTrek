@@ -31,4 +31,4 @@ java_codeql/**/*.csv
 java_codeql/**/*.facts
 java_codeql/**/*.gv
 java_codeql/**/*.pdf
-
+*.egg-info/

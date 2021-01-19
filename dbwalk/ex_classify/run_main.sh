@@ -1,12 +1,12 @@
 #!/bin/bash
 
 data_root=$HOME/data/dataset/dbwalk
-data_name=walks-initial
+data_name=walks_exception
 
 bsize=32
 embed=256
-nlayer=2
-nhead=4
+nlayer=4
+nhead=8
 hidden=512
 dropout=0
 setenc=deepset
@@ -14,7 +14,7 @@ shuffle_var=True
 
 export CUDA_VISIBLE_DEVICES=0
 
-save_dir=$HOME/scratch/results/dbwalk/b-$bsize-emb-$embed-nl-$nlayer-head-$nhead-hid-$hidden-dp-$dropout-set-$setenc-sv-$shuffle_var
+save_dir=$HOME/scratch/results/dbwalk/exception/b-$bsize-emb-$embed-nl-$nlayer-head-$nhead-hid-$hidden-dp-$dropout-set-$setenc-sv-$shuffle_var
 
 if [ ! -e $save_dir ];
 then

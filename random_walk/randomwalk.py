@@ -37,7 +37,8 @@ class RandomWalker:
     # min_num_steps and max_num_steps.
     # The number of random walks can be less than max_num_walks if there are less
     # walks from the source than the requested number of walks.
-    #
+    # If that happens, this function pads the return list to max_num_walks by
+    # duplicating elements randomly chosen from the sampled walks.
     @staticmethod
     def random_walk(graph: AGraph, source: Node, max_num_walks: int, min_num_steps: int, max_num_steps: int) -> List[List]:
         node_to_relname = RandomWalker.build_relname_map(graph)
@@ -71,7 +72,7 @@ class RandomWalker:
             if curr_walk not in walks and len(curr_walk) > 1:
                 walks.append(curr_walk)
 
-        return walks
+        return RandomWalker.padding(walks, max_num_walks)
 
     # find __all__ simple paths in the graph starting from the specified node,
     # with a maximum length specified by cutoff
@@ -89,3 +90,14 @@ class RandomWalker:
     def load_graph_from_gv(path: str) -> AGraph:
         graph = AGraph(path, directed=False)
         return nx.nx_agraph.from_agraph(graph)
+
+    # Padding the given list to size `num` by duplicating elements that are
+    # selected from the list at random.
+    @staticmethod
+    def padding(lst: List[any], num: int) -> List[any]:
+        assert len(lst) <= num
+        if len(lst) == num:
+            return lst
+        else:  # len(lst) < num
+            count = num - len(lst)
+            return lst + choices(lst, k=count)
