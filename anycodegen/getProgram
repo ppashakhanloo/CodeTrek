@@ -7,8 +7,8 @@ import tqdm
 import requests
 
 if len(sys.argv) != 2:
-	print("Usage: ./getProgram data_file")
-	exit(1)
+        print("Usage: ./getProgram data_file")
+        exit(1)
 
 filename = sys.argv[1]
 
@@ -16,37 +16,17 @@ op_filename = filename + "_prgfiles.json"
 programs = []
 
 with open(filename, 'r') as json_file_collection:
-	os.system('rm -rf ' + op_filename)
-	for json_str in tqdm.tqdm(json_file_collection.readlines()):
-		obj = json.loads(json_str)
-		code = obj['left_context'].replace('\n', '', -1).replace('"', '\"', -1) + '??' + obj['right_context'].replace('\n', '', -1).replace('"', '\"', -1)
-		print("Sending request to API")
-		response = requests.post('https://w0w3uc4a63.execute-api.us-east-1.amazonaws.com/prod/predict', json={'code': code})
-		n = 0
-		while n < 5 and not response.ok:
-			print("Retrying", response.ok, response.headers)
-			response = requests.post('https://w0w3uc4a63.execute-api.us-east-1.amazonaws.com/prod/predict', json={'code': code})
-			n += 1
-		predictions = []
-		print("Response received")
-		if response.ok:
-			response_body = response.json()
-			assert len(response_body) == 1
-			for prediction in response_body[0]:
-				predictions.append({
-					"code": prediction['code'],
-					"prob": prediction['prob_val']
-				})
-		else:
-			predictions.append({"status": "ERROR"})
-		programs.append({
-			"filepath": obj['filepath'],
-			"target_seq": obj['target_seq'],
-			"line": obj['line'],
-			"code":	code,
-			"predictions": predictions
-		})
+        os.system('rm -rf ' + op_filename)
+        for json_str in tqdm.tqdm(json_file_collection.readlines()):
+                obj = json.loads(json_str)
+                code = obj['left_context'].replace('"', '\"', -1) + '??' + obj['right_context'].replace('"', '\"', -1)
+                programs.append({
+                        "filepath": obj['filepath'],
+                        "target_seq": obj['target_seq'],
+                        "line": obj['line'],
+                        "code":        code
+                })
 
 with open(op_filename, 'w') as op_file:
-	print("Saving programs to " + op_filename)
-	json.dump(programs, op_file, indent=4)
+        print("Saving programs to " + op_filename)
+        json.dump(programs, op_file, indent=4)
