@@ -1,7 +1,7 @@
 import os
 import sys
 import json
-from os.path import join
+from os.path import join, exists
 from shutil import copyfile
 from pathlib import Path
 from typing import List
@@ -36,11 +36,14 @@ def collect_files(walks_dir: str, out_dir: str) -> None:
         graph_file = join(join(walks_dir, name), gv_name)
         json_file = join(join(walks_dir, name), 'walks.json')
 
-        # generate the new files
-        new_json_name = 'walks_exception_' + dir_name + '_file_' + tokens[4] + '.json'
-        gen_json_file(json_file, join(join(out_dir, dir_name), new_json_name))
-        new_graph_name = 'graph_exception_' + dir_name + '_file_' + tokens[4] + '.gv'
-        gen_graph_file(graph_file, join(join(out_dir, dir_name), new_graph_name))
+        if exists(json_file):
+            # generate the new files
+            new_json_name = 'walks_exception_' + dir_name + '_file_' + tokens[4] + '.json'
+            gen_json_file(json_file, join(join(out_dir, dir_name), new_json_name))
+            new_graph_name = 'graph_exception_' + dir_name + '_file_' + tokens[4] + '.gv'
+            gen_graph_file(graph_file, join(join(out_dir, dir_name), new_graph_name))
+        else:
+            print('Warning:', json_file)
 
 
 def main(args: List[str]) -> None:
