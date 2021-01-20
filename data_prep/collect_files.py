@@ -46,6 +46,7 @@ def collect_files(walks_dir: str, out_dir: str) -> None:
 def main(args: List[str]) -> None:
     if not len(args) == 3:
         print('Usage: python3 collect_files.py <walks-dir> <out-dir>')
+        exit(1)
     walks_dir = args[1]
     out_dir = args[2]
     collect_files(walks_dir, out_dir)
