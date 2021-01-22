@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+DIR=$1
+
+#DIR=/home/aadityanaik/relational-representation/datasets/cubert/py_files/train
+
+echo "file1 var1 start_row1 start_col1 end_row1 end_col1 file2 var2 start_row2 start_col2 end_row2 end_col2"
+
+for ((i=0;i<350354;i++)); 
+do	
+   corr=$((i*2))
+   incorr=$((i*2+1))
+   echo `python3 diff.py $DIR/correct/file_$corr/source.py $DIR/misuse/file_$incorr/source.py` 
+done
