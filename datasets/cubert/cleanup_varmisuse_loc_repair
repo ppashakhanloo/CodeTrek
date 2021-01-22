@@ -94,8 +94,11 @@ def process_json_collection(filename: str, index: int, kind: str):
       index += 1
   return index
         
+bench = []
+with open('benchmark_gen_list', 'r') as blist:
+    bench = [x.strip() for x in blist.readlines()]
 
-for filename in os.listdir("."):
+for filename in bench:
   if filename.startswith("dev"):
     print("Processing " + filename)
     numdev = process_json_collection(filename, numdev, "dev")

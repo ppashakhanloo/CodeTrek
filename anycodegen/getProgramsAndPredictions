@@ -6,8 +6,11 @@ import os
 import tqdm
 import requests
 
-if len(sys.argv) != 2:
-        print("Usage: ./getProgram data_file")
+start_idx = 0
+end_idx = None
+
+if len(sys.argv) <= 2 or len(sys.argv) > 4:
+        print("Usage: ./getProgram data_file [start idx (inclusive)] [end idx (exclusive)]")
         exit(1)
 
 filename = sys.argv[1]
@@ -16,7 +19,13 @@ op_filename = filename + "_prdnfiles.json"
 
 with open(filename, 'r') as json_file_collection:
         os.system('rm -rf ' + op_filename)
-        for json_str in tqdm.tqdm(json_file_collection.readlines()):
+        lines = json_file_collection.readlines()
+        if end_idx is not None:
+                lines = lines[start_idx:end_idx]
+        else:
+                lines = lines[start_idx:]
+        
+        for json_str in tqdm.tqdm(lines):
                 obj = json.loads(json_str)
                 code = obj['left_context'] + '??' + obj['right_context']
                 print("Sending request to API")
