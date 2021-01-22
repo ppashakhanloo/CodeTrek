@@ -12,7 +12,8 @@ def main(args: List[str]) -> None:
     join_filepath = args[2]
     output_file = args[3]
 
-    graph_builder = GraphBuilder(facts_dir, join_filepath)
+    language = 'python'
+    graph_builder = GraphBuilder(facts_dir, join_filepath, language)
     graph = graph_builder.build()
     GraphBuilder.save_gv(graph, output_file + '.gv')
 
