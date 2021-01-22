@@ -30,3 +30,10 @@ py_files
    `- misuse
       `- file_*/source.py
 ```
+
+# Script to find the name and exact location of misused variables
+
+Example use:
+```
+./find_misuse_locations /home/aadityanaik/relational-representation/datasets/cubert/py_files/train > train_misuse_locs.txt
+```
