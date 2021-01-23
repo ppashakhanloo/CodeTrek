@@ -17,12 +17,12 @@ rm -rf "$outdir"
 mkdir -p "$outdir"
 
 cp -r "$bench/edb_dumps_whitelist" "$bench/source.py" "$outdir"
-grep "$bench" "var_misuses.txt" > "$outdir/var_misuses.csv"
+grep "$bench/source.py" "var_misuses.txt" > "$outdir/edb_dumps_whitelist/var_misuses.csv" || exit 112345
 
 echo "Generating Graph"
 python build_graph.py "$outdir/edb_dumps_whitelist" python_full_table_joins.txt "$outdir/${fname}_graph"
 echo "Graph Generated"
 
 echo "Generating Walks"
-python ../random_walk/gen_walks_misuse.py "$outdir/${fname}_graph.gv" "$outdir/edb_dumps_whitelist" "$outdir/unused_local_vars_id.csv" "$outdir/walks.json"
+python ../random_walk/gen_walks_misuse.py "$outdir/${fname}_graph.gv" "$outdir/edb_dumps_whitelist" "$label" "$outdir/walks.json"
 echo "Walks Generated"
