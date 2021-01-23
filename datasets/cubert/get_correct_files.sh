@@ -2,7 +2,7 @@
 
 filename="$1"
 
-for i in $(cat final_batches/batch_7)
+for i in $(cat "$filename")
 do
     num=$(basename $(dirname $i))
     num=${num:5}
