@@ -183,3 +183,58 @@ class WalkUtils:
             else:           # edge
                 edges.append(WalkUtils.build_traj_edge(walk[i]))
         return Trajectory(nodes, edges)
+
+
+class JavaWalkUtils:
+
+    COLUMNS = {
+        'locations_default': ['id', 'file', 'beginLine', 'beginColumn', 'endLine', 'endColumn'],
+        'hasLocation': ['locatableid', 'id'],
+        'packages': ['id', 'nodeName'],
+        'primitives': ['id', 'nodeName'],
+        'modifiers': ['id', 'nodeName'],
+        'classes': ['id', 'nodeName', 'parentid', 'sourceid'],
+        'idRecord': ['id'],
+        'interfaces': ['id', 'nodeName', 'parentid', 'sourceid'],
+        'fielddecls': ['id', 'parentid'],
+        'fieldDeclaredIn': ['fieldId', 'fieldDeclId', 'pos'],
+        'fields': ['id', 'nodeName', 'typeid', 'parentid', 'sourceid'],
+        'constrs': ['id', 'nodeName', 'signature', 'typeid', 'parentid', 'sourceid'],
+        'methods': ['id', 'nodeName', 'signature', 'typeid', 'parentid', 'sourceid'],
+        'params': ['id', 'typeid', 'pos', 'parentid', 'sourceid'],
+        'paramName': ['id', 'nodeName'],
+        'isVarargsParam': ['param'],
+        'exceptions': ['id', 'typeid', 'parentid'],
+        'isAnnotType': ['interfaceid'],
+        'isAnnotElem': ['methodid'],
+        'annotValue': ['parentid', 'id2', 'value'],
+        'isEnumType': ['classid'],
+        'isEnumConst': ['fieldid'],
+        'typeVars': ['id', 'nodeName', 'pos', 'kind', 'parentid'],
+        'wildcards': ['id', 'nodeName', 'kind'],
+        'typeBounds': ['id', 'typeid', 'pos', 'parentid'],
+        'typeArgs': ['argumentid', 'pos', 'parentid'],
+        'isParameterized': ['memberid'],
+        'isRaw': ['memberid'],
+        'erasure': ['memberid', 'erasureid'],
+        'isAnonymClass': ['classid', 'parent'],
+        'isLocalClass': ['classid', 'parent'],
+        'isDefConstr': ['constructorid'],
+        'lambdaKind': ['exprId', 'bodyKind'],
+        'arrays': ['id', 'nodeName', 'elementtypeid', 'dimension', 'componenttypeid'],
+        'enclInReftype': ['child', 'parent'],
+        'extendsReftype': ['id1', 'id2'],
+        'implInterface': ['id1', 'id2'],
+        'hasModifier': ['id1', 'id2'],
+        'imports': ['id1', 'holder', 'name', 'kind'],
+        'stmts': ['id', 'kind', 'parent', 'idx', 'bodydecl'],
+        'exprs': ['id', 'kind', 'typeid', 'parent', 'idx'],
+        'callableEnclosingExpr': ['id', 'callable_id'],
+        'statementEnclosingExpr': ['id', 'statement_id'],
+        'isParenthesized': ['id', 'parentheses'],
+        'callableBinding': ['callerid', 'callee'],
+        'memberRefBinding': ['id', 'callable'],
+        'variableBinding': ['expr', 'variable'],
+        'localvars': ['id', 'nodeName', 'typeid', 'parentid'],
+        'namestrings': ['name', 'value', 'parent']
+    }

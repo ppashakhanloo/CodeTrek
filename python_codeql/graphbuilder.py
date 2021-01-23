@@ -2,21 +2,36 @@ import csv
 import os
 import graphviz
 from io import StringIO
-from data_prep.walkutils import WalkUtils
+from data_prep.walkutils import WalkUtils, JavaWalkUtils
 from typing import List, Set, Dict, Tuple
 
 
 class GraphBuilder:
     facts_dir = None      # type: str
     join_filepath = None  # type: str
+    language = None       # type: str
 
-    def __init__(self, facts_dir: str, join_filepath: str):
+    def __init__(self, facts_dir: str, join_filepath: str, language: str):
         self.facts_dir = facts_dir
         self.join_filepath = join_filepath
+        self.language = GraphBuilder.parse_language(language)
 
     @staticmethod
-    def load_columns() -> Dict[str, List[str]]:
-        return WalkUtils.COLUMNS
+    def parse_language(language: str) -> str:
+        if language.lower() == 'python':
+            return 'python'
+        elif language.lower() == 'java':
+            return 'java'
+        else:
+            raise ValueError('Unknown language:', language)
+
+    def load_columns(self) -> Dict[str, List[str]]:
+        if self.language == 'python':
+            return WalkUtils.COLUMNS
+        elif self.language == 'java':
+            return JavaWalkUtils.COLUMNS
+        else:
+            raise ValueError('Cannot load columns for language:', self.language)
 
     def load_fact_table(self, fact_file: str) -> List[Tuple]:
         table = []
