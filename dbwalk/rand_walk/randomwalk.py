@@ -2,7 +2,7 @@ import networkx as nx
 from pygraphviz import AGraph, Node
 from random import choice, choices, randint
 from typing import List, Dict, Set
-from dbwalk.rand_walk.walkutils import WalkUtils
+from dbwalk.rand_walk.walkutils import WalkUtils, JavaWalkUtils
 
 
 class RandomWalker:
@@ -20,7 +20,7 @@ class RandomWalker:
         self.language = RandomWalker.parse_language(language)
         self.graph = graph
         self.source_node = RandomWalker.find_node_by_label(graph, source)
-        self.node_to_relname = RandomWalker.build_relname_map(graph)
+        self.node_to_relname = RandomWalker.build_relname_map(graph, self.language)
         self.bias_tables = RandomWalker.load_bias_tables(self.language)
 
     @staticmethod
@@ -102,10 +102,15 @@ class RandomWalker:
         return RandomWalker.padding(walks, max_num_walks)
 
     @staticmethod
-    def build_relname_map(graph: AGraph) -> Dict[Node, str]:
+    def build_relname_map(graph: AGraph, language: str) -> Dict[Node, str]:
         node_to_relname = {}
         for node in graph.nodes():
-            relname, _ = WalkUtils.parse_node_label(graph.nodes[node]['label'])
+            if language == 'python':
+                relname, _ = WalkUtils.parse_node_label(graph.nodes[node]['label'])
+            elif language == 'java':
+                relname, _ = JavaWalkUtils.parse_node_label(graph.nodes[node]['label'])
+            else:
+                raise ValueError('Unknown language:', language)
             node_to_relname[node] = relname
         return node_to_relname
 

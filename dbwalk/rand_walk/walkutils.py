@@ -184,7 +184,7 @@ class WalkUtils:
         return Trajectory(nodes, edges)
 
 
-class JavaWalkUtils(WalkUtils):
+class JavaWalkUtils:
 
     COLUMNS = {
         'locations_default': ['id', 'file', 'beginLine', 'beginColumn', 'endLine', 'endColumn'],
@@ -370,3 +370,35 @@ class JavaWalkUtils(WalkUtils):
         assert len(tokens) == len(JavaWalkUtils.COLUMNS[relname])
         values = [token.strip() for token in tokens]
         return relname, values
+
+    @staticmethod
+    def build_traj_node(node: Tuple[Node, str]) -> TrajNode:
+        node_label = node[1]
+        relname, values = JavaWalkUtils.parse_node_label(node_label)
+        return TrajNode(JavaWalkUtils.gen_node_label(relname, values))
+
+    @staticmethod
+    def parse_edge_label(edge_label: str) -> Tuple[str, str]:
+        # text of edge_label: (label1,label2)
+        tokens = edge_label.split(',')
+        assert len(tokens) == 2
+        label1 = tokens[0].strip()[1:]
+        label2 = tokens[1].strip()[:-1]
+        return label1, label2
+
+    @staticmethod
+    def build_traj_edge(edge: Tuple[Node, Node, str]) -> TrajEdge:
+        edge_label = edge[2]
+        label1, label2 = JavaWalkUtils.parse_edge_label(edge_label)
+        return TrajEdge(label1, label2)
+
+    @staticmethod
+    def build_trajectory(walk: List[Tuple]) -> Trajectory:
+        nodes = []
+        edges = []
+        for i in range(len(walk)):
+            if i % 2 == 0:  # node
+                nodes.append(JavaWalkUtils.build_traj_node(walk[i]))
+            else:           # edge
+                edges.append(JavaWalkUtils.build_traj_edge(walk[i]))
+        return Trajectory(nodes, edges)
