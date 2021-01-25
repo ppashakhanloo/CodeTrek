@@ -2,9 +2,34 @@ import sys
 import ast
 from pydot import Edge, Node
 from astmonkey import visitors, transformers
+from diff import get_diff 
 
-def build_Child_graph(input_python_file):
+CURR_STR = '___CURR___'
+
+def build_Child_graph(input_python_file, aux_file, label=None):
+  _, tok1, row1_s, col1_s, row1_e, col1_e, _, tok2, row2_s, col2_s, row2_e, col2_e = get_diff(input_python_file, aux_file)
+
+  # label = correct, misuse
+  lines = []
   with open(input_python_file, 'r') as infile:
+    with open('temp', 'w') as outfile:
+      lines = infile.readlines()
+      different_line = lines[row1_s-1]
+      new_line = different_line[:col1_s-1] + different_line[col1_s-1:].replace(tok1, CURR_STR, 1)
+      lines[row1_s-1] = new_line
+      outfile.write("".join(lines))
+
+  correct_var = ""
+  incorrect_var = ""
+  if label:
+    if label == 'correct':
+      correct_var = tok1
+      incorrect_var = tok2
+    elif label == 'misuse':
+      correct_var = tok2
+      incorrect_var = tok1
+
+  with open('temp', 'r') as infile:
     contents = infile.read()
     node = ast.parse(contents)
     node = transformers.ParentChildNodeTransformer().visit(node)
@@ -15,7 +40,7 @@ def build_Child_graph(input_python_file):
 
     for edge in graph.get_edges():
       edge.set('label', 'Child')
-
+    
     neighbors = {} # node -> neighbors
     for edge in graph.get_edges():
       src = edge.get_source()
@@ -30,9 +55,21 @@ def build_Child_graph(input_python_file):
       res = []
       get_subtree(node, res, neighbors)
       subtrees[node] = res
-
-    return graph, neighbors, subtrees
-  return None, None, None
+   
+    # find curr and replace with its variable name
+    node_of_interest = ""
+    for node in graph.get_nodes():
+      if CURR_STR in node.get('label'):
+        node.set('label', node.get('label').replace(CURR_STR, tok1))
+        node_of_interest = node
+        break
+    
+    # add the <SLOT> node
+    #slot = Edge(Node(name='<SLOT>'), node_of_interest)
+    #graph.add_edge(slot)
+    
+    return graph, neighbors, subtrees, tok1, correct_var, node_of_interest
+  return None, None, None, None, None, None
 
 def add_NextToken_edges(graph, subtrees):
   token_nodes = []
@@ -187,38 +224,12 @@ def add_Guarded_edges(graph, subtrees, neighbors):
 
   return graph
 
-def add_varmisue_specials(graph, neighbors, varfile):  
-  with open(varfile, 'r') as f:
-    lines = f.readlines()
-    lines[1] # actual content
-    line = lines[1].split(',')
+def add_varmisue_specials(graph, variables, node_of_interest):
+  # add slot node to specify location
+  graph.add_edge(Edge(Node(name='<SLOT>'), node_of_interest))
 
-    if lines[3] == '__NONE__' or lines[4] == '__NONE__':
-      raise('no bug exists. try with buggy file only!')
-
-    correct_var_name = line[4]
-    incorrect_var_name = line[3]
-
-    slot_node = Node(name='<SLOT>')
-    cand_correct_node = Node(name='cand1')
-    cand_incorrect_node = Node(name='cand2')
-
-    slot_node.set('label', '<SLOT>')
-    cand_correct_node.set('label', correct_var_name)
-    cand_incorrect_node.set('label', incorrect_var_name)
+  return graph
     
-    for e in graph.get_edges():
-      if e.get('label') == 'NextToken':
-        
-
-    incorrect_node_loc = 
-    
-
-    
-#error_char_number,error_row,error_col,wrong_variable,correct_variable,provenance
-#0,0,0,___NONE___,___NONE___,dataset/ETHPy150Open aliles/begins/tests/test_extensions.py TestLoging.test_run_logfile_linux/original
-
-
 def save_graph(graph, output_file):
   graph.write(output_file+'.dot', format='dot')
   graph.write(output_file+'.png', format='png')
@@ -229,8 +240,8 @@ def get_subtree(node, res, neighbors):
       res.append(child)
       get_subtree(child, res, neighbors)
 
-def gen_graph_from_source(infile, varfile):
-  graph, neighbors, subtrees = build_Child_graph(infile)
+def gen_graph_from_source(infile, aux_file):
+  graph, neighbors, subtrees, current_var, correct_var, node_of_interest = build_Child_graph(infile, aux_file)
   graph = add_NextToken_edges(graph, subtrees)
   graph, _, variables = add_LastLexicalUse_edges(graph)
   graph = add_ReturnsTo_edges(graph, subtrees)
@@ -239,14 +250,11 @@ def gen_graph_from_source(infile, varfile):
   graph = add_Guarded_edges(graph, subtrees, neighbors)
 
   # if the task is var misuse
-  graph = add_varmisue_specials(graph, neighbors, varfile, var_reads, var_writes, variables)
+  graph = add_varmisue_specials(graph, variables, node_of_interest)
 
   return graph
 
 def main(args):
-  #if not len(args) == 3:
-  #  print('Usage: python3 create_ast.py <input_python_file> <output_file>')
-  #  exit(1)
   graph = gen_graph_from_source(args[1], args[2])
   save_graph(graph, args[3])
 
