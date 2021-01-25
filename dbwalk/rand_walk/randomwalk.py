@@ -1,24 +1,27 @@
 import networkx as nx
 from pygraphviz import AGraph, Node
 from random import choice, choices, randint
-from typing import List, Dict
+from typing import List, Dict, Set
 from dbwalk.rand_walk.walkutils import WalkUtils
 
 
 class RandomWalker:
     BIAS_WEIGHT = 5
-    BIAS_TABLES = {'py_variables', 'py_exprs', 'py_stmts'}
+    PYTHON_BIAS_TABLES = {'py_variables', 'py_exprs', 'py_stmts'}
+    JAVA_BIAS_TABLES = {'exprs', 'stmts'}
 
+    language = None         # type: str
     graph = None            # type: AGraph
-    source_str = None       # type: str
     source_node = None      # type: Node
     node_to_relname = None  # type: Dict[Node, str]
+    bias_tables = None      # type: Set[str]
 
-    def __init__(self, graph: AGraph, source: str):
+    def __init__(self, graph: AGraph, source: str, language: str):
+        self.language = RandomWalker.parse_language(language)
         self.graph = graph
-        self.source_str = source
         self.source_node = RandomWalker.find_node_by_label(graph, source)
         self.node_to_relname = RandomWalker.build_relname_map(graph)
+        self.bias_tables = RandomWalker.load_bias_tables(self.language)
 
     @staticmethod
     def find_node_by_label(graph: AGraph, node_label: str) -> Node:
@@ -27,15 +30,32 @@ class RandomWalker:
                 return node
         raise NameError('Cannot find node with label:' + node_label)
 
-    # Sample the next node to visit for a random walk.
-    # The probability of visiting a BIAS_TABLES node is
-    # BIAS_WEIGHT times as that of visiting other nodes.
     @staticmethod
-    def sample_node(nodes: List[Node], node_to_relname: Dict[Node, str]) -> Node:
+    def parse_language(language: str) -> str:
+        if language.lower() == 'python':
+            return 'python'
+        elif language.lower() == 'java':
+            return 'java'
+        else:
+            raise ValueError('Invalid language:', language)
+
+    @staticmethod
+    def load_bias_tables(language: str) -> Set[str]:
+        if language == 'python':
+            return RandomWalker.PYTHON_BIAS_TABLES
+        elif language == 'java':
+            return RandomWalker.JAVA_BIAS_TABLES
+        else:
+            raise ValueError('Unknown bias tables for', language)
+
+    # Sample the next node to visit for a random walk.
+    # The probability of visiting a node in `bias_tables` is
+    # BIAS_WEIGHT times as that of visiting other nodes.
+    def sample_node(self, nodes: List[Node], node_to_relname: Dict[Node, str]) -> Node:
         weights = []
         for node in nodes:
             relname = node_to_relname[node]
-            weight = RandomWalker.BIAS_WEIGHT if relname in RandomWalker.BIAS_TABLES else 1
+            weight = RandomWalker.BIAS_WEIGHT if relname in self.bias_tables else 1
             weights.append(weight)
         return choices(nodes, weights, k=1)[0]
 
@@ -63,7 +83,7 @@ class RandomWalker:
                 neighbors = list(self.graph.neighbors(curr_node))
                 if len(neighbors) > 0:
                     prev_node = curr_node
-                    curr_node = RandomWalker.sample_node(neighbors, self.node_to_relname)
+                    curr_node = self.sample_node(neighbors, self.node_to_relname)
                     curr_edge = (prev_node, curr_node,
                                  choice(list(self.graph[prev_node][curr_node].values()))['label'])
                     curr_edge_rev = (curr_edge[1], curr_edge[0], curr_edge[2])

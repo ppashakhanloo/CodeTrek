@@ -1,7 +1,7 @@
 import sys
 import json
 from typing import List
-from dbwalk.rand_walk.walkutils import WalkUtils
+from dbwalk.rand_walk.walkutils import WalkUtils, JavaWalkUtils
 from dbwalk.rand_walk.randomwalk import RandomWalker
 
 
@@ -23,12 +23,18 @@ def main(args: List[str]) -> None:
     label = data['label']  # not used in this test
 
     print('Generating random walks')
+    language = 'python'
     num_walks = 3
-    walker = RandomWalker(graph, anchor_str)
+    walker = RandomWalker(graph, anchor_str, language)
     # sample walks on the graph
     walks = walker.random_walk(max_num_walks=num_walks, min_num_steps=8, max_num_steps=16)
     # generate node and edge labels for each walk
-    trajectories = [WalkUtils.build_trajectory(walk) for walk in walks]
+    if language == 'python':
+        trajectories = [WalkUtils.build_trajectory(walk) for walk in walks]
+    elif language == 'java':
+        trajectories = [JavaWalkUtils.build_trajectory(walk) for walk in walks]
+    else:
+        raise ValueError('Unknown language:', language)
 
     print(num_walks, 'walks generated')
     for trajectory in trajectories:

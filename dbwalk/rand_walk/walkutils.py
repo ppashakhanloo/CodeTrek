@@ -184,7 +184,7 @@ class WalkUtils:
         return Trajectory(nodes, edges)
 
 
-class JavaWalkUtils:
+class JavaWalkUtils(WalkUtils):
 
     COLUMNS = {
         'locations_default': ['id', 'file', 'beginLine', 'beginColumn', 'endLine', 'endColumn'],
@@ -340,3 +340,33 @@ class JavaWalkUtils:
         22: 'catchclause',
         23: 'yieldstmt'
     }
+
+    @staticmethod
+    def gen_node_label(relname: str, values: List[str]) -> str:
+        # Use variable ID as the label
+        if relname == 'localvars':
+            return 'v_' + values[0]
+        # Distinguish different kinds of expressions
+        if relname == 'exprs':
+            kind_index = 1
+            kind = int(values[kind_index])
+            return 'expr_' + JavaWalkUtils.expr_kinds[kind]
+        # Distinguish different kinds of statements
+        if relname == 'stmts':
+            kind_index = 1
+            kind = int(values[kind_index])
+            return 'stmt_' + JavaWalkUtils.stmt_kinds[kind]
+        # Otherwise, use relation name as the label
+        return relname
+
+    @staticmethod
+    def parse_node_label(node_label: str) -> Tuple[str, List[str]]:
+        # text of node_label: relname(val1,val2,...)
+        # only split on the first occurrence of '('
+        splits = node_label.split('(', 1)
+        assert len(splits) == 2
+        relname = splits[0].strip()
+        tokens = splits[1].strip()[:-1].split(',')
+        assert len(tokens) == len(JavaWalkUtils.COLUMNS[relname])
+        values = [token.strip() for token in tokens]
+        return relname, values
