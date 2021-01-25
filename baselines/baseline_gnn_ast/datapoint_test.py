@@ -1,5 +1,5 @@
 import json
-from datapoint import DataPoint, ContextGraph, NodeLabels, Edges, GraphEdge, SymbolCandidate
+from datapoint import DataPoint, ContextGraph, NodeLabels, Edges, GraphEdge
 
 def main():
   e1 = GraphEdge(0, 1)
@@ -10,12 +10,12 @@ def main():
   e6 = GraphEdge(9, 8)
 
   edges = Edges(
-    Child=[e1, e2, e3, e4],
-    NextToken=[e1, e2, e3],
-    LastLexicalUse=[e3, e6, e5],
-    LastUse=[e4, e5, e1, e2],
-    LastWrite=[e1, e2],
-    ReturnsTo=[e6]
+    child=[e1, e2, e3, e4],
+    next_token=[e1, e2, e3],
+    last_lexical_use=[e3, e6, e5],
+    last_use=[e4, e5, e1, e2],
+    last_write=[e1, e2],
+    returns_to=[e6]
   )
 
   node_labels_raw = {
@@ -29,22 +29,18 @@ def main():
 
   node_labels = NodeLabels(node_labels_raw)
 
-  cand1 = SymbolCandidate(0, "label0", 'false')
-  cand2 = SymbolCandidate(1, "label1", 'true')
-
-  symbol_candidates = [cand1, cand2]
-
   context_graph = ContextGraph(
-    Edges=edges,
-    NodeLabels=node_labels
+    edges=edges,
+    node_labels=node_labels
   )
+
+  label = 'correct'
 
   point = DataPoint(
     filename="test/dir/path",
-    slotTokenIdx="0",
-    SlotDummyNode="0",
-    ContextGraph=context_graph,
-    SymbolCandidates=symbol_candidates
+    slot_node="0",
+    context_graph=context_graph,
+    label=label
   )
 
   json_str = json.dumps(point.to_dict())

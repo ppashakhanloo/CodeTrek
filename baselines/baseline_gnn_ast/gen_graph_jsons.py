@@ -5,13 +5,17 @@ import datapoint
 import create_ast
 
 def init(graph):
-  # adjust node labels  
+  # adjust node labels 
+  slot_node = None
   for node in graph.get_nodes():
     original_label = node.get('label')
     label = ""
     if 'name=\'' in original_label or 'id=\'' in original_label:
       result = re.search(r"\'([A-Za-z0-9_]+)\'", original_label)
       label = result.group(1)
+    elif 'object at 0x' in original_label:
+      slotted_node = original_label
+      slot_node = node
     else:
       label = original_label[4:original_label.find('(')]
     node.set('label', label)
@@ -23,7 +27,8 @@ def init(graph):
     node_to_num[node.get_name()] = num
     num += 1
 
-  return graph, node_to_num
+  slot_node.set('label', graph.get_node(slotted_node)[0].get_label())
+  return graph, node_to_num, node_to_num[slot_node.get_name()], node_to_num[slotted_node]
 
 def get_each_edge_category(graph, node_to_num, cat_name):
   edges = []
@@ -36,22 +41,22 @@ def get_each_edge_category(graph, node_to_num, cat_name):
   return edges
 
 def main(args):
-  graph, node_to_num = init(create_ast.gen_graph_from_source(args[1]))
+  graph, node_to_num, slot_node_idx, slotted_node_idx = init(create_ast.gen_graph_from_source(args[1], args[2]))
 
   # prepare edges
-  Child_edges = get_each_edge_category(graph, node_to_num, 'Child')
-  NextToken_edges = get_each_edge_category(graph, node_to_num, 'NextToken')
-  LastLexicalUse_edges = get_each_edge_category(graph, node_to_num, 'LastLexicalUse')
-  LastUse_edges = get_each_edge_category(graph, node_to_num, 'LastRead')
-  LastWrite_edges = get_each_edge_category(graph, node_to_num, 'LastWrite')
-  ReturnsTo_edges = get_each_edge_category(graph, node_to_num, 'ReturnsTo')
+  child_edges = get_each_edge_category(graph, node_to_num, 'Child')
+  next_token_edges = get_each_edge_category(graph, node_to_num, 'NextToken')
+  last_lexical_use_edges = get_each_edge_category(graph, node_to_num, 'LastLexicalUse')
+  last_use_edges = get_each_edge_category(graph, node_to_num, 'LastRead')
+  last_write_edges = get_each_edge_category(graph, node_to_num, 'LastWrite')
+  returns_to_edges = get_each_edge_category(graph, node_to_num, 'ReturnsTo')
   edges = datapoint.Edges(
-    Child=Child_edges,
-    NextToken=NextToken_edges,
-    LastLexicalUse=LastLexicalUse_edges,
-    LastUse=LastUse_edges,
-    LastWrite=LastWrite_edges,
-    ReturnsTo=ReturnsTo_edges
+    child=child_edges,
+    next_token=next_token_edges,
+    last_lexical_use=last_lexical_use_edges,
+    last_use=last_use_edges,
+    last_write=last_write_edges,
+    returns_to=returns_to_edges
   )
 
   # prepare node_labels
@@ -61,25 +66,19 @@ def main(args):
 
   node_labels = datapoint.NodeLabels(node_labels_raw)
 
-  # prepare candidates
-  symbol_candidates = []
-  cand_correct = SymbolCandidate(1, "correct_variable", 'true')
-  cand_incorrect = SymbolCandidate(2, "incorrect_variable", 'false')
-  symbol_candidates = [cand_correct, cand_incorrect]
-
   # prepare context_graph
   context_graph = datapoint.ContextGraph(
-    Edges=edges,
-    NodeLabels=node_labels
+    edges=edges,
+    node_labels=node_labels
   )
 
   # create data point
   point = datapoint.DataPoint(
     filename=args[1],
-    slotTokenIdx="TODO",
-    SlotDummyNode="0",
-    ContextGraph=context_graph,
-    SymbolCandidates=symbol_candidates
+    slot_node_idx=slot_node_idx,
+    slotted_node_idx=slotted_node_idx,
+    context_graph=context_graph,
+    label=args[3]
   )
 
   js = json.dumps(point.to_dict(), indent=4)

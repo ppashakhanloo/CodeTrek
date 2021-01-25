@@ -6,7 +6,7 @@ from diff import get_diff
 
 CURR_STR = '___CURR___'
 
-def build_Child_graph(input_python_file, aux_file, label=None):
+def build_Child_graph(input_python_file, aux_file):
   _, tok1, row1_s, col1_s, row1_e, col1_e, _, tok2, row2_s, col2_s, row2_e, col2_e = get_diff(input_python_file, aux_file)
 
   # label = correct, misuse
@@ -18,16 +18,6 @@ def build_Child_graph(input_python_file, aux_file, label=None):
       new_line = different_line[:col1_s-1] + different_line[col1_s-1:].replace(tok1, CURR_STR, 1)
       lines[row1_s-1] = new_line
       outfile.write("".join(lines))
-
-  correct_var = ""
-  incorrect_var = ""
-  if label:
-    if label == 'correct':
-      correct_var = tok1
-      incorrect_var = tok2
-    elif label == 'misuse':
-      correct_var = tok2
-      incorrect_var = tok1
 
   with open('temp', 'r') as infile:
     contents = infile.read()
@@ -64,12 +54,8 @@ def build_Child_graph(input_python_file, aux_file, label=None):
         node_of_interest = node
         break
     
-    # add the <SLOT> node
-    #slot = Edge(Node(name='<SLOT>'), node_of_interest)
-    #graph.add_edge(slot)
-    
-    return graph, neighbors, subtrees, tok1, correct_var, node_of_interest
-  return None, None, None, None, None, None
+    return graph, neighbors, subtrees, node_of_interest
+  return None, None, None, None
 
 def add_NextToken_edges(graph, subtrees):
   token_nodes = []
@@ -226,7 +212,10 @@ def add_Guarded_edges(graph, subtrees, neighbors):
 
 def add_varmisue_specials(graph, variables, node_of_interest):
   # add slot node to specify location
-  graph.add_edge(Edge(Node(name='<SLOT>'), node_of_interest))
+  slot_node = Node(name='<SLOT>')
+  slot_node.set('label', node_of_interest.get_name())
+  graph.add_node(slot_node)
+  graph.add_edge(Edge(slot_node, node_of_interest))
 
   return graph
     
@@ -241,7 +230,7 @@ def get_subtree(node, res, neighbors):
       get_subtree(child, res, neighbors)
 
 def gen_graph_from_source(infile, aux_file):
-  graph, neighbors, subtrees, current_var, correct_var, node_of_interest = build_Child_graph(infile, aux_file)
+  graph, neighbors, subtrees, node_of_interest = build_Child_graph(infile, aux_file)
   graph = add_NextToken_edges(graph, subtrees)
   graph, _, variables = add_LastLexicalUse_edges(graph)
   graph = add_ReturnsTo_edges(graph, subtrees)
@@ -256,7 +245,7 @@ def gen_graph_from_source(infile, aux_file):
 
 def main(args):
   graph = gen_graph_from_source(args[1], args[2])
-  save_graph(graph, args[3])
+  #save_graph(graph, args[3])
 
 if __name__ == "__main__":
   main(sys.argv)

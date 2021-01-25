@@ -1,22 +1,5 @@
 import json
 
-class SymbolCandidate:
-  SymbolDummyNode = ""
-  SymbolName = ""
-  IsCorrect = ""
-
-  def __init__(self, SymbolDummyNode, SymbolName, IsCorrect):
-    self.SymbolDummyNode = SymbolDummyNode
-    self.SymbolName = SymbolName
-    self.IsCorrect = IsCorrect
-  
-  def to_dict(self):
-    return {
-      'SymbolDummyNode': self.SymbolDummyNode,
-      'SymbolName': self.SymbolName,
-      'IsCorrect': self.IsCorrect
-    }
-
 class GraphEdge:
   src = ""
   dst = ""
@@ -30,75 +13,76 @@ class GraphEdge:
 
 
 class Edges:
-  NextToken = []
-  LastLexicalUse = []
-  LastUse = []
-  LastWrite = []
-  ReturnsTo = []
+  child = []
+  next_token = []
+  last_lexical_use = []
+  last_use = []
+  last_write = []
+  returns_to = []
 
-  def __init__(self, Child, NextToken, LastLexicalUse, LastUse, LastWrite, ReturnsTo):
-    self.Child = Child
-    self.NextToken = NextToken
-    self.LastLexicalUse = LastLexicalUse
-    self.LastUse = LastUse
-    self.LastWrite = LastWrite
-    self.ReturnsTo = ReturnsTo
+  def __init__(self, child, next_token, last_lexical_use, last_use, last_write, returns_to):
+    self.child = child
+    self.next_token = next_token
+    self.last_lexical_use = last_lexical_use
+    self.last_use = last_use
+    self.last_write = last_write
+    self.returns_to = returns_to
 
   def to_dict(self):
     return {
-        'Child': [edge.to_dict() for edge in self.Child],
-        'NextToken': [edge.to_dict() for edge in self.NextToken],
-        'LastLexicalUse': [edge.to_dict() for edge in self.LastLexicalUse],
-        'LastUse': [edge.to_dict() for edge in self.LastUse],
-        'LastWrite': [edge.to_dict() for edge in self.LastWrite],
-        'ReturnsTo': [edge.to_dict() for edge in self.ReturnsTo]
+        'Child': [edge.to_dict() for edge in self.child],
+        'NextToken': [edge.to_dict() for edge in self.next_token],
+        'LastLexicalUse': [edge.to_dict() for edge in self.last_lexical_use],
+        'LastUse': [edge.to_dict() for edge in self.last_use],
+        'LastWrite': [edge.to_dict() for edge in self.last_write],
+        'ReturnsTo': [edge.to_dict() for edge in self.returns_to]
     }
 
 class NodeLabels:
-  Labels = {}
+  labels = {}
   
-  def __init__(self, nodeLabels):
-    for node_label in nodeLabels:
-      self.Labels[node_label] = nodeLabels[node_label]
+  def __init__(self, node_labels):
+    for node_label in node_labels:
+      self.labels[node_label] = node_labels[node_label]
 
   def to_dict(self):
-    return self.Labels
+    return self.labels
  
 class ContextGraph:
-  Edges = []
-  NodeLabels = []
+  edges = []
+  node_labels = []
 
-  def __init__(self, Edges, NodeLabels):
-    self.Edges = Edges
-    self.NodeLabels = NodeLabels
+  def __init__(self, edges, node_labels):
+    self.edges = edges
+    self.node_labels = node_labels
 
   def to_dict(self):
     return {
-      'Edges': self.Edges.to_dict(),
-      'NodeLabels': self.NodeLabels.to_dict()
+      'Edges': self.edges.to_dict(),
+      'NodeLabels': self.node_labels.to_dict()
     }
 
 class DataPoint:
   filename = ""
-  slotTokenIdx = ""
-  ContextGraph = []
-  SlotDummyNode = ""
-  SymbolCandidates = []
+  slot_node_idx = ""
+  slotted_node_idx = ""
+  context_graph = []
+  label = ""
 
-  def __init__(self, filename, slotTokenIdx, ContextGraph, SlotDummyNode, SymbolCandidates):
+  def __init__(self, filename, slot_node_idx, slotted_node_idx, context_graph, label):
     self.filename = filename
-    self.slotTokenIdx = slotTokenIdx
-    self.ContextGraph = ContextGraph
-    self.SlotDummyNode = SlotDummyNode
-    self.SymbolCandidates = SymbolCandidates
+    self.slot_node_idx = slot_node_idx
+    self.slotted_node_idx = slotted_node_idx
+    self.context_graph = context_graph
+    self.label = label
 
   def to_dict(self):
     return {
       'filename': self.filename,
-      'slotTokenIdx': self.slotTokenIdx,
-      'ContextGraph': self.ContextGraph.to_dict(),
-      'SlotDummyNode': self.SlotDummyNode,
-      'SymbolCandidates': [cand.to_dict() for cand in self.SymbolCandidates]
+      'SlotNodeIdx': self.slot_node_idx,
+      'SlottedNodeIdx': self.slotted_node_idx,
+      'ContextGraph': self.context_graph.to_dict(),
+      'label': self.label
     }
   
   def dump_json(self, filepath: str):
