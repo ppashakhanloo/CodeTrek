@@ -35,4 +35,5 @@ java_codeql/**/*.pdf
 
 # Keep test files
 !dbwalk/rand_walk/testfiles/*.json
+!java_codeql/testfiles/*.gv
 
