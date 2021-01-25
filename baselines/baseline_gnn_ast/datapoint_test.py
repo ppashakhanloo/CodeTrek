@@ -38,7 +38,8 @@ def main():
 
   point = DataPoint(
     filename="test/dir/path",
-    slot_node="0",
+    slot_node_idx="0",
+    slotted_node_idx="0",
     context_graph=context_graph,
     label=label
   )
