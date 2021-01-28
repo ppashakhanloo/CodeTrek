@@ -17,6 +17,7 @@ gradle clean assemble -x :distribution:docker:buildAarch64DockerImage -x :distri
 ```
 - hibernate-orm: https://github.com/hibernate/hibernate-orm
 ```
+
 ```
 - intellij-community: https://github.com/JetBrains/intellij-community
 ```
@@ -29,6 +30,7 @@ gradle clean assemble -x :distribution:docker:buildAarch64DockerImage -x :distri
 ```
 - spring-framework: https://github.com/spring-projects/spring-framework
 ```
+gradle clean buildDependents
 ```
 - wildfly: https://github.com/wildfly/wildfly
 ```
@@ -37,11 +39,14 @@ gradle clean assemble -x :distribution:docker:buildAarch64DockerImage -x :distri
 validation
 - libgdx: https://github.com/libgdx/libgdx
 ```
+install jdk-9
+mvn clean package
 ```
 
 test
 - hadoop: https://github.com/apache/hadoop
 ```
+mvn clean package
 ```
 
 
