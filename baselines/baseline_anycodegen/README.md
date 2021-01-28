@@ -34,6 +34,7 @@ gradle clean buildDependents
 ```
 - wildfly: https://github.com/wildfly/wildfly
 ```
+mvn clean install
 ```
 
 validation
