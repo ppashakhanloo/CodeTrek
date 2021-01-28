@@ -1,7 +1,7 @@
 ## java-small
 
 training
-- cassandra: https://github.com/apache/cassandra
+- cassandra: https://github.com/apache/cassandra `ant clean build`
 - elasticsearch: https://github.com/elastic/elasticsearch
 - gradle: https://github.com/gradle/gradle
 - hibernate-orm: https://github.com/hibernate/hibernate-orm
