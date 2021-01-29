@@ -13,6 +13,7 @@ def main():
     child=[e1, e2, e3, e4],
     next_token=[e1, e2, e3],
     last_lexical_use=[e3, e6, e5],
+    computed_from=[e3],
     last_use=[e4, e5, e1, e2],
     last_write=[e1, e2],
     returns_to=[e6]

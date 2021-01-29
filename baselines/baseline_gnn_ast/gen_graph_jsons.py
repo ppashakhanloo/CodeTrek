@@ -10,8 +10,8 @@ def init(graph):
   for node in graph.get_nodes():
     original_label = node.get('label')
     label = ""
-    if 'name=\'' in original_label or 'id=\'' in original_label:
-      result = re.search(r"\'([A-Za-z0-9_]+)\'", original_label)
+    if 'ast.Str' not in original_label and 'ast.alias' not in original_label and ('name=\'' in original_label or 'id=\'' in original_label):
+      result = re.search(r"\'([A-Za-z0-9_@]+)\'", original_label)
       label = result.group(1)
     elif 'object at 0x' in original_label:
       slotted_node = original_label
@@ -47,6 +47,7 @@ def main(args):
   child_edges = get_each_edge_category(graph, node_to_num, 'Child')
   next_token_edges = get_each_edge_category(graph, node_to_num, 'NextToken')
   last_lexical_use_edges = get_each_edge_category(graph, node_to_num, 'LastLexicalUse')
+  computed_from_edges = get_each_edge_category(graph, node_to_num, 'ComputedFrom')
   last_use_edges = get_each_edge_category(graph, node_to_num, 'LastRead')
   last_write_edges = get_each_edge_category(graph, node_to_num, 'LastWrite')
   returns_to_edges = get_each_edge_category(graph, node_to_num, 'ReturnsTo')
@@ -54,6 +55,7 @@ def main(args):
     child=child_edges,
     next_token=next_token_edges,
     last_lexical_use=last_lexical_use_edges,
+    computed_from=computed_from_edges,
     last_use=last_use_edges,
     last_write=last_write_edges,
     returns_to=returns_to_edges
@@ -81,8 +83,8 @@ def main(args):
     label=args[3]
   )
 
-  js = json.dumps(point.to_dict(), indent=4)
-  print(js)
+  with open(args[4], 'w') as outfile:
+    json.dump(point.to_dict(), outfile)
 
 if __name__ == "__main__":
   main(sys.argv)

@@ -16,14 +16,16 @@ class Edges:
   child = []
   next_token = []
   last_lexical_use = []
+  computed_from = []
   last_use = []
   last_write = []
   returns_to = []
 
-  def __init__(self, child, next_token, last_lexical_use, last_use, last_write, returns_to):
+  def __init__(self, child, next_token, last_lexical_use, computed_from, last_use, last_write, returns_to):
     self.child = child
     self.next_token = next_token
     self.last_lexical_use = last_lexical_use
+    self.computed_from = computed_from
     self.last_use = last_use
     self.last_write = last_write
     self.returns_to = returns_to
@@ -33,6 +35,7 @@ class Edges:
         'Child': [edge.to_dict() for edge in self.child],
         'NextToken': [edge.to_dict() for edge in self.next_token],
         'LastLexicalUse': [edge.to_dict() for edge in self.last_lexical_use],
+        'ComputedFrom':  [edge.to_dict() for edge in self.computed_from],
         'LastUse': [edge.to_dict() for edge in self.last_use],
         'LastWrite': [edge.to_dict() for edge in self.last_write],
         'ReturnsTo': [edge.to_dict() for edge in self.returns_to]

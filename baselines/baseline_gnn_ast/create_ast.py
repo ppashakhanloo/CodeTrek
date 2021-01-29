@@ -240,12 +240,10 @@ def gen_graph_from_source(infile, aux_file):
 
   # if the task is var misuse
   graph = add_varmisue_specials(graph, variables, node_of_interest)
-
   return graph
 
 def main(args):
   graph = gen_graph_from_source(args[1], args[2])
-  #save_graph(graph, args[3])
 
 if __name__ == "__main__":
   main(sys.argv)
