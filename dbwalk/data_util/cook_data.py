@@ -16,6 +16,14 @@ def get_or_add(type_dict, key):
     type_dict[key] = val
     return val
 
+def load_label_dict(folder_name):
+    label_dict = {}
+    with open(os.path.join(folder_name, 'all_labels.txt'), 'r') as f:
+        for i, row in enumerate(f):
+            label = row.strip()
+            assert not label in label_dict, 'duplicated labels'
+            label_dict[label] = i
+    return label_dict
 
 def dump_data_chunk(out_folder, chunk_idx, chunk_buf):
     fname = os.path.join(out_folder, 'chunk_%d.pkl' % chunk_idx)
@@ -36,12 +44,7 @@ def make_mat(list_traj, max_n_nodes, max_n_edges):
 
 
 if __name__ == '__main__':
-    label_dict = {}
-    with open(os.path.join(cmd_args.data_dir, cmd_args.data, 'all_labels.txt'), 'r') as f:
-        for i, row in enumerate(f):
-            label = row.strip()
-            assert not label in label_dict, 'duplicated labels'
-            label_dict[label] = i
+    label_dict = load_label_dict(os.path.join(cmd_args.data_dir, cmd_args.data))
     print(label_dict)
     node_types = {}
     edge_types = {}
@@ -52,7 +55,7 @@ if __name__ == '__main__':
 
     max_num_vars = 0
     print('building dict')
-    for phase in ['train', 'dev', 'test']:
+    for phase in ['train', 'dev', 'eval']:
         folder = os.path.join(cmd_args.data_dir, cmd_args.data, phase)
         files = os.listdir(folder)
         for fname in tqdm(files):
@@ -92,7 +95,7 @@ if __name__ == '__main__':
         d['var_reverse_dict'] = var_reverse_dict
         cp.dump(d, f, cp.HIGHEST_PROTOCOL)
 
-    for phase in ['train', 'dev', 'test']:
+    for phase in ['train', 'dev', 'eval']:
         print('cooking', phase)
         folder = os.path.join(cmd_args.data_dir, cmd_args.data, phase)
         files = os.listdir(folder)
