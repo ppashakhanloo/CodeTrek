@@ -10,7 +10,7 @@ nhead=8
 hidden=512
 dropout=0
 setenc=deepset
-online=True
+online=False
 num_proc=0
 shuffle_var=False
 

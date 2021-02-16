@@ -7,15 +7,14 @@ import numpy as np
 import random
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from dbwalk.data_util.dataset import InMemDataest, ProgDict
+from dbwalk.data_util.dataset import InMemDataest, ProgDict, OnlineWalkDataest
 from dbwalk.common.configs import cmd_args, set_device
 from tqdm import tqdm
 from dbwalk.model.classifier import MulticlassNet
 from dbwalk.training.train import train_loop
 
 
-def eval_dataset(model, eval_set):
-    eval_loader = DataLoader(eval_set, batch_size=cmd_args.batch_size, shuffle=False, drop_last=False, collate_fn=eval_set.collate_fn, num_workers=0)
+def eval_dataset(model, phase, eval_loader):
     true_labels = []
     pred_labels = []
     model.eval()
@@ -27,10 +26,10 @@ def eval_dataset(model, eval_set):
             logits = model(node_idx.to(cmd_args.device), edge_idx.to(cmd_args.device))
             pred_labels += torch.argmax(logits, dim=1).data.cpu().numpy().flatten().tolist()
             true_labels += label.data.numpy().flatten().tolist()
-        pbar.set_description('evaluating %s' % eval_set.phase)
+        pbar.set_description('evaluating %s' % phase)
     pred_labels = np.array(pred_labels, dtype=np.int32)
     acc = np.mean(pred_labels == np.array(true_labels, dtype=np.int32))
-    print('%s acc: %.4f' % (eval_set.phase, acc))
+    print('%s acc: %.4f' % (phase, acc))
     return acc
 
 
@@ -43,15 +42,21 @@ if __name__ == '__main__':
     prog_dict = ProgDict(cmd_args.data_dir)
     model = MulticlassNet(cmd_args, prog_dict).to(cmd_args.device)
 
-    if cmd_args.phase == 'test':        
+    if cmd_args.online_walk_gen:
+        db_class = OnlineWalkDataest
+    else:
+        db_class = InMemDataest
+
+    if cmd_args.phase == 'eval':
         assert cmd_args.model_dump is not None
         model_dump = os.path.join(cmd_args.save_dir, cmd_args.model_dump)
         print('loading model from', model_dump)
         model.load_state_dict(torch.load(model_dump, map_location=cmd_args.device))
-        db_test = InMemDataest(prog_dict, cmd_args.data_dir, 'test')
-        eval_dataset(model, db_test)
+        db_eval = db_class(cmd_args, prog_dict, cmd_args.data_dir, 'eval')
+        eval_loader = db_eval.get_test_loader(cmd_args)
+        eval_dataset(model, 'eval', eval_loader)
         sys.exit()
 
-    db_train = InMemDataest(prog_dict, cmd_args.data_dir, 'train', sample_prob=None, shuffle_var=cmd_args.shuffle_var)
-    db_dev = InMemDataest(prog_dict, cmd_args.data_dir, 'dev')
+    db_train = db_class(cmd_args, prog_dict, cmd_args.data_dir, 'train', sample_prob=None, shuffle_var=cmd_args.shuffle_var)
+    db_dev = db_class(cmd_args, prog_dict, cmd_args.data_dir, 'dev')
     train_loop(prog_dict, model, db_train, db_dev, eval_dataset)

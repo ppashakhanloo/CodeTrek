@@ -37,11 +37,19 @@ cmd_opt.add_argument('-iter_per_epoch', default=100, type=int, help='num iterati
 
 cmd_opt.add_argument('-epoch_load', default=None, type=int, help='epoch for loading')
 cmd_opt.add_argument('-shuffle_var', default=False, type=eval, help='shuffle var index?')
+cmd_opt.add_argument('-online_walk_gen', default=False, type=eval, help='generate random walks on the fly?')
 
 cmd_opt.add_argument('-set_encoder', default='deepset', help='deepset/transformer')
 
 # data process
 cmd_opt.add_argument('-data_chunk_size', default=1, type=int, help='# samples per data file')
+
+# walks
+cmd_opt.add_argument('-min_steps', default=1, type=int, help='min steps')
+cmd_opt.add_argument('-max_steps', default=16, type=int, help='max steps')
+cmd_opt.add_argument('-num_walks', default=100, type=int, help='number of random walks per file')
+cmd_opt.add_argument('-language', default='python', type=str, help='language')
+
 
 cmd_args, _ = cmd_opt.parse_known_args()
 

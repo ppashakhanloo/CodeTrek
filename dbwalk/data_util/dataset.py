@@ -5,11 +5,17 @@ import torch
 import numpy as np
 import pickle as cp
 import random
+import json
+from tqdm import tqdm
 from torch.utils.data import Dataset, DataLoader
 from collections import namedtuple, defaultdict
 from dbwalk.common.consts import TOK_PAD, UNK
+from dbwalk.rand_walk.walkutils import WalkUtils, JavaWalkUtils
+from dbwalk.rand_walk.randomwalk import RandomWalker
+from dbwalk.data_util.cook_data import make_mat_from_raw
 
 RawData = namedtuple('RawData', ['node_idx', 'edge_idx', 'source', 'label'])
+RawFile = namedtuple('RawFile', ['gv_file', 'anchor', 'source', 'label'])
 
 
 class ProgDict(object):
@@ -57,8 +63,40 @@ class ProgDict(object):
         return self.edge_types[UNK]
 
 
+def collate_raw_data(list_samples):
+    label = []
+    min_walks = list_samples[0].node_idx.shape[1]
+    max_walks = 0
+    max_node_len = 0
+    max_edge_len = 0
+    for s in list_samples:
+        label.append(s.label)
+        max_node_len = max(s.node_idx.shape[0], max_node_len)
+        max_edge_len = max(s.edge_idx.shape[0], max_edge_len)            
+        min_walks = min(s.node_idx.shape[1], min_walks)
+        max_walks = max(s.node_idx.shape[1], max_walks)
+
+    if min_walks != max_walks:
+        print('warning: right now only support fixed number of walks')
+        print('giving up %d samples in a batch' % len(label))
+        return None, None, None
+
+    full_node_idx = np.zeros((max_node_len, min_walks, len(list_samples)), dtype=np.int16)
+    full_edge_idx = np.zeros((max_edge_len, min_walks, len(list_samples)), dtype=np.int16)
+
+    for i, s in enumerate(list_samples):
+        node_mat, edge_mat = s.node_idx, s.edge_idx
+        full_node_idx[:node_mat.shape[0], :, i] = node_mat
+        full_edge_idx[:edge_mat.shape[0], :, i] = edge_mat
+    
+    full_node_idx = torch.LongTensor(full_node_idx)
+    full_edge_idx = torch.LongTensor(full_edge_idx)
+    label = torch.LongTensor(label)
+    return full_node_idx, full_edge_idx, label
+
+
 class InMemDataest(Dataset):
-    def __init__(self, prog_dict, data_dir, phase, sample_prob=None, shuffle_var=False):
+    def __init__(self, args, prog_dict, data_dir, phase, sample_prob=None, shuffle_var=False):
         super(InMemDataest, self).__init__()
 
         self.prog_dict = prog_dict
@@ -105,33 +143,86 @@ class InMemDataest(Dataset):
                         raw_sample.node_idx[i, j] = self.prog_dict.var_dict[var_remap[old_var_idx]]
         return raw_sample
 
-    def collate_fn(self, list_samples):
-        label = []
-        min_walks = list_samples[0].node_idx.shape[1]
-        max_walks = 0
-        max_node_len = 0
-        max_edge_len = 0
-        for s in list_samples:
-            label.append(s.label)
-            max_node_len = max(s.node_idx.shape[0], max_node_len)
-            max_edge_len = max(s.edge_idx.shape[0], max_edge_len)            
-            min_walks = min(s.node_idx.shape[1], min_walks)
-            max_walks = max(s.node_idx.shape[1], max_walks)
+    def get_test_loader(self, cmd_args):
+        return DataLoader(self, batch_size=cmd_args.batch_size, shuffle=False, drop_last=False, collate_fn=collate_raw_data, num_workers=0)
 
-        if min_walks != max_walks:
-            print('warning: right now only support fixed number of walks')
-            print('giving up %d samples in a batch' % len(label))
-            return None, None, None
+    def get_train_loader(self, cmd_args):
+        return DataLoader(self, batch_size=cmd_args.batch_size, shuffle=True, drop_last=True, collate_fn=collate_raw_data, num_workers=0)        
 
-        full_node_idx = np.zeros((max_node_len, min_walks, len(list_samples)), dtype=np.int16)
-        full_edge_idx = np.zeros((max_edge_len, min_walks, len(list_samples)), dtype=np.int16)
 
-        for i, s in enumerate(list_samples):
-            node_mat, edge_mat = s.node_idx, s.edge_idx
-            full_node_idx[:node_mat.shape[0], :, i] = node_mat
-            full_edge_idx[:edge_mat.shape[0], :, i] = edge_mat
-        
-        full_node_idx = torch.LongTensor(full_node_idx)
-        full_edge_idx = torch.LongTensor(full_edge_idx)
-        label = torch.LongTensor(label)
-        return full_node_idx, full_edge_idx, label
+class WorkerContext(object):
+    def __init__(self, worker_idx, tot_workers, total_num_samples):
+        self.worker_idx = worker_idx
+        self.tot_workers = tot_workers
+        self.total_num_samples = total_num_samples
+        assert worker_idx < self.tot_workers
+        n_jobs = total_num_samples // self.tot_workers
+        if total_num_samples % tot_workers:
+            n_jobs += 1
+        self.buffer = [None] * n_jobs
+
+
+class OnlineWalkDataest(Dataset):
+    def __init__(self, args, prog_dict, data_dir, phase, sample_prob=None, shuffle_var=False):
+        super(OnlineWalkDataest, self).__init__()
+        self.args = args
+        self.prog_dict = prog_dict
+        self.phase = phase
+        self.sample_prob = sample_prob
+        self.shuffle_var = shuffle_var
+        assert self.prog_dict.node_idx(TOK_PAD) == self.prog_dict.edge_idx(TOK_PAD) == 0
+
+        gv_files = os.listdir(os.path.join(data_dir, phase))
+        gv_files = [x for x in gv_files if x.endswith('.gv')]
+        random.shuffle(gv_files)
+        self.list_samples = []
+        self.labeled_samples = defaultdict(list)
+        for fname in gv_files:
+            json_name = '_'.join(fname.split('_')[1:])
+            json_name = 'walks_' + '.'.join(json_name.split('.')[:-1]) + '.json'
+            with open(os.path.join(data_dir, phase, json_name), 'r') as f:
+                data = json.load(f)[0]
+                anchor_str = data['anchor']
+                label = self.prog_dict.label_map[data['label']]
+                src = data['source']
+                raw_sample = RawFile(os.path.join(data_dir, phase, fname), anchor_str, src, label)
+
+            self.list_samples.append(raw_sample)
+            self.labeled_samples[raw_sample.label].append(raw_sample)
+        self.worker_context = WorkerContext(0, 1, len(self.list_samples))  # single proc loading for now
+        language = 'python'
+        print('loading graphs for', self.phase)
+        for i, sample in tqdm(enumerate(self.list_samples)):
+            graph = RandomWalker.load_graph_from_gv(sample.gv_file)
+            walker = RandomWalker(graph, sample.anchor, language)
+            self.worker_context.buffer[i] = walker
+
+    def __len__(self):
+        return len(self.list_samples)
+
+    def __getitem__(self, idx):        
+        walker = self.worker_context.buffer[idx]
+        assert walker is not None
+        raw_sample = self.list_samples[idx]
+        walks = walker.random_walk(max_num_walks=self.args.num_walks, min_num_steps=self.args.min_steps, max_num_steps=self.args.max_steps)
+        trajectories = [WalkUtils.build_trajectory(walk).to_dict() for walk in walks]
+        node_mat, edge_mat = make_mat_from_raw(trajectories, self.prog_dict.node_types, self.prog_dict.edge_types)
+        return RawData(node_mat, edge_mat, raw_sample.source, raw_sample.label)
+
+    def get_train_loader(self, cmd_args):
+        loader = DataLoader(self,
+                            batch_size=cmd_args.batch_size,
+                            shuffle=True,
+                            drop_last=True,
+                            collate_fn=collate_raw_data,
+                            num_workers=cmd_args.num_proc)
+        return loader
+
+    def get_test_loader(self, cmd_args):
+        loader = DataLoader(self,
+                            batch_size=cmd_args.batch_size,
+                            shuffle=False,
+                            drop_last=False,
+                            collate_fn=collate_raw_data,
+                            num_workers=cmd_args.num_proc)
+        return loader

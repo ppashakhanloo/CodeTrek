@@ -13,17 +13,8 @@ from dbwalk.common.consts import TOK_PAD, var_idx2name, UNK
 from dbwalk.data_util.cook_data import load_label_dict, get_or_add
 import argparse
 
-cmd_opt = argparse.ArgumentParser(description='Argparser for data cooking', allow_abbrev=False)
-cmd_opt.add_argument('-min_steps', default=8, type=int, help='min steps')
-cmd_opt.add_argument('-max_steps', default=16, type=int, help='max steps')
-cmd_opt.add_argument('-num_walks', default=1, type=int, help='number of random walks per file')
-cmd_opt.add_argument('-language', default='python', type=str, help='language')
-local_args, _ = cmd_opt.parse_known_args()
-
 
 if __name__ == '__main__':
-    cmd_args.__dict__.update(local_args.__dict__)
-
     label_dict = load_label_dict(os.path.join(cmd_args.data_dir, cmd_args.data))
     print(label_dict)
     node_types = {}

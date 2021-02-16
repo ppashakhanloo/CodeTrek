@@ -33,7 +33,6 @@ def dump_data_chunk(out_folder, chunk_idx, chunk_buf):
 
 
 def make_mat(list_traj, max_n_nodes, max_n_edges):
-    assert node_types[TOK_PAD] == 0 and edge_types[TOK_PAD] == 0  # zero padding
     mat_node = np.zeros((max_n_nodes, len(list_traj)), dtype=np.int16)
     mat_edge = np.zeros((max_n_edges, len(list_traj)), dtype=np.int16)
 
@@ -41,6 +40,27 @@ def make_mat(list_traj, max_n_nodes, max_n_edges):
         mat_node[:len(seq_nodes), i] = seq_nodes
         mat_edge[:len(seq_edges), i] = seq_edges
     return mat_node, mat_edge
+
+
+def make_mat_from_raw(list_traj_dict, node_types, edge_types):
+    var_dict = {}
+    list_traj = []
+    max_len_nodes = 0
+    max_len_edges = 0
+    for traj in list_traj_dict:
+        seq_nodes = []
+        max_len_nodes = max(max_len_nodes, len(traj['nodes']))
+        max_len_edges = max(max_len_edges, len(traj['edges']))
+        for node in traj['nodes']:
+            if node.startswith('v_'):
+                v_idx = get_or_add(var_dict, node)
+                seq_nodes.append(node_types['var_%d' % v_idx])
+            else:
+                seq_nodes.append(node_types[node])
+        seq_edges = [edge_types[e] for e in traj['edges']]
+        list_traj.append((seq_nodes, seq_edges))
+    node_mat, edge_mat = make_mat(list_traj, max_len_nodes, max_len_edges)
+    return node_mat, edge_mat
 
 
 if __name__ == '__main__':
@@ -113,23 +133,7 @@ if __name__ == '__main__':
             with open(os.path.join(folder, fname), 'r') as f:
                 d = json.load(f)
                 for sample_idx, sample in enumerate(d):
-                    var_dict = {}
-                    list_traj = []
-                    max_len_nodes = 0
-                    max_len_edges = 0
-                    for traj in sample['trajectories']:
-                        seq_nodes = []
-                        max_len_nodes = max(max_len_nodes, len(traj['nodes']))
-                        max_len_edges = max(max_len_edges, len(traj['edges']))
-                        for node in traj['nodes']:
-                            if node.startswith('v_'):
-                                v_idx = get_or_add(var_dict, node)
-                                seq_nodes.append(node_types['var_%d' % v_idx])
-                            else:
-                                seq_nodes.append(node_types[node])
-                        seq_edges = [edge_types[e] for e in traj['edges']]
-                        list_traj.append((seq_nodes, seq_edges))
-                    node_mat, edge_mat = make_mat(list_traj, max_len_nodes, max_len_edges)
+                    node_mat, edge_mat = make_mat_from_raw(sample['trajectories'], node_types, edge_types)
                     assert sample['label'] in label_dict, 'unknown label %s' % sample['label']
                     chunk_buf['%s-%d' % (fname_prefix, sample_idx)] = (node_mat, edge_mat, sample['source'], sample['label'])
             if len(chunk_buf) >= cmd_args.data_chunk_size:

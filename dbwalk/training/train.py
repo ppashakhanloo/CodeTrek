@@ -14,9 +14,8 @@ from tqdm import tqdm
 
 
 def train_loop(prog_dict, model, db_train, db_dev=None, fn_eval=None):
-    train_loader = DataLoader(db_train, batch_size=cmd_args.batch_size, shuffle=True, drop_last=True, 
-                              collate_fn=db_train.collate_fn, num_workers=0)
-
+    train_loader = db_train.get_train_loader(cmd_args)
+    dev_loader = db_dev.get_test_loader(cmd_args)
     optimizer = optim.Adam(model.parameters(), lr=cmd_args.learning_rate)
     train_iter = iter(train_loader)
 
@@ -38,7 +37,7 @@ def train_loop(prog_dict, model, db_train, db_dev=None, fn_eval=None):
             pbar.set_description('step %d, loss: %.2f' % (cmd_args.iter_per_epoch * epoch + i, loss.item()))
             optimizer.step()
         if fn_eval is not None:
-            auc = fn_eval(model, db_dev)
+            auc = fn_eval(model, 'dev', dev_loader)
             if auc > best_metric:
                 best_metric = auc
                 print('saving model with best dev metric: %.4f' % best_metric)
