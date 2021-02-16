@@ -75,7 +75,7 @@ if __name__ == '__main__':
     node_types = {}
     edge_types = {}
 
-    for key in [TOK_PAD]:
+    for key in [TOK_PAD, UNK]:
         get_or_add(node_types, key)
         get_or_add(edge_types, key)
 
