@@ -6,7 +6,7 @@ from tqdm import tqdm
 import numpy as np
 import random
 from dbwalk.common.configs import cmd_args
-from dbwalk.common.consts import TOK_PAD, var_idx2name
+from dbwalk.common.consts import TOK_PAD, var_idx2name, UNK
 
 
 def get_or_add(type_dict, key):
@@ -15,6 +15,12 @@ def get_or_add(type_dict, key):
     val = len(type_dict)
     type_dict[key] = val
     return val
+
+def get_or_unk(type_dict, key):
+    if key in type_dict:
+        return type_dict[key]
+    return type_dict[UNK]
+
 
 def load_label_dict(folder_name):
     label_dict = {}
@@ -54,9 +60,9 @@ def make_mat_from_raw(list_traj_dict, node_types, edge_types):
         for node in traj['nodes']:
             if node.startswith('v_'):
                 v_idx = get_or_add(var_dict, node)
-                seq_nodes.append(node_types['var_%d' % v_idx])
+                seq_nodes.append(get_or_unk(node_types, 'var_%d' % v_idx))
             else:
-                seq_nodes.append(node_types[node])
+                seq_nodes.append(get_or_unk(node_types, node))
         seq_edges = [edge_types[e] for e in traj['edges']]
         list_traj.append((seq_nodes, seq_edges))
     node_mat, edge_mat = make_mat(list_traj, max_len_nodes, max_len_edges)
