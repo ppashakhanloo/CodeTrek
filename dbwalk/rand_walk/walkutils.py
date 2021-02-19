@@ -142,14 +142,22 @@ class WalkUtils:
         # since it is possible that one of the elements will contain the same character
         splits = node_label.split('(', 1)
         assert len(splits) == 2
-        relname = splits[0].strip()
+        if splits[0].startswith('#'):
+            splits_0_splits = splits[0].strip().split('#')
+            relname = splits_0_splits[2]
+            node_name = splits_0_splits[1]
+        else:
+            relname = splits[0].strip()
+            node_name = relname
+        
         if relname == 'py_strs':        # special case where there may be unquoted commas in the string
             tokens = splits[1].strip()[:-1].rsplit(',', 2)
         else:
             tokens = splits[1].strip()[:-1].split(',')
+         
         assert len(tokens) == len(WalkUtils.COLUMNS[relname])
         values = [token.strip() for token in tokens]
-        return relname, values
+        return node_name, values
 
     @staticmethod
     def build_traj_node(node: Tuple[Node, str]) -> TrajNode:
@@ -402,3 +410,4 @@ class JavaWalkUtils:
             else:           # edge
                 edges.append(JavaWalkUtils.build_traj_edge(walk[i]))
         return Trajectory(nodes, edges)
+
