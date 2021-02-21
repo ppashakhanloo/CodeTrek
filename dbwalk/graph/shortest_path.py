@@ -1,6 +1,6 @@
 import sys
 from typing import List
-from dbwalk.rand_walk.graphutils import GraphUtils
+from dbwalk.graph.graphutils import GraphUtils
 
 
 def main(args: List[str]) -> None:
