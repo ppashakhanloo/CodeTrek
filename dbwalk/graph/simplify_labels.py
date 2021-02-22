@@ -3,6 +3,7 @@ import sys
 import json
 from graphviz import Graph
 from pathlib import Path
+from shutil import copyfile
 from typing import Dict
 from dbwalk.graph.graphutils import GraphUtils
 
@@ -25,8 +26,8 @@ class LabelSimplifier:
             label = graph.nodes()[node]['label']
             new_graph.node(node, label)
         for n1, n2 in graph.edges():
-            for edge in list(graph[n1][n2].values()):
-                label = edge['label']
+            labels = {edge['label'] for edge in list(graph[n1][n2].values())}
+            for label in labels:
                 if label not in self.edge_label_map.keys():
                     self.edge_label_index += 1
                     self.edge_label_map[label] = self.EDGE_LABEL_PREFIX + str(self.edge_label_index)
@@ -38,11 +39,14 @@ class LabelSimplifier:
             out_dir = self.out_dir_path + in_dir[len(gv_dir_path):]
             Path(out_dir).mkdir(parents=True, exist_ok=True)
             for name in files:
+                in_path = os.path.join(in_dir, name)
+                out_path = os.path.join(out_dir, name)
                 if name.endswith('.gv'):
-                    in_path = os.path.join(in_dir, name)
-                    out_path = os.path.join(out_dir, name)
-                    print(in_path, '-->', out_path)
+                    print('Convert:', in_path, '-->', out_path)
                     self.convert(in_path, out_path)
+                else:
+                    print('Copy:', in_path, '-->', out_path)
+                    copyfile(in_path, out_path)
 
     def dump_map(self, filepath: str):
         with open(filepath, 'w') as outfile:
