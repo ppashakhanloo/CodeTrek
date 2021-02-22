@@ -9,11 +9,11 @@ from dbwalk.graph.graphutils import GraphUtils
 
 
 class LabelSimplifier:
-    EDGE_LABEL_PREFIX = 'e'  # type: str
-    gv_dir_path = None       # type: str
-    out_dir_path = None      # type: str
-    edge_label_map = {}      # type: Dict[str, str]
-    edge_label_index = 0     # type: int
+    EDGE_LABEL_PREFIX = 'e,'  # type: str
+    gv_dir_path = None        # type: str
+    out_dir_path = None       # type: str
+    edge_label_map = {}       # type: Dict[str, str]
+    edge_label_index = 0      # type: int
 
     def __init__(self, gv_dir: str, out_dir: str):
         self.gv_dir_path = gv_dir
