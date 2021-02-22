@@ -1,4 +1,5 @@
 import networkx as nx
+from graphviz import Graph
 from pygraphviz import AGraph, Node
 from typing import List
 
@@ -9,6 +10,11 @@ class GraphUtils:
     def load_graph_from_gv(path: str) -> AGraph:
         graph = AGraph(path, directed=False)
         return nx.nx_agraph.from_agraph(graph)
+
+    @staticmethod
+    def save_gv(graph: Graph, output_file: str) -> None:
+        with open(output_file, 'w') as outfile:
+            outfile.write(str(graph))
 
     @staticmethod
     def find_node_by_label(graph: AGraph, node_label: str) -> Node:
