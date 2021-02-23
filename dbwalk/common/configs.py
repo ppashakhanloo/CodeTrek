@@ -51,6 +51,19 @@ cmd_opt.add_argument('-num_walks', default=100, type=int, help='number of random
 cmd_opt.add_argument('-language', default='python', type=str, help='language')
 
 
+# gnn
+cmd_opt.add_argument('-gnn_type', default='s2v_multi', help='type of graph neural network', choices=['s2v_code2inv', 's2v_single', 's2v_multi', 'ggnn'])
+cmd_opt.add_argument('-rnn_cell', default='gru', help='type of rnn cell')
+cmd_opt.add_argument('-act_func', default='tanh', help='default activation function')
+cmd_opt.add_argument('-max_lv', default=3, type=int, help='# layers of gnn')
+cmd_opt.add_argument('-msg_agg_type', default='sum', help='how to aggregate the message')
+cmd_opt.add_argument('-att_type', default='inner_prod', help='mlp/inner_prod')
+cmd_opt.add_argument('-readout_agg_type', default='sum', help='how to aggregate all node embeddings', choices=['sum', 'max', 'mean'])
+cmd_opt.add_argument('-gnn_out', default='last', help='how to aggregate readouts from different layers', choices=['last', 'sum', 'max', 'gru', 'mean'])
+cmd_opt.add_argument('-gnn_msg_dim', default=128, type=int, help='dim of message passing in gnn')
+cmd_opt.add_argument('-latent_dim', default=128, type=int, help='latent dim')
+
+
 cmd_args, _ = cmd_opt.parse_known_args()
 
 if cmd_args.save_dir is not None:
