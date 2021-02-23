@@ -14,10 +14,12 @@ class LabelSimplifier:
     out_dir_path = None       # type: str
     edge_label_map = {}       # type: Dict[str, str]
     edge_label_index = 0      # type: int
+    output_type = None        # type: str
 
-    def __init__(self, gv_dir: str, out_dir: str):
+    def __init__(self, gv_dir: str, out_dir: str, output_type: str):
         self.gv_dir_path = gv_dir
         self.out_dir_path = out_dir
+        self.output_type = output_type.lower()  # either 'bin' or 'dot'
 
     def convert(self, in_path: str, out_path: str):
         new_graph = Graph()
@@ -32,7 +34,12 @@ class LabelSimplifier:
                     self.edge_label_index += 1
                     self.edge_label_map[label] = self.EDGE_LABEL_PREFIX + str(self.edge_label_index)
                 new_graph.edge(n1, n2, self.edge_label_map[label])
-        GraphUtils.save_gv(new_graph, out_path)
+        if self.output_type == 'bin':
+            GraphUtils.serialize(new_graph, out_path)
+        elif self.output_type == 'dot':
+            GraphUtils.save_gv(new_graph, out_path)
+        else:
+            raise ValueError(self.output_type)
 
     def convert_all(self):
         for in_dir, _, files in os.walk(gv_dir_path):
@@ -42,6 +49,8 @@ class LabelSimplifier:
                 in_path = os.path.join(in_dir, name)
                 out_path = os.path.join(out_dir, name)
                 if name.endswith('.gv'):
+                    if self.output_type == 'bin':
+                        out_path += 'b'
                     print('Convert:', in_path, '-->', out_path)
                     self.convert(in_path, out_path)
                 else:
@@ -63,6 +72,6 @@ if __name__ == '__main__':
     out_dir_path = args[2]
     out_dict_path = args[3]
 
-    simplifier = LabelSimplifier(gv_dir_path, out_dir_path)
+    simplifier = LabelSimplifier(gv_dir_path, out_dir_path, output_type='bin')
     simplifier.convert_all()
     simplifier.dump_map(out_dict_path)
