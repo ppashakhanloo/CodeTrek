@@ -176,50 +176,50 @@ class WalkUtils:
     @staticmethod
     def gen_node_label(relname: str, values: List[str]) -> str:
         # Use variable ID as the label
-        value = None
+        value = 'NOVAL'
         if relname == 'py_bytes':
             value = values[0]
         if relname == 'py_numbers':
             value = values[0]
         if relname == 'py_strs':
-            value = values[0]
+            value = 'IGNOREVAL' #values[0]
         if relname == 'variable':
             value = values[2]
-            return 'v_' + values[0], value
+            return 'name' + '_' + value
         # Distinguish different kinds of expressions
         if relname == 'py_exprs':
             kind = int(values[1])
-            return 'expr_' + WalkUtils.expr_kinds[kind], value
+            return 'expr_' + WalkUtils.expr_kinds[kind] + '_' + value
         # Distinguish different kinds of statements
         if relname == 'py_stmts':
             kind = int(values[1])
-            return 'stmt_' + WalkUtils.stmt_kinds[kind], value
+            return 'stmt_' + WalkUtils.stmt_kinds[kind] + '_' + value
         # Distinguish different kinds of boolean ops
         if relname == 'py_boolops':
             kind = int(values[1])
-            return 'boolop_' + WalkUtils.boolop_kinds[kind], value
+            return 'boolop_' + WalkUtils.boolop_kinds[kind] + '_'  + value
         # Distinguish different comparison ops
         if relname == 'py_cmpops':
             kind = int(values[1])
-            return 'cmpop_' + WalkUtils.cmpop_kinds[kind], value
+            return 'cmpop_' + WalkUtils.cmpop_kinds[kind] + '_' + value
         # Distinguish different dict item kinds
         if relname == 'py_dict_items':
             kind = int(values[1])
-            return 'ditem_' + WalkUtils.dict_item_kinds[kind], value
+            return 'ditem_' + WalkUtils.dict_item_kinds[kind] + '_' + value
         # Distinguish different expression context kinds
         if relname == 'py_expr_contexts':
             kind = int(values[1])
-            return 'ctx_' + WalkUtils.expr_context_kinds[kind], value
+            return 'ctx_' + WalkUtils.expr_context_kinds[kind] + '_' + value
         # distinguish different operators
         if relname == 'py_operators':
             kind = int(values[1])
-            return 'ops_' + WalkUtils.operator_kinds[kind], value
+            return 'ops_' + WalkUtils.operator_kinds[kind] + '_' + value
         # distinguish different unary operators
         if relname == 'py_unaryops':
             kind = int(values[1])
-            return 'uops_' + WalkUtils.unaryop_kinds[kind], value
+            return 'uops_' + WalkUtils.unaryop_kinds[kind] + '_' + value
         # Otherwise, use relation name as the label
-        return relname, value
+        return relname + '_' + value
 
     @staticmethod
     def parse_node_label(node_label: str) -> Tuple[str, List[str]]:
@@ -243,8 +243,8 @@ class WalkUtils:
     def build_traj_node(node: Tuple[Node, str]) -> TrajNode:
         node_label = node[1]
         relname, values = WalkUtils.parse_node_label(node_label)
-        rel, val = WalkUtils.gen_node_label(relname, values)
-        return TrajNode(rel)
+        label = WalkUtils.gen_node_label(relname, values)
+        return TrajNode(label)
 
     @staticmethod
     def parse_edge_label(edge_label: str) -> Tuple[str, str]:
