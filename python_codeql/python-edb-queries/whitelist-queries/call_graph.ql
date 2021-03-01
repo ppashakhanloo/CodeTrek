@@ -7,4 +7,4 @@ where not fi.getFunction().isBuiltin()
   and f2.getFunctionObject() = fi.getFunction()
   and isSourceLocation(f1.getLocation())
   and isSourceLocation(f2.getLocation())
-select f1.getDefinition(), f2.getDefinition(), f1, f2
+select f1.getDefinition(), f2.getDefinition(), f1, f2, fi.getCall()

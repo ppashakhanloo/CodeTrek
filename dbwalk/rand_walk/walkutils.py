@@ -90,6 +90,62 @@ class WalkUtils:
         38: 'py_SpecialOperation'
     }
 
+    cmpop_kinds = {  # type: Dict[int, str]
+        0: 'py_Eq',
+        1: 'py_Gt',
+        2: 'py_GtE',
+        3: 'py_In',
+        4: 'py_Is',
+        5: 'py_IsNot',
+        6: 'py_Lt',
+        7: 'py_LtE',
+        8: 'py_NotEq',
+        9: 'py_NotIn'
+    }
+
+    dict_item_kinds = {  # type: Dict[int, str]
+        0: 'py_DictUnpacking',
+        1: 'py_KeyValuePair',
+        2: 'py_keyword'
+    }
+
+    expr_context_kinds = {  # type: Dict[int, str]
+        0: 'py_AugLoad',
+        1: 'py_AugStore',
+        2: 'py_Del',
+        3: 'py_Load',
+        4: 'py_Param',
+        5: 'py_Store'
+    }
+
+    operator_kinds = {  # type: Dict[int, str]
+        0: 'py_Add',
+        1: 'py_BitAnd',
+        2: 'py_BitOr',
+        3: 'py_BitXor',
+        4: 'py_Div',
+        5: 'py_FloorDiv',
+        6: 'py_LShift',
+        7: 'py_Mod',
+        8: 'py_Mult',
+        9: 'py_Pow',
+        10: 'py_RShift',
+        11: 'py_Sub',
+        12: 'py_MatMult'
+    }
+
+    unaryop_kinds = {  # type: Dict[int, str]
+        0: 'py_Invert',
+        1: 'py_Not',
+        2: 'py_UAdd',
+        3: 'py_USub'
+    }
+
+    boolop_kinds = {
+        0: 'py_And',
+        1: 'py_Or'
+    }
+
     stmt_kinds = {  # type: Dict[int, str]
         0: 'py_Assert',
         1: 'py_Assign',
@@ -120,20 +176,50 @@ class WalkUtils:
     @staticmethod
     def gen_node_label(relname: str, values: List[str]) -> str:
         # Use variable ID as the label
+        value = 'NOVAL'
+        if relname == 'py_bytes':
+            value = values[0]
+        if relname == 'py_numbers':
+            value = values[0]
+        if relname == 'py_strs':
+            value = 'IGNOREVAL' #values[0]
         if relname == 'variable':
-            return 'v_' + values[0]
+            value = values[2]
+            return 'name' + '_' + value
         # Distinguish different kinds of expressions
         if relname == 'py_exprs':
-            kind_index = 1
-            kind = int(values[kind_index])
-            return 'expr_' + WalkUtils.expr_kinds[kind]
+            kind = int(values[1])
+            return 'expr_' + WalkUtils.expr_kinds[kind] + '_' + value
         # Distinguish different kinds of statements
         if relname == 'py_stmts':
-            kind_index = 1
-            kind = int(values[kind_index])
-            return 'stmt_' + WalkUtils.stmt_kinds[kind]
+            kind = int(values[1])
+            return 'stmt_' + WalkUtils.stmt_kinds[kind] + '_' + value
+        # Distinguish different kinds of boolean ops
+        if relname == 'py_boolops':
+            kind = int(values[1])
+            return 'boolop_' + WalkUtils.boolop_kinds[kind] + '_'  + value
+        # Distinguish different comparison ops
+        if relname == 'py_cmpops':
+            kind = int(values[1])
+            return 'cmpop_' + WalkUtils.cmpop_kinds[kind] + '_' + value
+        # Distinguish different dict item kinds
+        if relname == 'py_dict_items':
+            kind = int(values[1])
+            return 'ditem_' + WalkUtils.dict_item_kinds[kind] + '_' + value
+        # Distinguish different expression context kinds
+        if relname == 'py_expr_contexts':
+            kind = int(values[1])
+            return 'ctx_' + WalkUtils.expr_context_kinds[kind] + '_' + value
+        # distinguish different operators
+        if relname == 'py_operators':
+            kind = int(values[1])
+            return 'ops_' + WalkUtils.operator_kinds[kind] + '_' + value
+        # distinguish different unary operators
+        if relname == 'py_unaryops':
+            kind = int(values[1])
+            return 'uops_' + WalkUtils.unaryop_kinds[kind] + '_' + value
         # Otherwise, use relation name as the label
-        return relname
+        return relname + '_' + value
 
     @staticmethod
     def parse_node_label(node_label: str) -> Tuple[str, List[str]]:
@@ -142,14 +228,8 @@ class WalkUtils:
         # since it is possible that one of the elements will contain the same character
         splits = node_label.split('(', 1)
         assert len(splits) == 2
-        if splits[0].startswith('#'):
-            splits_0_splits = splits[0].strip().split('#')
-            relname = splits_0_splits[2]
-            node_name = splits_0_splits[1]
-        else:
-            relname = splits[0].strip()
-            node_name = relname
         
+        relname = splits[0].strip()
         if relname == 'py_strs':        # special case where there may be unquoted commas in the string
             tokens = splits[1].strip()[:-1].rsplit(',', 2)
         else:
@@ -157,13 +237,14 @@ class WalkUtils:
          
         assert len(tokens) == len(WalkUtils.COLUMNS[relname])
         values = [token.strip() for token in tokens]
-        return node_name, values
+        return relname, values
 
     @staticmethod
     def build_traj_node(node: Tuple[Node, str]) -> TrajNode:
         node_label = node[1]
         relname, values = WalkUtils.parse_node_label(node_label)
-        return TrajNode(WalkUtils.gen_node_label(relname, values))
+        label = WalkUtils.gen_node_label(relname, values)
+        return TrajNode(label)
 
     @staticmethod
     def parse_edge_label(edge_label: str) -> Tuple[str, str]:

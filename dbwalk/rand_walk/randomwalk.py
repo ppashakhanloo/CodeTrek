@@ -10,7 +10,7 @@ def ms():
 
 class RandomWalker:
     BIAS_WEIGHT = 5
-    PYTHON_BIAS_TABLES = {'py_exprs', 'py_stmts'}
+    PYTHON_BIAS_TABLES = {'py_exprs', 'py_stmts', 'variable', 'py_variables'}
     JAVA_BIAS_TABLES = {'exprs', 'stmts'}
 
     language = None         # type: str
@@ -73,7 +73,7 @@ class RandomWalker:
     # walks from the source than the requested number of walks.
     # If that happens, this function pads the return list to max_num_walks by
     # duplicating elements randomly chosen from the sampled walks.
-    def random_walk(self, max_num_walks: int, min_num_steps: int, max_num_steps: int, call_names=True, exception_names=True) -> List[List]:
+    def random_walk(self, max_num_walks: int, min_num_steps: int, max_num_steps: int) -> List[List]:
         walks = list()
         walk = 0
         
@@ -104,80 +104,7 @@ class RandomWalker:
             if curr_walk not in walks and len(curr_walk) > 1:
                 walks.append(curr_walk)
 
-        ############ Assign names to nodes if necessary ###########
-
-        node_to_new_names = {}
-
-        if call_names:
-            self.find_call_names(node_to_new_names)
-        if exception_names:
-            self.find_exception_names(node_to_new_names)
-
-        if call_names or exception_names:
-            for i in range(len(walks)):
-                for j in range(len(walks[i])):
-                    if j % 2 == 0:
-                        if str(walks[i][j][0]) in node_to_new_names.keys():
-                            new_relname = '#' + node_to_new_names[str(walks[i][j][0])] + '#' +  walks[i][j][1]
-                            walks[i][j] = (walks[i][j][0], new_relname)
-        
         return RandomWalker.padding(walks, max_num_walks)
-
-    def find_exception_names(self, node_to_new_names):
-        # the name of an exception requires multiple tables:
-        # exception_statement -- name_expression -- py_variable -- variable
-        for node1 in self.graph.nodes():
-            if self.node_to_relname[node1] == 'py_stmts' \
-               and self.node_to_values[node1][1] == '6':
-                expt_stmt = node1
-                for node2 in self.graph.neighbors(expt_stmt):
-                    if self.node_to_relname[node2] == 'py_exprs' \
-                        and self.node_to_values[node2][1] == '18' \
-                        and self.node_to_values[node2][2] == self.node_to_values[expt_stmt][0]:
-                        name_expr = node2
-                        for node3 in self.graph.neighbors(name_expr):
-                            if self.node_to_relname[node3] == 'py_variables' \
-                               and self.node_to_values[node3][1] == self.node_to_values[name_expr][0]:
-                                py_var = node3
-                                for node4 in self.graph.neighbors(py_var):
-                                    if self.node_to_relname[node4] == 'variable' \
-                                       and self.node_to_values[node4][0] == self.node_to_values[py_var][0]:
-                                        var = node4
-                                        name = self.node_to_values[var][2]
-
-                                        node_to_new_names[expt_stmt] = name
-                                        node_to_new_names[name_expr] = name
-                                        node_to_new_names[py_var] = name
-                                        node_to_new_names[var] = name
-
-
-    def find_call_names(self, node_to_new_names):
-        # the name of a call requires multiple tables:
-        # call_expression -- name_expression -- py_variable -- variable
-
-        for node1 in self.graph.nodes():
-            if self.node_to_relname[node1] == 'py_exprs' \
-               and self.node_to_values[node1][1] == '4':
-                call = node1
-                for node2 in self.graph.neighbors(call):
-                    if self.node_to_relname[node2] == 'py_exprs' \
-                       and self.node_to_values[node2][1] == '18' \
-                       and self.node_to_values[node2][2] == self.node_to_values[call][0]:
-                        name_expr = node2
-                        for node3 in self.graph.neighbors(name_expr):
-                            if self.node_to_relname[node3] == 'py_variables' \
-                               and self.node_to_values[node3][1] == self.node_to_values[name_expr][0]:
-                                py_var = node3
-                                for node4 in self.graph.neighbors(py_var):
-                                    if self.node_to_relname[node4] == 'variable' \
-                                       and self.node_to_values[node4][0] == self.node_to_values[py_var][0]:
-                                        var = node4
-                                        name = self.node_to_values[var][2]
-
-                                        node_to_new_names[var] = name
-                                        node_to_new_names[py_var] = name
-                                        node_to_new_names[name_expr] = name
-                                        node_to_new_names[call] = name
 
     @staticmethod
     def build_node_map(graph: AGraph, language: str) -> Dict[Node, str]:
