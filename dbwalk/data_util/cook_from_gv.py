@@ -7,7 +7,7 @@ import numpy as np
 import random
 from dbwalk.rand_walk.walkutils import WalkUtils, JavaWalkUtils
 from dbwalk.rand_walk.randomwalk import RandomWalker
-
+from dbwalk.data_util.graph_holder import GraphHolder
 from dbwalk.common.configs import cmd_args
 from dbwalk.common.consts import TOK_PAD, var_idx2name, UNK
 from dbwalk.data_util.cook_data import load_label_dict, get_or_add
@@ -24,39 +24,47 @@ if __name__ == '__main__':
         get_or_add(node_types, key)
         get_or_add(edge_types, key)
 
+    parse_util = WalkUtils if cmd_args.language == 'python' else JavaWalkUtils
     max_num_vars = 0
     print('building dict')
     for phase in ['train', 'dev', 'eval']:
         folder = os.path.join(cmd_args.data_dir, cmd_args.data, phase)
         files = os.listdir(folder)
         files = [fname for fname in files if fname.endswith('gv')]
+        out_folder = os.path.join(cmd_args.data_dir, cmd_args.data, 'cooked_' + phase)
+        if not os.path.isdir(out_folder):
+            os.makedirs(out_folder)
+
+        chunk_idx = 0
+        gh = GraphHolder()
         for fname in tqdm(files):
             graph = RandomWalker.load_graph_from_gv(os.path.join(folder, fname))
             json_name = '_'.join(fname.split('_')[1:])
             json_name = 'walks_' + '.'.join(json_name.split('.')[:-1]) + '.json'
             with open(os.path.join(folder, json_name), 'r') as f:
                 data = json.load(f)[0]
-                anchor_str = data['anchor']
-            walker = RandomWalker(graph, anchor_str, cmd_args.language)
-            walks = walker.random_walk(max_num_walks=cmd_args.num_walks, min_num_steps=cmd_args.min_steps, max_num_steps=cmd_args.max_steps)
-            if cmd_args.language == 'python':
-                trajectories = [WalkUtils.build_trajectory(walk) for walk in walks]
-            elif cmd_args.language == 'java':
-                trajectories = [JavaWalkUtils.build_trajectory(walk) for walk in walks]
-            else:
-                raise ValueError('Unknown language:', cmd_args.language)
+            gh.add_graph(graph, data)
             var_set = set()
-            for trajectory in trajectories:
-                traj = trajectory.to_dict()
-                for node in traj['nodes']:
-                    if node.startswith('v_'):
-                        var_set.add(node)
-                    else:
-                        get_or_add(node_types, node)
-                for edge in traj['edges']:
-                    get_or_add(edge_types, edge)
+            for node in graph.nodes(data=True):
+                node_label = node[1]['label']
+                node_name, values = parse_util.parse_node_label(node_label)
+                node_key = parse_util.gen_node_label(node_name, values)
+                if node_key.startswith('v_'):
+                    var_set.add(node_key)
+                else:
+                    get_or_add(node_types, node_key)
+
+            for e in graph.edges(data=True):
+                edge = e[2]['label']
+                get_or_add(edge_types, edge)
             if len(var_set) > max_num_vars:
                 max_num_vars = len(var_set)
+            if len(gh) >= cmd_args.data_chunk_size:
+                gh.dump(os.path.join(out_folder, 'chunk_%d' % chunk_idx))
+                chunk_idx += 1
+                gh = GraphHolder()
+        if len(gh):
+            gh.dump(os.path.join(out_folder, 'chunk_%d' % chunk_idx))
     print('# node types', len(node_types))
     print('# edge types', len(edge_types))
     print('max # vars per program', max_num_vars)

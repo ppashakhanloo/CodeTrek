@@ -8,14 +8,13 @@ import random
 import json
 from tqdm import tqdm
 from torch.utils.data import Dataset, DataLoader
-from collections import namedtuple, defaultdict
+from collections import defaultdict
 from dbwalk.common.consts import TOK_PAD, UNK
 from dbwalk.rand_walk.walkutils import WalkUtils, JavaWalkUtils
 from dbwalk.rand_walk.randomwalk import RandomWalker
 from dbwalk.data_util.cook_data import make_mat_from_raw
-
-RawData = namedtuple('RawData', ['node_idx', 'edge_idx', 'source', 'label'])
-RawFile = namedtuple('RawFile', ['gv_file', 'anchor', 'source', 'label'])
+from dbwalk.data_util.graph_holder import MergedGraphHolders
+from dbwalk.data_util.util import RawData, RawFile
 
 
 class ProgDict(object):
@@ -162,52 +161,15 @@ class WorkerContext(object):
         self.buffer = [None] * n_jobs
 
 
-class OnlineWalkDataest(Dataset):
+class AbstractOnlineWalkDB(Dataset):
     def __init__(self, args, prog_dict, data_dir, phase, sample_prob=None, shuffle_var=False):
-        super(OnlineWalkDataest, self).__init__()
+        super(AbstractOnlineWalkDB, self).__init__()
         self.args = args
         self.prog_dict = prog_dict
         self.phase = phase
         self.sample_prob = sample_prob
         self.shuffle_var = shuffle_var
         assert self.prog_dict.node_idx(TOK_PAD) == self.prog_dict.edge_idx(TOK_PAD) == 0
-
-        gv_files = os.listdir(os.path.join(data_dir, phase))
-        gv_files = [x for x in gv_files if x.endswith('.gv')]
-        random.shuffle(gv_files)
-        self.list_samples = []
-        self.labeled_samples = defaultdict(list)
-        for fname in gv_files:
-            json_name = '_'.join(fname.split('_')[1:])
-            json_name = 'walks_' + '.'.join(json_name.split('.')[:-1]) + '.json'
-            with open(os.path.join(data_dir, phase, json_name), 'r') as f:
-                data = json.load(f)[0]
-                anchor_str = data['anchor']
-                label = self.prog_dict.label_map[data['label']]
-                src = data['source']
-                raw_sample = RawFile(os.path.join(data_dir, phase, fname), anchor_str, src, label)
-
-            self.list_samples.append(raw_sample)
-            self.labeled_samples[raw_sample.label].append(raw_sample)
-        self.worker_context = WorkerContext(0, 1, len(self.list_samples))  # single proc loading for now
-        language = 'python'
-        print('loading graphs for', self.phase)
-        for i, sample in tqdm(enumerate(self.list_samples)):
-            graph = RandomWalker.load_graph_from_gv(sample.gv_file)
-            walker = RandomWalker(graph, sample.anchor, language)
-            self.worker_context.buffer[i] = walker
-
-    def __len__(self):
-        return len(self.list_samples)
-
-    def __getitem__(self, idx):        
-        walker = self.worker_context.buffer[idx]
-        assert walker is not None
-        raw_sample = self.list_samples[idx]
-        walks = walker.random_walk(max_num_walks=self.args.num_walks, min_num_steps=self.args.min_steps, max_num_steps=self.args.max_steps)
-        trajectories = [WalkUtils.build_trajectory(walk).to_dict() for walk in walks]
-        node_mat, edge_mat = make_mat_from_raw(trajectories, self.prog_dict.node_types, self.prog_dict.edge_types)
-        return RawData(node_mat, edge_mat, raw_sample.source, raw_sample.label)
 
     def get_train_loader(self, cmd_args):
         loader = DataLoader(self,
@@ -226,3 +188,67 @@ class OnlineWalkDataest(Dataset):
                             collate_fn=collate_raw_data,
                             num_workers=cmd_args.num_proc)
         return loader
+
+    def get_item_from_rawfile(self, raw_sample, walker):
+        walks = walker.random_walk(max_num_walks=self.args.num_walks, min_num_steps=self.args.min_steps, max_num_steps=self.args.max_steps)
+        trajectories = [WalkUtils.build_trajectory(walk).to_dict() for walk in walks]
+        node_mat, edge_mat = make_mat_from_raw(trajectories, self.prog_dict.node_types, self.prog_dict.edge_types)
+        return RawData(node_mat, edge_mat, raw_sample.source, self.prog_dict.label_map[raw_sample.label])
+
+
+class FastOnlineWalkDataset(AbstractOnlineWalkDB):
+    def __init__(self, args, prog_dict, data_dir, phase, sample_prob=None, shuffle_var=False):
+        super(FastOnlineWalkDataset, self).__init__(args, prog_dict, data_dir, phase, sample_prob, shuffle_var)
+
+        chunks = os.listdir(os.path.join(data_dir, 'cooked_' + phase))
+        chunks = sorted(chunks)
+        chunks = [os.path.join(data_dir, 'cooked_' + phase, x) for x in chunks]
+        self.merged_gh = MergedGraphHolders(chunks)
+        self.language = 'python'
+
+    def __len__(self):
+        return len(self.merged_gh)
+
+    def __getitem__(self, idx):
+        raw_sample = self.merged_gh[idx]
+        walker = RandomWalker(raw_sample.gv_file, raw_sample.anchor, self.language)
+        return self.get_item_from_rawfile(raw_sample, walker)
+
+
+class SlowOnlineWalkDataset(AbstractOnlineWalkDB):
+    def __init__(self, args, prog_dict, data_dir, phase, sample_prob=None, shuffle_var=False):
+        super(SlowOnlineWalkDataset, self).__init__(args, prog_dict, data_dir, phase, sample_prob, shuffle_var)
+
+        gv_files = os.listdir(os.path.join(data_dir, phase))
+        gv_files = [x for x in gv_files if x.endswith('.gv')]
+        random.shuffle(gv_files)
+        self.list_samples = []
+        self.labeled_samples = defaultdict(list)
+        for fname in gv_files:
+            json_name = '_'.join(fname.split('_')[1:])
+            json_name = 'walks_' + '.'.join(json_name.split('.')[:-1]) + '.json'
+            with open(os.path.join(data_dir, phase, json_name), 'r') as f:
+                data = json.load(f)[0]
+                anchor_str = data['anchor']
+                label = data['label']
+                src = data['source']
+                raw_sample = RawFile(os.path.join(data_dir, phase, fname), anchor_str, src, label)
+
+            self.list_samples.append(raw_sample)
+            self.labeled_samples[raw_sample.label].append(raw_sample)
+        self.worker_context = WorkerContext(0, 1, len(self.list_samples))  # single proc loading for now
+        language = 'python'
+        print('loading graphs for', self.phase)
+        for i, sample in tqdm(enumerate(self.list_samples)):
+            graph = RandomWalker.load_graph_from_gv(sample.gv_file)
+            walker = RandomWalker(graph, sample.anchor, language)
+            self.worker_context.buffer[i] = walker
+
+    def __len__(self):
+        return len(self.list_samples)
+
+    def __getitem__(self, idx):
+        walker = self.worker_context.buffer[idx]
+        assert walker is not None
+        raw_sample = self.list_samples[idx]
+        return self.get_item_from_rawfile(raw_sample, walker)

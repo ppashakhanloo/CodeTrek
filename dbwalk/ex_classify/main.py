@@ -7,7 +7,7 @@ import numpy as np
 import random
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from dbwalk.data_util.dataset import InMemDataest, ProgDict, OnlineWalkDataest
+from dbwalk.data_util.dataset import InMemDataest, ProgDict, FastOnlineWalkDataset, SlowOnlineWalkDataset
 from dbwalk.common.configs import cmd_args, set_device
 from tqdm import tqdm
 from dbwalk.model.classifier import MulticlassNet
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     model = MulticlassNet(cmd_args, prog_dict).to(cmd_args.device)
 
     if cmd_args.online_walk_gen:
-        db_class = OnlineWalkDataest
+        db_class = FastOnlineWalkDataset
     else:
         db_class = InMemDataest
 
