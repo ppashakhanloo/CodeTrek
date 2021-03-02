@@ -1,33 +1,29 @@
 import sys
 import ast
-from pydot import Edge, Node
+from pydot import Edge, Node, Graph
 from astmonkey import visitors, transformers
 from diff import get_diff 
 
 CURR_STR = '___CURR___'
 
-def build_Child_graph(input_python_file, aux_file):
-  _, tok1, row1_s, col1_s, row1_e, col1_e, _, tok2, row2_s, col2_s, row2_e, col2_e = get_diff(input_python_file, aux_file)
-
-  # label = correct, misuse
+def build_Child_graph(correct_file, incorrect_file):
+  _, tok1, row1_s, col1_s, row1_e, col1_e, _, tok2, row2_s, col2_s, row2_e, col2_e = get_diff(correct_file, incorrect_file)
+  
   lines = []
-  with open(input_python_file, 'r') as infile:
-    with open('temp', 'w') as outfile:
-      lines = infile.readlines()
-      different_line = lines[row1_s-1]
-      new_line = different_line[:col1_s-1] + different_line[col1_s-1:].replace(tok1, CURR_STR, 1)
-      lines[row1_s-1] = new_line
-      outfile.write("".join(lines))
-
-  with open('temp', 'r') as infile:
-    contents = infile.read()
+  with open(correct_file, 'r', 100*(2**20)) as infile:
+    lines = infile.readlines()
+    different_line = lines[row1_s-1]
+    new_line = different_line[:col1_s-1] + different_line[col1_s-1:].replace(tok1, CURR_STR, 1)
+    lines[row1_s-1] = new_line
+    
+    contents = "".join(lines)
     node = ast.parse(contents)
     node = transformers.ParentChildNodeTransformer().visit(node)
     visitor = visitors.GraphNodeVisitor()
     visitor.visit(node)
     graph = visitor.graph
     graph.set_type('digraph')
-
+    
     for edge in graph.get_edges():
       edge.set('label', 'Child')
     
@@ -102,7 +98,7 @@ def add_LastLexicalUse_edges(graph):
         graph.add_edge(edge)
         first_node = node
     
-  return graph, nodes_to_vars, variables
+  return graph, variables
 
 def add_ReturnsTo_edges(graph, subtrees):
   for node in subtrees:
@@ -232,12 +228,11 @@ def get_subtree(node, res, neighbors):
 def gen_graph_from_source(infile, aux_file):
   graph, neighbors, subtrees, node_of_interest = build_Child_graph(infile, aux_file)
   graph = add_NextToken_edges(graph, subtrees)
-  graph, _, variables = add_LastLexicalUse_edges(graph)
+  graph, variables = add_LastLexicalUse_edges(graph)
   graph = add_ReturnsTo_edges(graph, subtrees)
   graph = add_ComputedFrom_edges(graph, subtrees)
   graph, var_reads, var_writes = add_LastReadWrite_edges(graph, subtrees, variables)
   graph = add_Guarded_edges(graph, subtrees, neighbors)
-
   # if the task is var misuse
   graph = add_varmisue_specials(graph, variables, node_of_interest)
   return graph
