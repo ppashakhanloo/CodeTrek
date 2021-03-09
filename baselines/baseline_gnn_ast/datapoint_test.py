@@ -1,5 +1,5 @@
 import json
-from datapoint import DataPoint, ContextGraph, NodeLabels, Edges, GraphEdge
+from datapoint import DataPoint, ContextGraph, Edges, GraphEdge
 
 def main():
   e1 = GraphEdge(0, 1)
@@ -16,23 +16,33 @@ def main():
     computed_from=[e3],
     last_use=[e4, e5, e1, e2],
     last_write=[e1, e2],
-    returns_to=[e6]
+    returns_to=[e6],
+    guarded_by=[],
+    guarded_by_negation=[e1]
   )
 
-  node_labels_raw = {
-    0: "label0",
-    1: "label1",
-    3: "label3",
-    5: "label5",
-    8: "label8",
-    9: "label9"
-  }
+  node_labels = [
+    "label0",
+    "label1",
+    "label3",
+    "label5",
+    "label8",
+    "label9"
+  ]
 
-  node_labels = NodeLabels(node_labels_raw)
+  node_tokens = [
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+  ]
 
   context_graph = ContextGraph(
     edges=edges,
-    node_labels=node_labels
+    node_labels=node_labels,
+    node_tokens=node_tokens
   )
 
   label = 'correct'

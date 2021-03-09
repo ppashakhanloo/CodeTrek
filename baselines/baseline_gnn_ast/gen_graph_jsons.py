@@ -2,12 +2,12 @@ import sys
 import json
 import datapoint
 import create_ast
-
+from dbwalk.tokenizer import tokenizer
 
 def init(graph):
   # assign unique numbers to nodes
   node_to_num = {}
-  num = 1
+  num = 0
   for node in graph.get_nodes():
     node_to_num[node.get_name()] = num
     num += 1
@@ -28,7 +28,8 @@ def get_each_edge_category(graph, node_to_num, cat_names):
 def main(args):
   graph, node_to_num, slot_node_idx = init(create_ast.gen_graph_from_source(args[1], args[2]))
   # prepare edges
-  cat_names = ['Child', 'NextToken', 'LastLexicalUse', 'ComputedFrom', 'LastRead', 'LastWrite', 'ReturnsTo']
+  cat_names = ['Child', 'NextToken', 'LastLexicalUse', 'ComputedFrom',
+               'LastRead', 'LastWrite', 'ReturnsTo', 'GuardedBy', 'GuardedByNegation']
   all_edges = get_each_edge_category(graph, node_to_num, cat_names)
   edges = datapoint.Edges(
     child=all_edges['Child'],
@@ -37,18 +38,25 @@ def main(args):
     computed_from=all_edges['ComputedFrom'],
     last_use=all_edges['LastRead'],
     last_write=all_edges['LastWrite'],
-    returns_to=all_edges['ReturnsTo']
+    returns_to=all_edges['ReturnsTo'],
+    guarded_by=all_edges['GuardedBy'],
+    guarded_by_negation=all_edges['GuardedByNegation']
   )
   # prepare node_labels
-  node_labels_raw = {}
-  for node in graph.get_nodes():
-    node_labels_raw[node_to_num[node.get_name()]] = node.get('label')
+  node_labels = [0] * len(node_to_num.keys())
+  for node in node_to_num.keys():
+    node_labels[node_to_num[node]] = graph.get_node(node)[0].get('label')
 
-  node_labels = datapoint.NodeLabels(node_labels_raw)
+  # prepare node_tokens
+  node_tokens = [0] * len(node_to_num.keys())
+  for node in node_to_num.keys():
+    node_tokens[node_to_num[node]] = tokenizer.tokenize(graph.get_node(node)[0].get('label'), 'python')
+  
   # prepare context_graph
   context_graph = datapoint.ContextGraph(
     edges=edges,
-    node_labels=node_labels
+    node_labels=node_labels,
+    node_tokens=node_tokens
   )
 
   # create data point

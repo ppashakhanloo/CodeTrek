@@ -20,8 +20,12 @@ class Edges:
   last_use = []
   last_write = []
   returns_to = []
+  guarded_by = []
+  guarded_by_negation = []
 
-  def __init__(self, child, next_token, last_lexical_use, computed_from, last_use, last_write, returns_to):
+  def __init__(self, child, next_token, last_lexical_use,
+               computed_from, last_use, last_write, returns_to,
+               guarded_by, guarded_by_negation):
     self.child = child
     self.next_token = next_token
     self.last_lexical_use = last_lexical_use
@@ -29,6 +33,8 @@ class Edges:
     self.last_use = last_use
     self.last_write = last_write
     self.returns_to = returns_to
+    self.guarded_by = guarded_by
+    self.guarded_by_negation = guarded_by_negation
 
   def to_dict(self):
     return {
@@ -38,31 +44,26 @@ class Edges:
         'ComputedFrom':  [edge.to_dict() for edge in self.computed_from],
         'LastUse': [edge.to_dict() for edge in self.last_use],
         'LastWrite': [edge.to_dict() for edge in self.last_write],
-        'ReturnsTo': [edge.to_dict() for edge in self.returns_to]
+        'ReturnsTo': [edge.to_dict() for edge in self.returns_to],
+        'GuardedBy': [edge.to_dict() for edge in self.guarded_by],
+        'GuardedByNegation': [edge.to_dict() for edge in self.guarded_by_negation]
     }
 
-class NodeLabels:
-  labels = {}
-  
-  def __init__(self, node_labels):
-    for node_label in node_labels:
-      self.labels[node_label] = node_labels[node_label]
-
-  def to_dict(self):
-    return self.labels
- 
 class ContextGraph:
   edges = []
   node_labels = []
+  node_tokens = []
 
-  def __init__(self, edges, node_labels):
+  def __init__(self, edges, node_labels, node_tokens):
     self.edges = edges
     self.node_labels = node_labels
+    self.node_tokens = node_tokens
 
   def to_dict(self):
     return {
       'Edges': self.edges.to_dict(),
-      'NodeLabels': self.node_labels.to_dict()
+      'NodeLabels': self.node_labels,
+      'NodeTokens': self.node_tokens
     }
 
 class DataPoint:
@@ -87,4 +88,4 @@ class DataPoint:
   
   def dump_json(self, filepath: str):
     with open(filepath, 'w') as outfile:
-      json.dump(self.to_dict(), outfile, indent=4)
+      json.dump(self.to_dict(), outfile)

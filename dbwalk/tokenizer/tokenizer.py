@@ -8,8 +8,4 @@ def tokenize(string, language):
   else:
     raise NotImplementedError
   
-  return tokenizer.tokenize(string)
-
-# TEST
-print(tokenize("class schema_hello_there", 'python'))
-
+  return tokenizer.tokenize(string)[:-1]
