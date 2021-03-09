@@ -1,15 +1,20 @@
-import sys
 import ast
-from pydot import Edge, Node, Graph
+from pydot import Edge, Node
 from astmonkey import visitors, transformers
 from diff import get_diff 
 
 CURR_STR = '___CURR___'
+SLOT_STR = 'SlotNode'
+IF_IND = 'ast.if'
+NAME_IND = '<ast.Name '
+ARG_IND = '<ast.arg '
+FUNC_IND = '<ast.FunctionDef '
+RET_IND = '<ast.Return '
+ASSIGN_IND = '<ast.Assign '
 
-def build_Child_graph(correct_file, incorrect_file):
-  _, tok1, row1_s, col1_s, row1_e, col1_e, _, tok2, row2_s, col2_s, row2_e, col2_e = get_diff(correct_file, incorrect_file)
-  
-  lines = []
+def build_child_edges(correct_file, incorrect_file):
+  _, tok1, row1_s, col1_s, _, _, _, tok2, row2_s, col2_s, _, _ = get_diff(correct_file, incorrect_file)
+
   with open(correct_file, 'r', 100*(2**20)) as infile:
     lines = infile.readlines()
     different_line = lines[row1_s-1]
@@ -23,25 +28,41 @@ def build_Child_graph(correct_file, incorrect_file):
     visitor.visit(node)
     graph = visitor.graph
     graph.set_type('digraph')
-    
-    for edge in graph.get_edges():
-      edge.set('label', 'Child')
-    
+
     neighbors = {} # node -> neighbors
     for edge in graph.get_edges():
       src = edge.get_source()
       dst = edge.get_destination()
-      if src not in neighbors:
+      if src not in neighbors.keys():
         neighbors[src] = [dst]
       else:
         neighbors[src].append(dst)
-    
+
     subtrees = {} # node -> subtree nodes
-    for node in neighbors:
+    for node in neighbors.keys():
       res = []
       get_subtree(node, res, neighbors)
       subtrees[node] = res
-   
+
+    # get if-then-else before renaming the edges
+    if_branches = {}
+    for node in neighbors.keys():
+      if graph.get_node(node)[0].get('label').startswith(IF_IND):
+        condition = ""
+        then_branch = []
+        else_branch = []
+        for neighbor in neighbors[node]:
+          if graph.get_edge(node, neighbor)[0].get('label').startswith('test'):
+            condition = neighbor
+          elif graph.get_edge(node, neighbor)[0].get('label').startswith('body'):
+            then_branch.append(neighbor)
+          elif graph.get_edge(node, neighbor)[0].get('label').startswith('orelse'):
+            else_branch.append(neighbor)
+        if_branches[node] = (condition, then_branch, else_branch)
+
+    for edge in graph.get_edges():
+      edge.set('label', 'Child')
+
     # find curr and replace with its variable name
     node_of_interest = ""
     for node in graph.get_nodes():
@@ -50,10 +71,9 @@ def build_Child_graph(correct_file, incorrect_file):
         node_of_interest = node
         break
     
-    return graph, neighbors, subtrees, node_of_interest
-  return None, None, None, None
+    return graph, neighbors, subtrees, node_of_interest, if_branches
 
-def add_NextToken_edges(graph, subtrees):
+def add_next_token_edges(graph, subtrees):
   token_nodes = []
   # get leaf nodes
   for node in graph.get_nodes():
@@ -71,10 +91,10 @@ def add_NextToken_edges(graph, subtrees):
 
 def is_variable_node(node):
   if isinstance(node, str):
-    return node.startswith('<_ast.arg ') or node.startswith('<_ast.Name ')
-  return node.get_name().startswith('<_ast.arg ') or node.get_name().startswith('<_ast.Name ')
+    return node.startswith(ARG_IND) or node.startswith(NAME_IND)
+  return node.get_name().startswith(ARG_IND) or node.get_name().startswith(NAME_IND)
 
-def add_LastLexicalUse_edges(graph):
+def add_last_lexical_use_edges(graph):
   nodes_to_vars = {}
   for node in graph.get_nodes():
     if is_variable_node(node):
@@ -97,22 +117,22 @@ def add_LastLexicalUse_edges(graph):
         edge.set('label', 'LastLexicalUse')
         graph.add_edge(edge)
         first_node = node
-    
+
   return graph, variables
 
-def add_ReturnsTo_edges(graph, subtrees):
+def add_returns_to_edges(graph, subtrees):
   for node in subtrees:
-    if node.startswith("<_ast.FunctionDef "):
+    if node.startswith(FUNC_IND):
       for t in subtrees[node]:
-        if t.startswith("<_ast.Return "):
+        if t.startswith(RET_IND):
           edge = Edge(t, node)
           edge.set('label', 'ReturnsTo')
           graph.add_edge(edge)
   return graph
 
-def add_ComputedFrom_edges(graph, subtrees):
+def add_computed_from_edges(graph, subtrees):
   for node in subtrees:
-    if node.startswith("<_ast.Assign "):
+    if node.startswith(ASSIGN_IND):
       assign_l = subtrees[node][0] # left variable
       assign_r = subtrees[node][1:] # right hand subtree
       lhs_nodes = []
@@ -121,10 +141,10 @@ def add_ComputedFrom_edges(graph, subtrees):
       if is_variable_node(assign_l):
         lhs_nodes.append(assign_l)
       else:
-        lhs_nodes += variables(assign_l, subtrees, graph)[0]
+        lhs_nodes += get_variables(assign_l, subtrees, graph)[0]
      
       for var in assign_r:
-        rhs_nodes += variables(var, subtrees, graph)[0]
+        rhs_nodes += get_variables(var, subtrees, graph)[0]
       
       for var1 in lhs_nodes:
         for var2 in rhs_nodes:
@@ -134,7 +154,7 @@ def add_ComputedFrom_edges(graph, subtrees):
 
   return graph
 
-def add_LastReadWrite_edges(graph, subtrees, variables):
+def add_last_read_write_edges(graph, variables):
   variable_writes = {}
   variable_reads = {}
   
@@ -168,48 +188,54 @@ def add_LastReadWrite_edges(graph, subtrees, variables):
           edge.set('label', 'LastRead')
           graph.add_edge(edge)
 
-
   return graph, variable_reads, variable_writes
 
-def variables(node, subtrees, graph):
-  res = []
-  names = []
-  if node not in subtrees:
-    return res, names
+def get_variables(node, subtrees, graph):
+  if node not in subtrees.keys():
+    return [], []
+  nodes, vars = [], []
   for n in subtrees[node]:
     if is_variable_node(n):
-      res.append(n)
-      names.append(graph.get_node(n)[0].obj_dict['attributes']['label'].split("'")[1])
-  return res, names
+      retrieved_node = graph.get_node(n)[0]
+      nodes.append(retrieved_node)
+      vars.append(retrieved_node.get('label').split("'")[1])
+  return nodes, vars
 
-def add_Guarded_edges(graph, subtrees, neighbors):
-  for node in subtrees:
-    if node.startswith("<_ast.If "):
-      guard_node = neighbors[node][0]
-      guard_vars, guard_var_names = variables(neighbors[node][0], subtrees, graph)
-      then_vars, then_var_names = variables(neighbors[node][1], subtrees, graph)
-      else_vars, else_var_names = [], []
-      if len(neighbors[node]) == 3:
-        else_vars, else_var_names = variables(neighbors[node][2], subtrees, graph)
-      
-      for i in range(len(then_var_names)):
-        if then_var_names[i] in guard_var_names:
-          edge = Edge(then_vars[i], guard_node)
-          edge.set('label', 'GuardedBy')
-          graph.add_edge(edge)
+def add_guarded_edges(graph, subtrees, if_branches):
+  for if_node in if_branches.keys():
+    guard = if_branches[if_node][0]
+    guard_nodes, guard_vars = get_variables(guard, subtrees, graph)
 
-      for i in range(len(else_var_names)):
-        if else_var_names[i] in guard_var_names:
-          edge = Edge(else_vars[i], guard_node)
-          edge.set('label', 'GuardedByNegation')
-          graph.add_edge(edge)
+    then_nodes, then_vars = [], []
+    for node in if_branches[if_node][1]:
+      n, v = get_variables(node, subtrees, graph)
+      then_nodes += n
+      then_vars += v
+
+    else_nodes, else_vars = [], []
+    for node in if_branches[if_node][2]:
+      n, v = get_variables(node, subtrees, graph)
+      else_nodes += n
+      else_vars += v
+
+    for i in range(len(then_vars)):
+      if then_vars[i] in guard_vars:
+        edge = Edge(then_nodes[i], guard)
+        edge.set('label', 'GuardedBy')
+        graph.add_edge(edge)
+
+    for i in range(len(else_vars)):
+      if else_vars[i] in guard_vars:
+        edge = Edge(else_nodes[i], guard)
+        edge.set('label', 'GuardedByNegation')
+        graph.add_edge(edge)
 
   return graph
 
-def add_varmisue_specials(graph, variables, node_of_interest):
+def add_varmisue_specials(graph, node_of_interest):
   # add slot node to specify location
-  slot_node = Node(name='<SLOT>')
-  slot_node.set('label', node_of_interest.get_name())
+  slot_node = Node(name='SlotNode')
+  slot_node.set('label', 'SlotNode')
   graph.add_node(slot_node)
   graph.add_edge(Edge(slot_node, node_of_interest))
 
@@ -217,7 +243,7 @@ def add_varmisue_specials(graph, variables, node_of_interest):
     
 def save_graph(graph, output_file):
   graph.write(output_file+'.dot', format='dot')
-  graph.write(output_file+'.png', format='png')
+  graph.write(output_file+'.pdf', format='pdf')
 
 def get_subtree(node, res, neighbors):
   if node in neighbors:
@@ -225,20 +251,67 @@ def get_subtree(node, res, neighbors):
       res.append(child)
       get_subtree(child, res, neighbors)
 
-def gen_graph_from_source(infile, aux_file):
-  graph, neighbors, subtrees, node_of_interest = build_Child_graph(infile, aux_file)
-  graph = add_NextToken_edges(graph, subtrees)
-  graph, variables = add_LastLexicalUse_edges(graph)
-  graph = add_ReturnsTo_edges(graph, subtrees)
-  graph = add_ComputedFrom_edges(graph, subtrees)
-  graph, var_reads, var_writes = add_LastReadWrite_edges(graph, subtrees, variables)
-  graph = add_Guarded_edges(graph, subtrees, neighbors)
-  # if the task is var misuse
-  graph = add_varmisue_specials(graph, variables, node_of_interest)
+value_indicators = [
+  'name=',
+  'id=',
+  'attr=',
+  'arg=',
+  'module=',
+  'value='
+]
+
+value_exclusions = [
+  'ast.arguments'
+]
+
+def has_value(label):
+  for ind in value_exclusions:
+    if ind in label:
+      return None
+  for ind in value_indicators:
+    if ind in label:
+      return ind
+  return None
+
+def get_value(label, ind):
+  loc = label.find(ind)
+  offset = len(ind) + 1
+  if ind == 'value=':
+    return label[loc + offset - 1:label.find(',', loc)]
+  return label[loc + offset:label.find('\'', loc + offset)]
+
+def fix_node_labels(graph):
+  for node in graph.get_nodes():
+    full_label = node.get('label')
+    ind = has_value(full_label)
+    if ind:
+      # create a new node as a terminal node
+      terminal_node = Node(name=node.get_name()+'_')
+      terminal_node.set('label', get_value(full_label, ind))
+      graph.add_node(terminal_node)
+      # add an edge from the non-terminal node to the terminal node
+      terminal_edge = Edge(node.get_name(), terminal_node.get_name())
+      terminal_edge.set('label', 'Child')
+      graph.add_edge(terminal_edge)
+
+    if full_label == 'SlotNode':
+      label = full_label
+    else:
+      label = full_label[4:full_label.find('(')]
+
+    node.set('label', label)
   return graph
 
-def main(args):
-  graph = gen_graph_from_source(args[1], args[2])
-
-if __name__ == "__main__":
-  main(sys.argv)
+def gen_graph_from_source(infile, aux_file):
+  graph, neighbors, subtrees, node_of_interest, if_branches = build_child_edges(infile, aux_file)
+  graph = add_next_token_edges(graph, subtrees)
+  graph, variables = add_last_lexical_use_edges(graph)
+  graph = add_returns_to_edges(graph, subtrees)
+  graph = add_computed_from_edges(graph, subtrees)
+  graph, var_reads, var_writes = add_last_read_write_edges(graph, variables)
+  graph = add_guarded_edges(graph, subtrees, if_branches)
+  # if the task is var misuse
+  graph = add_varmisue_specials(graph, node_of_interest)
+  # finally, fix all the labels
+  graph = fix_node_labels(graph)
+  return graph
