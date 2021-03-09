@@ -287,7 +287,7 @@ def fix_node_labels(graph):
     if ind:
       # create a new node as a terminal node
       terminal_node = Node(name=node.get_name()+'_')
-      terminal_node.set('label', get_value(full_label, ind))
+      terminal_node.set('label', 'Terminal' + '[SEP]' + get_value(full_label, ind))
       graph.add_node(terminal_node)
       # add an edge from the non-terminal node to the terminal node
       terminal_edge = Edge(node.get_name(), terminal_node.get_name())
@@ -298,8 +298,8 @@ def fix_node_labels(graph):
       label = full_label
     else:
       label = full_label[4:full_label.find('(')]
-
     node.set('label', label)
+
   return graph
 
 def gen_graph_from_source(infile, aux_file):

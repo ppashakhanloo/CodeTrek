@@ -51,18 +51,21 @@ class Edges:
 
 class ContextGraph:
   edges = []
-  node_labels = []
+  node_types = []
+  node_values = []
   node_tokens = []
 
-  def __init__(self, edges, node_labels, node_tokens):
+  def __init__(self, edges, node_types, node_values, node_tokens):
     self.edges = edges
-    self.node_labels = node_labels
+    self.node_types = node_types
+    self.node_values = node_values
     self.node_tokens = node_tokens
 
   def to_dict(self):
     return {
       'Edges': self.edges.to_dict(),
-      'NodeLabels': self.node_labels,
+      'NodeTypes': self.node_types,
+      'NodeValues': self.node_values,
       'NodeTokens': self.node_tokens
     }
 

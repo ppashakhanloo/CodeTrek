@@ -21,7 +21,7 @@ def main():
     guarded_by_negation=[e1]
   )
 
-  node_labels = [
+  node_types = [
     "label0",
     "label1",
     "label3",
@@ -41,7 +41,8 @@ def main():
 
   context_graph = ContextGraph(
     edges=edges,
-    node_labels=node_labels,
+    node_types=node_types,
+    node_values=[0]*len(node_types),
     node_tokens=node_tokens
   )
 
@@ -50,7 +51,6 @@ def main():
   point = DataPoint(
     filename="test/dir/path",
     slot_node_idx="0",
-    slotted_node_idx="0",
     context_graph=context_graph,
     label=label
   )

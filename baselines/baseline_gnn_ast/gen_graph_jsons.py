@@ -42,20 +42,27 @@ def main(args):
     guarded_by=all_edges['GuardedBy'],
     guarded_by_negation=all_edges['GuardedByNegation']
   )
-  # prepare node_labels
-  node_labels = [0] * len(node_to_num.keys())
-  for node in node_to_num.keys():
-    node_labels[node_to_num[node]] = graph.get_node(node)[0].get('label')
 
-  # prepare node_tokens
-  node_tokens = [0] * len(node_to_num.keys())
+  # prepare node_types, node_values, and node tokens
+  node_types = [0] * len(node_to_num.keys())
+  node_values = [0] * len(node_types)
+  node_tokens = [0] * len(node_types)
   for node in node_to_num.keys():
-    node_tokens[node_to_num[node]] = tokenizer.tokenize(graph.get_node(node)[0].get('label'), 'python')
-  
+    splits = graph.get_node(node)[0].get('label').split('[SEP]')
+    if len(splits) == 2: # the node has type and value
+      node_types[node_to_num[node]] = splits[0]
+      node_values[node_to_num[node]] = splits[1]
+      node_tokens[node_to_num[node]] = tokenizer.tokenize(splits[1], 'python')
+    else: # the node only has type
+      node_types[node_to_num[node]] = splits[0]
+      node_values[node_to_num[node]] = ""
+      node_tokens[node_to_num[node]] = splits[0]
+
   # prepare context_graph
   context_graph = datapoint.ContextGraph(
     edges=edges,
-    node_labels=node_labels,
+    node_types=node_types,
+    node_values=node_values,
     node_tokens=node_tokens
   )
 
