@@ -5,12 +5,18 @@ from diff import get_diff
 
 CURR_STR = '___CURR___'
 SLOT_STR = 'SlotNode'
-IF_IND = 'ast.if'
+IF_IND = 'ast.If'
+IF_IND_ = '_ast.If'
 NAME_IND = '<ast.Name '
+NAME_IND_ = '<_ast.Name '
 ARG_IND = '<ast.arg '
+ARG_IND_ = '<_ast.arg '
 FUNC_IND = '<ast.FunctionDef '
+FUNC_IND_ = '<_ast.FunctionDef '
 RET_IND = '<ast.Return '
+RET_IND_ = '<_ast.Return '
 ASSIGN_IND = '<ast.Assign '
+ASSIGN_IND_ = '<_ast.Assign '
 
 def build_child_edges(correct_file, incorrect_file):
   _, tok1, row1_s, col1_s, _, _, _, tok2, row2_s, col2_s, _, _ = get_diff(correct_file, incorrect_file)
@@ -37,7 +43,6 @@ def build_child_edges(correct_file, incorrect_file):
         neighbors[src] = [dst]
       else:
         neighbors[src].append(dst)
-
     subtrees = {} # node -> subtree nodes
     for node in neighbors.keys():
       res = []
@@ -47,7 +52,7 @@ def build_child_edges(correct_file, incorrect_file):
     # get if-then-else before renaming the edges
     if_branches = {}
     for node in neighbors.keys():
-      if graph.get_node(node)[0].get('label').startswith(IF_IND):
+      if graph.get_node(node)[0].get('label').startswith(IF_IND) or graph.get_node(node)[0].get('label').startswith(IF_IND_):
         condition = ""
         then_branch = []
         else_branch = []
@@ -91,8 +96,8 @@ def add_next_token_edges(graph, subtrees):
 
 def is_variable_node(node):
   if isinstance(node, str):
-    return node.startswith(ARG_IND) or node.startswith(NAME_IND)
-  return node.get_name().startswith(ARG_IND) or node.get_name().startswith(NAME_IND)
+    return node.startswith(ARG_IND) or node.startswith(NAME_IND) or node.startswith(ARG_IND_) or node.startswith(NAME_IND_)
+  return node.get_name().startswith(ARG_IND) or node.get_name().startswith(NAME_IND) or node.get_name().startswith(ARG_IND_) or node.get_name().startswith(NAME_IND_)
 
 def add_last_lexical_use_edges(graph):
   nodes_to_vars = {}
@@ -122,9 +127,9 @@ def add_last_lexical_use_edges(graph):
 
 def add_returns_to_edges(graph, subtrees):
   for node in subtrees:
-    if node.startswith(FUNC_IND):
+    if node.startswith(FUNC_IND) or node.startswith(FUNC_IND_):
       for t in subtrees[node]:
-        if t.startswith(RET_IND):
+        if t.startswith(RET_IND) or t.startswith(RET_IND_):
           edge = Edge(t, node)
           edge.set('label', 'ReturnsTo')
           graph.add_edge(edge)
@@ -132,7 +137,7 @@ def add_returns_to_edges(graph, subtrees):
 
 def add_computed_from_edges(graph, subtrees):
   for node in subtrees:
-    if node.startswith(ASSIGN_IND):
+    if node.startswith(ASSIGN_IND) or node.startswith(ASSIGN_IND_):
       assign_l = subtrees[node][0] # left variable
       assign_r = subtrees[node][1:] # right hand subtree
       lhs_nodes = []
