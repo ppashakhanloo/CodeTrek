@@ -1,6 +1,6 @@
 from pygraphviz import Node
 from typing import List, Dict, Tuple
-from dbwalk.rand_walk.datapoint import TrajNode, TrajEdge, Trajectory
+from dbwalk.rand_walk.datapoint import TrajNodeType, TrajNodeValue, TrajEdge, Trajectory
 
 
 class WalkUtils:
@@ -174,52 +174,53 @@ class WalkUtils:
     }
 
     @staticmethod
-    def gen_node_label(relname: str, values: List[str]) -> str:
-        # Use variable ID as the label
-        value = 'NOVAL'
-        if relname == 'py_bytes':
-            value = values[0]
-        if relname == 'py_numbers':
-            value = values[0]
-        if relname == 'py_strs':
-            value = 'IGNOREVAL' #values[0]
-        if relname == 'variable':
-            value = values[2]
-            return 'name' + '_' + value
+    def gen_node_type_value(rel_name: str, values: List[str]):
+        node_type = rel_name
+        node_value = ''
+        # Compute node values
+        if rel_name == 'py_bytes':
+            node_value = values[0]
+        if rel_name == 'py_numbers':
+            node_value = values[0]
+        if rel_name == 'py_strs':
+            node_value = values[0]
+        if rel_name == 'variable':
+            node_type = 'v_' + values[0]
+            node_value = values[2]
         # Distinguish different kinds of expressions
-        if relname == 'py_exprs':
+        if rel_name == 'py_exprs':
             kind = int(values[1])
-            return 'expr_' + WalkUtils.expr_kinds[kind] + '_' + value
+            node_type = 'expr_' + WalkUtils.expr_kinds[kind]
         # Distinguish different kinds of statements
-        if relname == 'py_stmts':
+        if rel_name == 'py_stmts':
             kind = int(values[1])
-            return 'stmt_' + WalkUtils.stmt_kinds[kind] + '_' + value
+            node_type = 'stmt_' + WalkUtils.stmt_kinds[kind]
         # Distinguish different kinds of boolean ops
-        if relname == 'py_boolops':
+        if rel_name == 'py_boolops':
             kind = int(values[1])
-            return 'boolop_' + WalkUtils.boolop_kinds[kind] + '_'  + value
+            node_type = 'boolop_' + WalkUtils.boolop_kinds[kind]
         # Distinguish different comparison ops
-        if relname == 'py_cmpops':
+        if rel_name == 'py_cmpops':
             kind = int(values[1])
-            return 'cmpop_' + WalkUtils.cmpop_kinds[kind] + '_' + value
+            node_type = 'cmpop_' + WalkUtils.cmpop_kinds[kind]
         # Distinguish different dict item kinds
-        if relname == 'py_dict_items':
+        if rel_name == 'py_dict_items':
             kind = int(values[1])
-            return 'ditem_' + WalkUtils.dict_item_kinds[kind] + '_' + value
+            node_type = 'ditem_' + WalkUtils.dict_item_kinds[kind]
         # Distinguish different expression context kinds
-        if relname == 'py_expr_contexts':
+        if rel_name == 'py_expr_contexts':
             kind = int(values[1])
-            return 'ctx_' + WalkUtils.expr_context_kinds[kind] + '_' + value
+            node_type = 'ctx_' + WalkUtils.expr_context_kinds[kind]
         # distinguish different operators
-        if relname == 'py_operators':
+        if rel_name == 'py_operators':
             kind = int(values[1])
-            return 'ops_' + WalkUtils.operator_kinds[kind] + '_' + value
+            node_type = 'ops_' + WalkUtils.operator_kinds[kind]
         # distinguish different unary operators
-        if relname == 'py_unaryops':
+        if rel_name == 'py_unaryops':
             kind = int(values[1])
-            return 'uops_' + WalkUtils.unaryop_kinds[kind] + '_' + value
+            node_type = 'uops_' + WalkUtils.unaryop_kinds[kind]
         # Otherwise, use relation name as the label
-        return relname + '_' + value
+        return node_type, node_value
 
     @staticmethod
     def parse_node_label(node_label: str) -> Tuple[str, List[str]]:
@@ -240,11 +241,11 @@ class WalkUtils:
         return relname, values
 
     @staticmethod
-    def build_traj_node(node: Tuple[Node, str]) -> TrajNode:
+    def build_traj_node(node: Tuple[Node, str]):
         node_label = node[1]
         relname, values = WalkUtils.parse_node_label(node_label)
-        label = WalkUtils.gen_node_label(relname, values)
-        return TrajNode(label)
+        node_type, node_value = WalkUtils.gen_node_type_value(relname, values)
+        return TrajNodeType(node_type), TrajNodeValue(node_value)
 
     @staticmethod
     def parse_edge_label(edge_label: str) -> Tuple[str, str]:
@@ -263,14 +264,17 @@ class WalkUtils:
 
     @staticmethod
     def build_trajectory(walk: List[Tuple]) -> Trajectory:
-        nodes = []
+        node_types = []
+        node_values = []
         edges = []
         for i in range(len(walk)):
             if i % 2 == 0:  # node
-                nodes.append(WalkUtils.build_traj_node(walk[i]))
+                node_type, node_value = WalkUtils.build_traj_node(walk[i])
+                node_types.append(node_type)
+                node_values.append(node_value)
             else:           # edge
                 edges.append(WalkUtils.build_traj_edge(walk[i]))
-        return Trajectory(nodes, edges)
+        return Trajectory(node_types, node_values, edges)
 
 
 class JavaWalkUtils:
@@ -461,10 +465,10 @@ class JavaWalkUtils:
         return relname, values
 
     @staticmethod
-    def build_traj_node(node: Tuple[Node, str]) -> TrajNode:
+    def build_traj_node(node: Tuple[Node, str]):
         node_label = node[1]
         relname, values = JavaWalkUtils.parse_node_label(node_label)
-        return TrajNode(JavaWalkUtils.gen_node_label(relname, values))
+        return TrajNodeType(JavaWalkUtils.gen_node_label(relname, values)), TrajNodeValue("")
 
     @staticmethod
     def parse_edge_label(edge_label: str) -> Tuple[str, str]:

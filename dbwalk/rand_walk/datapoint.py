@@ -12,15 +12,23 @@ class AnchorNode:
         return self.label
 
 
-class TrajNode:
-    label = None  # type: str
+class TrajNodeType:
+    node_type = None  # type: str
 
-    def __init__(self, label: str):
-        self.label = label
+    def __init__(self, node_type: str):
+        self.node_type = node_type
 
     def to_dict(self) -> str:
-        return self.label
+        return self.node_type
 
+class TrajNodeValue:
+    node_value = None # type: str
+
+    def __init__(self, node_value: str):
+        self.node_value = node_value
+
+    def to_dict(self) -> str:
+        return self.node_value
 
 class TrajEdge:
     label1 = None  # type: str
@@ -35,16 +43,19 @@ class TrajEdge:
 
 
 class Trajectory:
-    nodes = []  # type: List[TrajNode]
+    node_types = []  # type: List[TrajNodeType]
+    node_values = []  # type: List[TrajNodeValue]
     edges = []  # type: List[TrajEdge]
 
-    def __init__(self, nodes: List[TrajNode], edges: List[TrajEdge]):
-        self.nodes = nodes
+    def __init__(self, node_types: List[TrajNodeType], node_values: List[TrajNodeValue], edges: List[TrajEdge]):
+        self.node_types = node_types
+        self.node_values = node_values
         self.edges = edges
 
     def to_dict(self) -> Dict:
         return {
-            'nodes': [node.to_dict() for node in self.nodes],
+            'node_types': [node.to_dict() for node in self.node_types],
+            'node_values': [node.to_dict() for node in self.node_values],
             'edges': [edge.to_dict() for edge in self.edges]
         }
 

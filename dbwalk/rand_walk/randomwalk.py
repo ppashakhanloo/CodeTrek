@@ -17,7 +17,7 @@ class RandomWalker:
     graph = None            # type: AGraph
     source_node = None      # type: Node
     node_to_relname = None  # type: Dict[Node, str]
-    node_to_values = None   # type: Dict[Node, [str]] 
+    node_to_values = None   # type: Dict[Node, List[str]]
     bias_tables = None      # type: Set[str]
 
     def __init__(self, graph: AGraph, source: str, language: str):
