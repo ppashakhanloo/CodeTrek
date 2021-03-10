@@ -3,7 +3,7 @@ import json
 from typing import List
 from dbwalk.rand_walk.walkutils import WalkUtils, JavaWalkUtils
 from dbwalk.rand_walk.randomwalk import RandomWalker
-
+from dbwalk.tokenizer import tokenizer
 
 def main(args: List[str]) -> None:
     if not len(args) == 3:
@@ -39,6 +39,12 @@ def main(args: List[str]) -> None:
     print(num_walks, 'walks generated')
     for trajectory in trajectories:
         print(trajectory.to_dict())
+
+    print('Tokenizing nodes in trajectories:')
+    LANG = 'python'
+    for trajectory in trajectories:
+        for node_type in trajectory.to_dict()['node_types']:
+            print(tokenizer.tokenize(node_type, LANG))
 
 
 if __name__ == '__main__':
