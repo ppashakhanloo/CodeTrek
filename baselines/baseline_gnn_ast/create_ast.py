@@ -135,27 +135,26 @@ def add_returns_to_edges(graph, subtrees):
           graph.add_edge(edge)
   return graph
 
-def add_computed_from_edges(graph, subtrees):
+def add_computed_from_edges(graph, subtrees, neighbors):
   for node in subtrees:
     if node.startswith(ASSIGN_IND) or node.startswith(ASSIGN_IND_):
-      assign_l = subtrees[node][0] # left variable
+      assign_l = neighbors[node][0] # left variable
       assign_r = subtrees[node][1:] # right hand subtree
-      lhs_nodes = []
-      rhs_nodes = []
       
-      if is_variable_node(assign_l):
-        lhs_nodes.append(assign_l)
-      else:
-        lhs_nodes += get_variables(assign_l, subtrees, graph)[0]
+      lhs_node = graph.get_node(assign_l)[0]
      
-      for var in assign_r:
-        rhs_nodes += get_variables(var, subtrees, graph)[0]
-      
-      for var1 in lhs_nodes:
-        for var2 in rhs_nodes:
-          edge = Edge(var2, var1)
-          edge.set('label', 'ComputedFrom')
-          graph.add_edge(edge)
+      rhs_nodes = []
+      for r in assign_r:
+        if r not in subtrees.keys():
+          continue
+        else:
+          n, _ = get_variables(r, subtrees, graph)
+          rhs_nodes += n
+
+      for r in rhs_nodes:
+        edge = Edge(lhs_node, r)
+        edge.set('label', 'ComputedFrom')
+        graph.add_edge(edge)
 
   return graph
 
@@ -163,9 +162,11 @@ def add_last_read_write_edges(graph, variables):
   variable_writes = {}
   variable_reads = {}
   
-  # variables: {'var': [node1, node2]}
+  # variables: {'var': [node1, node2, ..]}
+  var_order = []
   for var in variables:
     for node in variables[var]:
+      var_order.append(node)
       if 'ast.Store' in node.get('label'):
         if var in variable_writes:
           variable_writes[var].append(node)
@@ -178,22 +179,21 @@ def add_last_read_write_edges(graph, variables):
           variable_reads[var] = [node]
 
   for var in variables:
-    for node in variables[var]:
-      if var in variable_writes:
-        for wvar in variable_writes[var]:
-          edge = Edge(node, wvar)
-          edge.set('label', 'LastWrite')
-          graph.add_edge(edge)
+    for i in range(len(variables[var])-1):
+      node1 = variables[var][i]
+      node2 = variables[var][i+1]
+      edge = Edge(node2, node1)
 
-  for var in variables:
-    for node in variables[var]:
       if var in variable_reads:
-        for rvar in variable_reads[var]:
-          edge = Edge(node, rvar)
+        if variables[var][i] in variable_reads[var]:
           edge.set('label', 'LastRead')
-          graph.add_edge(edge)
+      if var in variable_writes:
+        if variables[var][i] in variable_writes[var]:
+          edge.set('label', 'LastWrite')
 
-  return graph, variable_reads, variable_writes
+      graph.add_edge(edge)
+
+  return graph
 
 def get_variables(node, subtrees, graph):
   if node not in subtrees.keys():
@@ -312,8 +312,8 @@ def gen_graph_from_source(infile, aux_file):
   graph = add_next_token_edges(graph, subtrees)
   graph, variables = add_last_lexical_use_edges(graph)
   graph = add_returns_to_edges(graph, subtrees)
-  graph = add_computed_from_edges(graph, subtrees)
-  graph, var_reads, var_writes = add_last_read_write_edges(graph, variables)
+  graph = add_computed_from_edges(graph, subtrees, neighbors)
+  graph = add_last_read_write_edges(graph, variables)
   graph = add_guarded_edges(graph, subtrees, if_branches)
   # if the task is var misuse
   graph = add_varmisue_specials(graph, node_of_interest)
