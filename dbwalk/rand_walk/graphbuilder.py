@@ -101,6 +101,28 @@ class GraphBuilder:
                     database[table_name] = self.load_csv_table(fact_file)
         return database
 
+    def load_callgraph(self):
+        if self.language == 'python':
+            call_graph = []
+            if 'call_graph.csv.facts' in os.listdir(self.facts_dir):
+                callgraph_file = 'call_graph.csv.facts'
+            elif 'call_graph.csv' in os.listdir(self.facts_dir):
+                callgraph_file = 'call_graph.csv'
+            else:
+                raise FileNotFoundError('No call graph exists.')
+            with open(os.path.join(self.facts_dir, callgraph_file), 'r') as cf:
+                for line in cf.readlines():
+                    call_edge = line.split(',')
+                    call_graph.append(call_edge)
+            if callgraph_file.endswith('facts'):
+                return call_graph
+            else:
+                return call_graph [1:]
+        elif self.language == 'java':
+            raise NotImplementedError
+        else:
+            raise ValueError('Cannot load the call graph for langauge:', self.language)
+
     @staticmethod
     def build_value_to_tuple_map(db: Dict, keys: Dict) -> Dict[str, Set[Tuple[Tuple, str]]]:
         val_tuple_map = {}  # type: Dict[str, Set[Tuple[Tuple, str]]]
@@ -147,7 +169,7 @@ class GraphBuilder:
                 labels.append(GraphBuilder.edb_edge_label(l_rel, l_col, r_rel, r_col))
         return labels
 
-    def build_graph(self, db: Dict, joins: Dict, keys: Dict, columns: Dict) -> graphviz.Graph:
+    def build_graph(self, db: Dict, joins: Dict, keys: Dict, columns: Dict, call_graph: List) -> graphviz.Graph:
         val_tuple_map = self.build_value_to_tuple_map(db, keys)  # type: Dict[str, Set[Tuple[Tuple, str]]]
         tuple_index_map = {}  # type: Dict[str, Dict[Tuple, int]]
         index_rel_map = {}    # type: Dict[int, str]
@@ -180,13 +202,34 @@ class GraphBuilder:
                     edge_labels = self.labels_if_joinable(joins, columns, table_i, tuple_i, table_j, tuple_j)
                     for edge_label in edge_labels:
                         graph.edge(str(index_i), str(index_j), edge_label)
+
+        def search_py_exprs(expr_id):
+            indices = []
+            for i in index_rel_map:
+                if index_rel_map[i] == 'py_exprs':
+                    indices.append(i)
+            for i in indices:
+                if index_tuple_map[i][0] == expr_id:
+                    return i
+            return None
+
+        for call_edge in call_graph:
+            function1_expr_id = search_py_exprs(call_edge[0])
+            function2_expr_id = search_py_exprs(call_edge[1])
+            edge_label = 'callgraph.0,call_graph.1'
+            if function1_expr_id and function2_expr_id:
+                graph.edge(str(function1_expr_id), str(function2_expr_id), edge_label)
         return graph
 
-    def build(self) -> graphviz.Graph:
+    def build(self, include_callgraph=False) -> graphviz.Graph:
         columns = self.load_columns()
         db = self.load_db(columns)
+        if include_callgraph:
+            callgraph = self.load_callgraph()
+        else:
+            callgraph = []
         joins, keys = self.load_joins()
-        graph = self.build_graph(db, joins, keys, columns)
+        graph = self.build_graph(db, joins, keys, columns, callgraph)
         return graph
 
     @staticmethod
