@@ -24,8 +24,8 @@ from typing import Sequence
 from typing import Tuple
 from absl import logging
 
-from utils import cubert_tokenizer
-from utils import unified_tokenizer
+from dbwalk.tokenizer.utils import cubert_tokenizer
+from dbwalk.tokenizer.utils import unified_tokenizer
 
 
 class PythonTokenizer(cubert_tokenizer.CuBertTokenizer):

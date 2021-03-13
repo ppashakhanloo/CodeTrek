@@ -27,9 +27,9 @@ import dataclasses
 from javalang import tokenizer as javalang
 
 
-from utils import cubert_tokenizer
-from utils import extended_javalang_tokenizer
-from utils import unified_tokenizer
+from dbwalk.tokenizer.utils import cubert_tokenizer
+from dbwalk.tokenizer.utils import extended_javalang_tokenizer
+from dbwalk.tokenizer.utils import unified_tokenizer
 
 
 class JavaTokenizer(cubert_tokenizer.CuBertTokenizer):

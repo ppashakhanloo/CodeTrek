@@ -1,4 +1,5 @@
-from utils import tokenizer_registry
+from dbwalk.tokenizer.utils import tokenizer_registry
+
 
 def tokenize(string, language):
   if language == 'python':

@@ -16,8 +16,8 @@
 """A registry of all tokenizers based on CuBertTokenizer."""
 import enum
 
-from utils import java_tokenizer
-from utils import python_tokenizer
+from dbwalk.tokenizer.utils import java_tokenizer
+from dbwalk.tokenizer.utils import python_tokenizer
 
 
 @enum.unique

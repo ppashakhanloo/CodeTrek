@@ -27,7 +27,7 @@ from typing import Union
 
 import dataclasses
 
-from utils import unified_tokenizer
+from dbwalk.tokenizer.utils import unified_tokenizer
 
 # After all splitting, the longest a token is of the following length.
 MAX_OUTPUT_TOKEN_LENGTH = 15
