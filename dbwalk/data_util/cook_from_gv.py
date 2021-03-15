@@ -37,7 +37,8 @@ if __name__ == '__main__':
 
         chunk_idx = 0
         gh = GraphHolder()
-        for fname in tqdm(files):
+        pbar = tqdm(files)
+        for fname in pbar:
             graph = RandomWalker.load_graph_from_gv(os.path.join(folder, fname))
             sep = '-' if '-' in fname else '_'
             json_name = sep.join(fname.split(sep)[1:])
@@ -64,8 +65,10 @@ if __name__ == '__main__':
                 gh.dump(os.path.join(out_folder, 'chunk_%d' % chunk_idx))
                 chunk_idx += 1
                 gh = GraphHolder()
+            pbar.set_description('#n: %d, #e: %d, #v: %d' % (len(node_types), len(edge_types), max_num_vars))
         if len(gh):
             gh.dump(os.path.join(out_folder, 'chunk_%d' % chunk_idx))
+            
     print('# node types', len(node_types))
     print('# edge types', len(edge_types))
     print('max # vars per program', max_num_vars)
