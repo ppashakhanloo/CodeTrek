@@ -39,8 +39,9 @@ if __name__ == '__main__':
         gh = GraphHolder()
         for fname in tqdm(files):
             graph = RandomWalker.load_graph_from_gv(os.path.join(folder, fname))
-            json_name = '_'.join(fname.split('_')[1:])
-            json_name = 'walks_' + '.'.join(json_name.split('.')[:-1]) + '.json'
+            sep = '-' if '-' in fname else '_'
+            json_name = sep.join(fname.split(sep)[1:])
+            json_name = 'walks' + sep + '.'.join(json_name.split('.')[:-1]) + '.json'
             with open(os.path.join(folder, json_name), 'r') as f:
                 data = json.load(f)[0]
             gh.add_graph(graph, data)
@@ -48,11 +49,11 @@ if __name__ == '__main__':
             for node in graph.nodes(data=True):
                 node_label = node[1]['label']
                 node_name, values = parse_util.parse_node_label(node_label)
-                node_key = parse_util.gen_node_label(node_name, values)
-                if node_key.startswith('v_'):
-                    var_set.add(node_key)
+                node_type, node_value = parse_util.gen_node_type_value(node_name, values)
+                if node_type.startswith('v_'):
+                    var_set.add(node_type)
                 else:
-                    get_or_add(node_types, node_key)
+                    get_or_add(node_types, node_type)
 
             for e in graph.edges(data=True):
                 edge = e[2]['label']
