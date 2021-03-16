@@ -182,8 +182,6 @@ class WalkUtils:
             node_value = values[0]
         if rel_name == 'py_numbers':
             node_value = values[0]
-        if rel_name == 'py_strs':
-            node_value = values[0]
         if rel_name == 'variable':
             node_type = 'v_' + values[0]
             node_value = values[2]
