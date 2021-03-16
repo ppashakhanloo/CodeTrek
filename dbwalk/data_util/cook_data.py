@@ -55,9 +55,9 @@ def make_mat_from_raw(list_traj_dict, node_types, edge_types):
     max_len_edges = 0
     for traj in list_traj_dict:
         seq_nodes = []
-        max_len_nodes = max(max_len_nodes, len(traj['nodes']))
+        max_len_nodes = max(max_len_nodes, len(traj['node_types']))
         max_len_edges = max(max_len_edges, len(traj['edges']))
-        for node in traj['nodes']:
+        for node in traj['node_types']:
             if node.startswith('v_'):
                 v_idx = get_or_add(var_dict, node)
                 seq_nodes.append(get_or_unk(node_types, 'var_%d' % v_idx))
