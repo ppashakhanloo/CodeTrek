@@ -6,6 +6,7 @@ from dbwalk.common.configs import cmd_args
 from dbwalk.common.consts import TOK_PAD, var_idx2name, UNK
 
 from dbwalk.data_util.cook_data import get_or_add
+from dbwalk.tokenizer import tokenizer
 
 
 if __name__ == '__main__':
@@ -25,7 +26,7 @@ if __name__ == '__main__':
                 continue
             with open(os.path.join(folder, fname), 'r') as f:
                 d = json.load(f)
-            for k, v in d['ContextGraph']['NodeLabels'].items():
+            for k, v in d['ContextGraph']['NodeTypes'].items():
                 get_or_add(node_types, v)
             for edge_type in d['ContextGraph']['Edges']:
                 get_or_add(edge_types, edge_type)

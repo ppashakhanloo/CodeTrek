@@ -24,6 +24,7 @@ class GraphHolder(object):
         self.list_labels = []
         self.list_source = []
         self.list_node_labels = []
+        self.list_node_tokens = []
         self.edge_dict = {}
         self.inv_edge_dict = {}
 
@@ -35,22 +36,25 @@ class GraphHolder(object):
         self.inv_edge_dict[val] = e_type
         return val
 
-    def add_graph(self, g, meta_info):
+    def add_graph(self, g, meta_info, node_index_base=1):
         self.num_graphs += 1
 
         self.list_node_offset.append(self.tot_num_nodes)
         self.list_edge_offset.append(self.tot_num_edges)        
 
         anchor_idx = None
-        anchor_str = meta_info['anchor']
+        anchor_str = meta_info['anchor'] if 'anchor' in meta_info else None
         for idx, node in enumerate(g.nodes(data=True)):
             node_label = node[1]['label']
-            node_idx = int(node[0]) - 1
+            node_idx = int(node[0]) - node_index_base
             assert idx == node_idx  # assume ordered
             self.list_node_labels.append(node_label)
+            self.list_node_tokens.append(' '.join([str(x) for x in node[1]['val_idx']]))
             if node_label == anchor_str:
                 anchor_idx = node_idx
-        assert anchor_idx is not None
+        if anchor_idx is None:
+            anchor_idx = meta_info['anchor_index']
+            anchor_str = str(anchor_idx)
         self.list_anchors.append(anchor_str)
         self.list_labels.append(meta_info['label'])
         self.list_source.append(meta_info['source'])
@@ -58,8 +62,8 @@ class GraphHolder(object):
         for e in g.edges(data=True):
             edge = e[2]['label']
             e_type = self._get_or_add_etype(edge)
-            x = int(e[0]) - 1
-            y = int(e[1]) - 1
+            x = int(e[0]) - node_index_base
+            y = int(e[1]) - node_index_base
             self.edge_list.append((x, y, e_type))
             num_edges += 1
 
@@ -77,7 +81,7 @@ class GraphHolder(object):
             os.makedirs(out_folder)
         for key in ['list_node_offset', 'list_edge_offset', 'list_num_nodes', 'list_num_edges', 'edge_list']:
             self._dump_int_arr(os.path.join(out_folder, key + '.npy'), getattr(self, key))
-        for key in ['list_anchors', 'list_node_labels', 'list_labels', 'list_source']:
+        for key in ['list_anchors', 'list_node_labels', 'list_node_tokens', 'list_labels', 'list_source']:
             with open(os.path.join(out_folder, key + '.txt'), 'w') as f:
                 str_list = getattr(self, key)
                 for row in str_list:
@@ -94,7 +98,7 @@ class GraphHolder(object):
         for key in ['list_node_offset', 'list_edge_offset', 'list_num_nodes', 'list_num_edges', 'edge_list']:
             self._load_int_arr(os.path.join(out_folder, key + '.npy'), key)
 
-        for key in ['list_anchors', 'list_node_labels', 'list_labels', 'list_source']:
+        for key in ['list_anchors', 'list_node_labels', 'list_node_tokens', 'list_labels', 'list_source']:
             str_list = []
             with open(os.path.join(out_folder, key + '.txt'), 'r') as f:
                 for row in f:
@@ -108,7 +112,7 @@ class GraphHolder(object):
         self.num_graphs = len(self.list_num_nodes)
         self.tot_num_nodes = sum(self.list_num_nodes)
         self.tot_num_edges = sum(self.list_num_edges)
-        assert self.tot_num_nodes == len(self.list_node_labels)
+        assert self.tot_num_nodes == len(self.list_node_labels) == len(self.list_node_tokens)
         assert self.tot_num_edges == len(self.edge_list)
         assert self.num_graphs == len(self.list_node_offset) == len(self.list_edge_offset) == len(self.list_labels) 
         assert self.num_graphs == len(self.list_num_edges) == len(self.list_anchors) == len(self.list_source)
@@ -122,7 +126,9 @@ class GraphHolder(object):
         edge_offset = self.list_edge_offset[g_idx]
 
         for node_idx in range(self.list_num_nodes[g_idx]):
-            g.add_node(node_idx, label=self.list_node_labels[node_offset + node_idx])
+            g.add_node(node_idx, 
+                       label=self.list_node_labels[node_offset + node_idx],
+                       val_idx=[int(x) for x in self.list_node_tokens[node_offset + node_idx].split()])
 
         for e_idx in range(edge_offset, edge_offset + self.list_num_edges[g_idx]):
             u, v, etype_idx = self.edge_list[e_idx]

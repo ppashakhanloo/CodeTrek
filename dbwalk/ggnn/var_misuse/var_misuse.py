@@ -23,7 +23,7 @@ class GnnBinary(nn.Module):
     def __init__(self, args, prog_dict):
         super(GnnBinary, self).__init__()
         self.gnn = get_gnn(args, len(prog_dict.node_types), len(prog_dict.edge_types))
-        self.out_classifier = nn.Linear(args.latent_dim, 1)
+        self.out_classifier = nn.Linear(args.latent_dim * 2, 1)
 
     def forward(self, graph_list, label=None):
         node_sel = []
@@ -31,9 +31,9 @@ class GnnBinary(nn.Module):
         for g in graph_list:
             node_sel.append(g.target_idx)
             offset += g.num_nodes
-        _, (_, node_embed) = self.gnn(graph_list)
+        graph_embed, (_, node_embed) = self.gnn(graph_list)
         target_embed = node_embed[node_sel]
-        logits = self.out_classifier(target_embed)
+        logits = self.out_classifier(torch.cat([graph_embed, target_embed], dim=1))
         prob = torch.sigmoid(logits)
         if label is not None:
             label = label.to(prob).view(prob.shape)

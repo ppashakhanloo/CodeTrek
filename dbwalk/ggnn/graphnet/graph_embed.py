@@ -131,11 +131,6 @@ class S2VMulti(GraphNN):
         self.conv_l2 = [nn.Linear(latent_dim, latent_dim) for _ in range(self.max_lv)]
         self.conv_l2 = nn.ModuleList(self.conv_l2)
 
-        msg_bn = [nn.BatchNorm1d(latent_dim) for _ in range(self.max_lv + 1)]
-        hidden_bn = [nn.BatchNorm1d(latent_dim) for _ in range(self.max_lv)]
-        self.msg_bn = nn.ModuleList(msg_bn)
-        self.hidden_bn = nn.ModuleList(hidden_bn)
-
     def _forward(self, input_node_linear, graph_list):
         device = self.device
         list_edge_idx = []
@@ -145,7 +140,6 @@ class S2VMulti(GraphNN):
 
         input_message = input_node_linear
         input_potential = self.act_func(input_message)
-        input_potential = self.msg_bn[0](input_potential)
 
         cur_message_layer = input_potential
         all_embeds = [cur_message_layer]
@@ -160,11 +154,8 @@ class S2VMulti(GraphNN):
                 msg_list.append(t)
             msg = self.act_func( torch.cat(msg_list, dim=1) )
             merged_hidden = self.merge_param_list[lv](msg)
-            merged_hidden = self.hidden_bn[lv](merged_hidden)
-
             residual_out = self.conv_l2[lv](merged_hidden) + cur_message_layer
             cur_message_layer = self.act_func(residual_out)
-            cur_message_layer = self.msg_bn[lv + 1](cur_message_layer)
             all_embeds.append(cur_message_layer)
         return self.readout_net(all_embeds, g_idx, len(graph_list))
 

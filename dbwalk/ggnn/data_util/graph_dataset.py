@@ -12,33 +12,34 @@ from dbwalk.common.consts import TOK_PAD, UNK
 
 from dbwalk.data_util.dataset import ProgDict
 from dbwalk.ggnn.graphnet.s2v_lib import get_gnn_graph
+from dbwalk.data_util.graph_holder import MergedGraphHolders
+
 
 class ProgGraph(object):
-    def __init__(self, d, prog_dict):
-        graph = d['ContextGraph']
-        node_labels = graph['NodeLabels']
+    def __init__(self, sample, prog_dict):
+        graph = sample.gv_file
 
-        self.label = prog_dict.label_map[d['label']]
-        self.target_idx = d['SlottedNodeIdx'] - 1
+        self.label = prog_dict.label_map[sample.label]
+        self.target_idx = int(sample.anchor)
         self.num_node_feats = len(prog_dict.node_types)
-        self.num_nodes = len(node_labels)
+        self.num_nodes = len(graph)
         self.typed_edge_list = [[] for _ in range(len(prog_dict.edge_types))]
         self.edge_list = []
 
-        edge_dict = graph['Edges']
-        for e_type in edge_dict:
+        for e in graph.edges(data=True):
+            e_type = e[2]['label']
             fwd_idx = prog_dict.edge_types[e_type]
-            backwd_idx = prog_dict.edge_types['inv-' + e_type]
-            for x, y in edge_dict[e_type]:
-                x = x - 1
-                y = y - 1
-                self.typed_edge_list[fwd_idx].append((x, y))
-                self.typed_edge_list[backwd_idx].append((y, x))
+            backwd_idx = prog_dict.edge_types['inv-' + e_type]            
+            x = int(e[0])
+            y = int(e[1])
             self.edge_list.append((x, y, fwd_idx))
-            self.edge_list.append((y, x, fwd_idx))
+            self.edge_list.append((y, x, backwd_idx))
+            self.typed_edge_list[fwd_idx].append((x, y))
+            self.typed_edge_list[backwd_idx].append((y, x))
         self.node_list = [None] * self.num_nodes
-        for node_idx in node_labels:
-            self.node_list[int(node_idx) - 1] = prog_dict.node_types[node_labels[node_idx]]
+
+        for idx, node in enumerate(graph.nodes(data=True)):
+            self.node_list[idx] = prog_dict.node_types[node[1]['label']]
 
 
 def collate_graph_data(list_samples):
@@ -57,6 +58,11 @@ class AstGraphDataset(Dataset):
         self.sample_prob = sample_prob
         self.gnn_type = args.gnn_type
 
+        chunks = os.listdir(os.path.join(data_dir, 'cooked_' + phase))
+        chunks = sorted(chunks)
+        chunks = [os.path.join(data_dir, 'cooked_' + phase, x) for x in chunks]
+        self.merged_gh = MergedGraphHolders(chunks)
+
         json_files = os.listdir(os.path.join(data_dir, phase))
         json_files = [x for x in json_files if x.endswith('.json')]
         random.shuffle(json_files)
@@ -73,22 +79,15 @@ class AstGraphDataset(Dataset):
         return len(self.list_samples)
 
     def __getitem__(self, idx):
-        if self.sample_prob is None:
-            sample_dict = self.list_samples[idx]
-        else:
-            assert self.phase == 'train'
-            sample_cls = np.argmax(np.random.multinomial(1, self.sample_prob))
-            samples = self.labeled_samples[sample_cls]
-            idx = np.random.randint(len(samples))
-            sample_dict = samples[idx]
-        pg = ProgGraph(sample_dict, self.prog_dict)
+        raw_sample = self.merged_gh[idx]
+        pg = ProgGraph(raw_sample, self.prog_dict)
         return get_gnn_graph(pg, self.gnn_type)
 
     def get_train_loader(self, cmd_args):
         loader = DataLoader(self,
                             batch_size=cmd_args.batch_size,
-                            shuffle=True,
-                            drop_last=True,
+                            shuffle=False,
+                            drop_last=False,
                             collate_fn=collate_graph_data,
                             num_workers=cmd_args.num_proc)
         return loader
@@ -108,5 +107,6 @@ if __name__ == '__main__':
     set_device(cmd_args.gpu)
     prog_dict = ProgDict(cmd_args.data_dir)
     db = AstGraphDataset(cmd_args, prog_dict, cmd_args.data_dir, 'train')
-
-    
+    g = db[0]
+    print(g.num_nodes)
+    print(g.num_edges)
