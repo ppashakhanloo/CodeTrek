@@ -41,9 +41,10 @@ if __name__ == '__main__':
                          'source': d['filename'],
                          'label': d['label']}
             node_vals = d['ContextGraph']['NodeValues']
+            node_toks = d['ContextGraph']['NodeTokens']
             for i, v in enumerate(d['ContextGraph']['NodeTypes']):
                 get_or_add(node_types, v)
-                tok = [] if len(node_vals[i]) == 0 else tokenizer.tokenize(node_vals[i], cmd_args.language)
+                tok = [] if len(node_vals[i]) == 0 else node_toks[i]
                 val_idx = [get_or_add(token_vocab, key) for key in tok]
                 g.add_node(i, label=v, val_idx=val_idx)
             for edge_type in d['ContextGraph']['Edges']:
