@@ -216,7 +216,7 @@ class GraphBuilder:
         for call_edge in call_graph:
             function1_expr_id = search_py_exprs(call_edge[0])
             function2_expr_id = search_py_exprs(call_edge[1])
-            edge_label = 'callgraph.0,call_graph.1'
+            edge_label = '(callgraph.0,call_graph.1)'
             if function1_expr_id and function2_expr_id:
                 graph.edge(str(function1_expr_id), str(function2_expr_id), edge_label)
         return graph
