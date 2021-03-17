@@ -295,7 +295,8 @@ value_indicators = [
 ]
 
 value_exclusions = [
-  'ast.arguments'
+  'ast.arguments',
+  'ast.Str'
 ]
 
 def has_value(label):
