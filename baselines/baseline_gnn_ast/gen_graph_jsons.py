@@ -11,7 +11,10 @@ def init(graph):
   for node in graph.get_nodes():
     node_to_num[node.get_name()] = num
     num += 1
-  return graph, node_to_num, node_to_num[graph.get_node('SlotNode')[0].get_name()]
+  slot_node_index = None
+  if graph.get_node('SlotNode'):
+      slot_node_index = node_to_num[graph.get_node('SlotNode')[0].get_name()]
+  return graph, node_to_num, slot_node_index
 
 def get_each_edge_category(graph, node_to_num, cat_names):
   edges = {}
@@ -29,7 +32,7 @@ def get_each_edge_category(graph, node_to_num, cat_names):
 def main(args):
   if len(args) != 6:
     print('Usage: python3 gen_graph_jsons.py <file1.py> <file2.py> <label> <output.json> <task_name>')
-    print('Possible task_names: varmisuse, vardef, exception.')
+    print('Possible task_names: varmisuse, defuse, exception.')
     exit(1)
   graph, node_to_num, slot_node_idx = init(create_ast.gen_graph_from_source(args[1], args[2], args[5]))
   # prepare edges
@@ -72,12 +75,19 @@ def main(args):
   )
 
   # create data point
-  point = datapoint.DataPoint(
-    filename=args[1],
-    slot_node_idx=slot_node_idx,
-    context_graph=context_graph,
-    label=args[3]
-  )
+  if slot_node_idx:
+    point = datapoint.VarmisuseDataPoint(
+      filename=args[1],
+      slot_node_idx=slot_node_idx,
+      context_graph=context_graph,
+      label=args[3]
+    )
+  else:
+    point = datapoint.DataPoint(
+      filename=args[1],
+      context_graph=context_graph,
+      label=args[3]
+    )
   
   with open(args[4], 'w', 1000*(2**20)) as outfile:
     json.dump(point.to_dict(), outfile)

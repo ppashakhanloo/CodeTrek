@@ -1,6 +1,10 @@
 
-## Re-implementation of ICLR18 (https://arxiv.org/abs/1711.00740)
-
+## Test the datapoint
 ``
-python3 gen_graph_jsons.py correct.py incorrect.py correct
+python3 datapoint_test.py 
+``
+
+## Test the graph generator
+``
+./run_test.sh
 ``
