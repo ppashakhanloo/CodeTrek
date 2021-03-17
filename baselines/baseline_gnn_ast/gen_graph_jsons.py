@@ -27,7 +27,11 @@ def get_each_edge_category(graph, node_to_num, cat_names):
   return edges
 
 def main(args):
-  graph, node_to_num, slot_node_idx = init(create_ast.gen_graph_from_source(args[1], args[2]))
+  if len(args) != 6:
+    print('Usage: python3 gen_graph_jsons.py <file1.py> <file2.py> <label> <output.json> <task_name>')
+    print('Possible task_names: varmisuse, vardef, exception.')
+    exit(1)
+  graph, node_to_num, slot_node_idx = init(create_ast.gen_graph_from_source(args[1], args[2], args[5]))
   # prepare edges
   cat_names = ['Child', 'NextToken', 'LastLexicalUse', 'ComputedFrom',
                'LastRead', 'LastWrite', 'ReturnsTo', 'GuardedBy', 'GuardedByNegation']

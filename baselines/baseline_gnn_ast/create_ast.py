@@ -27,35 +27,47 @@ def get_graph(contents):
   graph.set_type('digraph')
   return graph
 
-def build_child_edges(correct_file, incorrect_file):
-  _, tok1, row1_s, col1_s, _, _, _, tok2, row2_s, col2_s, _, _ = get_diff(correct_file, incorrect_file)
+def build_child_edges(main_file, aux_file, task_name):
+  node_of_interest = None
+  neighbors = {} # node -> neighbors
+  subtrees = {} # node -> subtree nodes
+  if_branches = {}
 
-  with open(correct_file, 'r', 100*(2**20)) as infile:
-    lines = infile.readlines()
-    different_line = lines[row1_s-1]
-    new_line = different_line[:col1_s-1] + different_line[col1_s-1:].replace(tok1, CURR_STR, 1)
-    lines[row1_s-1] = new_line
-    contents = "".join(lines)
-    graph = get_graph(contents)
+  with open(main_file, 'r', 100*(2**20)) as infile:
+    if task_name == 'varmisuse':
+      _, tok1, row1_s, col1_s, _, _, _, tok2, row2_s, col2_s, _, _ = get_diff(main_file, aux_file)
+      lines = infile.readlines()
+      different_line = lines[row1_s-1]
+      new_line = different_line[:col1_s-1] + different_line[col1_s-1:].replace(tok1, CURR_STR, 1)
+      lines[row1_s-1] = new_line
+      contents = "".join(lines)
+      graph = get_graph(contents)
 
-    index = 0
-    nodes = graph.get_nodes()
-    for i in range(len(nodes)):
-      if CURR_STR in nodes[i].get('label'):
-        index = i
-        break
+      index = 0
+      nodes = graph.get_nodes()
+      for i in range(len(nodes)):
+        if CURR_STR in nodes[i].get('label'):
+          index = i
+          break
 
-    # update the content and the graph
-    contents = contents.replace(CURR_STR, tok1, 1)
-    graph = get_graph(contents)
-    nodes = graph.get_nodes()
+      # update the content and the graph
+      contents = contents.replace(CURR_STR, tok1, 1)
+      graph = get_graph(contents)
+      nodes = graph.get_nodes()
 
-    try:
-      node_of_interest = nodes[index]
-    except:
-      node_of_interest = nodes[len(nodes)-index]
+      try:
+        node_of_interest = nodes[index]
+      except:
+        node_of_interest = nodes[len(nodes)-index]
+    #### END OF VARMISUSE TASK ####
+    elif task_name == 'defuse':
+      graph = get_graph(infile.read())
+    elif task_name == 'exception':
+      graph = get_graph(infile.read())
+    else:
+      raise ValueError(task_name, ': is not a valid task name.')
 
-    neighbors = {} # node -> neighbors
+    # compute the neighbors of each node
     edges = graph.get_edges()
     for edge in edges:
       src = edge.get_source()
@@ -65,29 +77,28 @@ def build_child_edges(correct_file, incorrect_file):
       else:
         neighbors[src].append(dst)
 
+    # compute the flat subtree for each node
     neighbor_keys = neighbors.keys()
-
-    subtrees = {} # node -> subtree nodes
     for node in neighbor_keys:
       res = []
       get_subtree(node, res, neighbors)
       subtrees[node] = res
 
-    # get if-then-else before renaming the edges
-    if_branches = {}
-    for node in neighbor_keys:
-      if graph.get_node(node)[0].get('label').startswith(IF_IND) or graph.get_node(node)[0].get('label').startswith(IF_IND_):
-        condition = ""
-        then_branch = []
-        else_branch = []
-        for neighbor in neighbors[node]:
-          if graph.get_edge(node, neighbor)[0].get('label').startswith('test'):
-            condition = neighbor
-          elif graph.get_edge(node, neighbor)[0].get('label').startswith('body'):
-            then_branch.append(neighbor)
-          elif graph.get_edge(node, neighbor)[0].get('label').startswith('orelse'):
-            else_branch.append(neighbor)
-        if_branches[node] = (condition, then_branch, else_branch)
+      # compute if-then-else information before renaming the edges
+      for node in neighbor_keys:
+        if graph.get_node(node)[0].get('label').startswith(IF_IND) or \
+           graph.get_node(node)[0].get('label').startswith(IF_IND_):
+          condition = ""
+          then_branch = []
+          else_branch = []
+          for neighbor in neighbors[node]:
+            if graph.get_edge(node, neighbor)[0].get('label').startswith('test'):
+              condition = neighbor
+            elif graph.get_edge(node, neighbor)[0].get('label').startswith('body'):
+              then_branch.append(neighbor)
+            elif graph.get_edge(node, neighbor)[0].get('label').startswith('orelse'):
+              else_branch.append(neighbor)
+          if_branches[node] = (condition, then_branch, else_branch)
 
     for edge in edges:
       edge.set('label', 'Child')
@@ -346,16 +357,22 @@ def fix_node_labels(graph):
 
   return graph
 
-def gen_graph_from_source(infile, aux_file):
-  graph, neighbors, subtrees, node_of_interest, if_branches = build_child_edges(infile, aux_file)
+def gen_graph_from_source(infile, aux_file, task_name):
+  graph, neighbors, subtrees, node_of_interest, if_branches = build_child_edges(infile, aux_file, task_name)
   graph = add_next_token_edges(graph, subtrees)
   graph, variables = add_last_lexical_use_edges(graph)
   graph = add_returns_to_edges(graph, subtrees)
   graph = add_computed_from_edges(graph, subtrees, neighbors)
   graph = add_last_read_write_edges(graph, variables)
   graph = add_guarded_edges(graph, subtrees, if_branches)
-  # if the task is var misuse
-  graph = add_varmisue_specials(graph, node_of_interest)
+  if task_name == 'varmisuse':
+    graph = add_varmisue_specials(graph, node_of_interest)
+  elif task_name == 'defuse':
+    pass
+  elif task_name == 'exception':
+      pass
+  else:
+    raise ValueError(task_name, ': not a valid task name.')
   # finally, fix all the labels
   graph = fix_node_labels(graph)
 
