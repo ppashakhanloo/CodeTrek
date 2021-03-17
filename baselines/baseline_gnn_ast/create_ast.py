@@ -178,19 +178,36 @@ def add_last_read_write_edges(graph, variables):
         else:
           variable_reads[var] = [node]
 
-  for var in variables:
-    for i in range(len(variables[var])-1):
-      node1 = variables[var][i]
-      node2 = variables[var][i+1]
-      edge = Edge(node2, node1)
+  def get_last_read(var_node, var, i_in_var_order):
+    list_prefix = var_order[:i_in_var_order]
+    for n in reversed(list_prefix):
+      v = n.get('label').split("'")[1]
+      if v == var:
+        if n in variable_reads[var]:
+          return n
+    return None
 
-      if var in variable_reads:
-        if variables[var][i] in variable_reads[var]:
-          edge.set('label', 'LastRead')
-      if var in variable_writes:
-        if variables[var][i] in variable_writes[var]:
-          edge.set('label', 'LastWrite')
+  def get_last_write(var_node, var, i_in_var_order):
+    list_prefix = var_order[:i_in_var_order]
+    for n in reversed(list_prefix):
+      v = n.get('label').split("'")[1]
+      if v == var:
+        if n in variable_writes[var]:
+          return n
+    return None
 
+  for i in range(1, len(var_order)):
+    v = var_order[i].get('label').split("'")[1]
+    node_r = get_last_read(var_order[i], v, i)
+    node_w = get_last_write(var_order[i], v, i)
+
+    if node_r:
+      edge = Edge(var_order[i], node_r)
+      edge.set('label', 'LastRead')
+      graph.add_edge(edge)
+    if node_w:
+      edge = Edge(var_order[i], node_w)
+      edge.set('label', 'LastWrite')
       graph.add_edge(edge)
 
   return graph
