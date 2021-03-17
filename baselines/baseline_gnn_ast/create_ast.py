@@ -18,6 +18,15 @@ RET_IND_ = '<_ast.Return '
 ASSIGN_IND = '<ast.Assign '
 ASSIGN_IND_ = '<_ast.Assign '
 
+def get_graph(contents):
+  node = ast.parse(contents)
+  node = transformers.ParentChildNodeTransformer().visit(node)
+  visitor = visitors.GraphNodeVisitor()
+  visitor.visit(node)
+  graph = visitor.graph
+  graph.set_type('digraph')
+  return graph
+
 def build_child_edges(correct_file, incorrect_file):
   _, tok1, row1_s, col1_s, _, _, _, tok2, row2_s, col2_s, _, _ = get_diff(correct_file, incorrect_file)
 
@@ -26,14 +35,21 @@ def build_child_edges(correct_file, incorrect_file):
     different_line = lines[row1_s-1]
     new_line = different_line[:col1_s-1] + different_line[col1_s-1:].replace(tok1, CURR_STR, 1)
     lines[row1_s-1] = new_line
-    
     contents = "".join(lines)
-    node = ast.parse(contents)
-    node = transformers.ParentChildNodeTransformer().visit(node)
-    visitor = visitors.GraphNodeVisitor()
-    visitor.visit(node)
-    graph = visitor.graph
-    graph.set_type('digraph')
+    graph = get_graph(contents)
+
+    index = 0
+    for i in range(len(graph.get_nodes())):
+      if CURR_STR in graph.get_nodes()[i].get('label'):
+        index = i
+        break
+    
+    # update the content and the graph
+    new_line = different_line[:col1_s-1] + different_line[col1_s-1:].replace(CURR_STR, tok1, 1)
+    lines[row1_s-1] = new_line
+    contents = "".join(lines)
+    graph = get_graph(contents)
+    node_of_interest = graph.get_nodes()[index]
 
     neighbors = {} # node -> neighbors
     for edge in graph.get_edges():
@@ -68,14 +84,6 @@ def build_child_edges(correct_file, incorrect_file):
     for edge in graph.get_edges():
       edge.set('label', 'Child')
 
-    # find curr and replace with its variable name
-    node_of_interest = ""
-    for node in graph.get_nodes():
-      if CURR_STR in node.get('label'):
-        node.set('label', node.get('label').replace(CURR_STR, tok1))
-        node_of_interest = node
-        break
-    
     return graph, neighbors, subtrees, node_of_interest, if_branches
 
 def add_next_token_edges(graph, subtrees):
@@ -259,7 +267,9 @@ def add_varmisue_specials(graph, node_of_interest):
   slot_node = Node(name='SlotNode')
   slot_node.set('label', 'SlotNode')
   graph.add_node(slot_node)
-  graph.add_edge(Edge(slot_node, node_of_interest))
+  edge = Edge(slot_node, node_of_interest)
+  edge.set('label', 'Child')
+  graph.add_edge(edge)
 
   return graph
     
