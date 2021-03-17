@@ -39,37 +39,43 @@ def build_child_edges(correct_file, incorrect_file):
     graph = get_graph(contents)
 
     index = 0
-    for i in range(len(graph.get_nodes())):
-      if CURR_STR in graph.get_nodes()[i].get('label'):
+    nodes = graph.get_nodes()
+    for i in range(len(nodes)):
+      if CURR_STR in nodes[i].get('label'):
         index = i
         break
-    
+
     # update the content and the graph
     contents = contents.replace(CURR_STR, tok1, 1)
     graph = get_graph(contents)
+    nodes = graph.get_nodes()
 
     try:
-      node_of_interest = graph.get_nodes()[index]
+      node_of_interest = nodes[index]
     except:
-      node_of_interest = graph.get_nodes()[len(graph.get_nodes())-index]
+      node_of_interest = nodes[len(nodes)-index]
 
     neighbors = {} # node -> neighbors
-    for edge in graph.get_edges():
+    edges = graph.get_edges()
+    for edge in edges:
       src = edge.get_source()
       dst = edge.get_destination()
       if src not in neighbors.keys():
         neighbors[src] = [dst]
       else:
         neighbors[src].append(dst)
+
+    neighbor_keys = neighbors.keys()
+
     subtrees = {} # node -> subtree nodes
-    for node in neighbors.keys():
+    for node in neighbor_keys:
       res = []
       get_subtree(node, res, neighbors)
       subtrees[node] = res
 
     # get if-then-else before renaming the edges
     if_branches = {}
-    for node in neighbors.keys():
+    for node in neighbor_keys:
       if graph.get_node(node)[0].get('label').startswith(IF_IND) or graph.get_node(node)[0].get('label').startswith(IF_IND_):
         condition = ""
         then_branch = []
@@ -83,7 +89,7 @@ def build_child_edges(correct_file, incorrect_file):
             else_branch.append(neighbor)
         if_branches[node] = (condition, then_branch, else_branch)
 
-    for edge in graph.get_edges():
+    for edge in edges:
       edge.set('label', 'Child')
 
     return graph, neighbors, subtrees, node_of_interest, if_branches
@@ -91,7 +97,8 @@ def build_child_edges(correct_file, incorrect_file):
 def add_next_token_edges(graph, subtrees):
   token_nodes = []
   # get leaf nodes
-  for node in graph.get_nodes():
+  nodes = graph.get_nodes()
+  for node in nodes:
     if node not in subtrees:
       token_nodes.append(node)
   # add token edges
@@ -111,7 +118,8 @@ def is_variable_node(node):
 
 def add_last_lexical_use_edges(graph):
   nodes_to_vars = {}
-  for node in graph.get_nodes():
+  nodes = graph.get_nodes()
+  for node in nodes:
     if is_variable_node(node):
       variable = node.obj_dict['attributes']['label'].split("'")[1]
       nodes_to_vars[node] = variable
@@ -316,7 +324,8 @@ def get_value(label, ind):
   return label[loc + offset:label.find('\'', loc + offset)]
 
 def fix_node_labels(graph):
-  for node in graph.get_nodes():
+  nodes = graph.get_nodes()
+  for node in nodes:
     full_label = node.get('label')
     ind = has_value(full_label)
     if ind:
@@ -349,4 +358,5 @@ def gen_graph_from_source(infile, aux_file):
   graph = add_varmisue_specials(graph, node_of_interest)
   # finally, fix all the labels
   graph = fix_node_labels(graph)
+
   return graph

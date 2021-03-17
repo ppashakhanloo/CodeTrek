@@ -17,7 +17,8 @@ def get_each_edge_category(graph, node_to_num, cat_names):
   edges = {}
   for cat in cat_names:
     edges[cat] = []
-  for edge in graph.get_edges():
+  graph_edges = graph.get_edges()
+  for edge in graph_edges:
     if edge.get('label') in cat_names:
       n1 = node_to_num[edge.get_source()]
       n2 = node_to_num[edge.get_destination()]
