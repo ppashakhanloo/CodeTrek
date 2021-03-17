@@ -45,11 +45,13 @@ def build_child_edges(correct_file, incorrect_file):
         break
     
     # update the content and the graph
-    new_line = different_line[:col1_s-1] + different_line[col1_s-1:].replace(CURR_STR, tok1, 1)
-    lines[row1_s-1] = new_line
-    contents = "".join(lines)
+    contents = contents.replace(CURR_STR, tok1, 1)
     graph = get_graph(contents)
-    node_of_interest = graph.get_nodes()[index]
+
+    try:
+      node_of_interest = graph.get_nodes()[index]
+    except:
+      node_of_interest = graph.get_nodes()[len(graph.get_nodes())-index]
 
     neighbors = {} # node -> neighbors
     for edge in graph.get_edges():
@@ -191,7 +193,7 @@ def add_last_read_write_edges(graph, variables):
     for n in reversed(list_prefix):
       v = n.get('label').split("'")[1]
       if v == var:
-        if n in variable_reads[var]:
+        if var in variable_reads.keys() and n in variable_reads[var]:
           return n
     return None
 
@@ -200,7 +202,7 @@ def add_last_read_write_edges(graph, variables):
     for n in reversed(list_prefix):
       v = n.get('label').split("'")[1]
       if v == var:
-        if n in variable_writes[var]:
+        if var in variable_writes.keys() and n in variable_writes[var]:
           return n
     return None
 
