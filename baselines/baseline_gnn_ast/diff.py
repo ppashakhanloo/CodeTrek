@@ -30,9 +30,8 @@ def get_diff(file1, file2):
     
       line1 = re.split(',|\.|=|\(|\)|\[|\]| +|:|-|\+|\*|\\|/|<|>|!=|\{|\}', file1_lines[row].strip())
       line2 = re.split(',|\.|=|\(|\)|\[|\]| +|:|-|\+|\*|\\|/|<|>|!=|\{|\}', file2_lines[row].strip())
-      # print(line1, line2)
+
       for index in range(len(line1)):
-        # print(line1[index] , line2[index])
         if line1[index] != line2[index]:
           # taking a different approach since splitting causes a ton of headaches
           num_tok_comm = 0
