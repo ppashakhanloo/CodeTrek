@@ -71,32 +71,15 @@ class ContextGraph:
 
 class DataPoint:
   filename = ""
+  slot_node_idx = ""
   context_graph = []
   label = ""
 
-  def __init__(self, filename, context_graph, label):
+  def __init__(self, filename, slot_node_idx,  context_graph, label):
     self.filename = filename
+    self.slot_node_idx = slot_node_idx
     self.context_graph = context_graph
     self.label = label
-
-  def to_dict(self):
-    return {
-      'filename': self.filename,
-      'ContextGraph': self.context_graph.to_dict(),
-      'label': self.label
-    }
-  
-  def dump_json(self, filepath: str):
-    with open(filepath, 'w') as outfile:
-      json.dump(self.to_dict(), outfile)
-
-
-class VarmisuseDataPoint(DataPoint):
-  slot_node_idx = ""
-  
-  def __init__(self, filename, slot_node_idx, context_graph, label):
-    super().__init__(filename, context_graph, label)
-    self.slot_node_idx = slot_node_idx
 
   def to_dict(self):
     return {
@@ -105,4 +88,8 @@ class VarmisuseDataPoint(DataPoint):
       'ContextGraph': self.context_graph.to_dict(),
       'label': self.label
     }
+  
+  def dump_json(self, filepath: str):
+    with open(filepath, 'w') as outfile:
+      json.dump(self.to_dict(), outfile)
 

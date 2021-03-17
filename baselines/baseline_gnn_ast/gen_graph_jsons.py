@@ -75,19 +75,12 @@ def main(args):
   )
 
   # create data point
-  if slot_node_idx:
-    point = datapoint.VarmisuseDataPoint(
-      filename=args[1],
-      slot_node_idx=slot_node_idx,
-      context_graph=context_graph,
-      label=args[3]
-    )
-  else:
-    point = datapoint.DataPoint(
-      filename=args[1],
-      context_graph=context_graph,
-      label=args[3]
-    )
+  point = datapoint.DataPoint(
+    filename=args[1],
+    slot_node_idx=slot_node_idx,
+    context_graph=context_graph,
+    label=args[3]
+  )
   
   with open(args[4], 'w', 1000*(2**20)) as outfile:
     json.dump(point.to_dict(), outfile)

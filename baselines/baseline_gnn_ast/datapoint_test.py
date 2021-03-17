@@ -1,5 +1,5 @@
 import json
-from datapoint import DataPoint, VarmisuseDataPoint, ContextGraph, Edges, GraphEdge
+from datapoint import DataPoint, ContextGraph, Edges, GraphEdge
 
 def main():
   e1 = GraphEdge(0, 1)
@@ -48,23 +48,13 @@ def main():
 
   label = 'correct'
 
-  point_varmisuse = VarmisuseDataPoint(
+  point = DataPoint(
     filename="test/dir/path",
     slot_node_idx="0",
     context_graph=context_graph,
     label=label
   )
-  print('## VAR MISUSE OBJECT ##')
-  print(json.dumps(point_varmisuse.to_dict()))
-
-  point_exception = DataPoint(
-    filename="test/dir/path",
-    context_graph=context_graph,
-    label=label
-  )
-  print('## DATAPOINT OBJECT ##')
-  print(json.dumps(point_exception.to_dict()))
-  
+  print(json.dumps(point.to_dict()))
 
 if __name__ == '__main__':
     main()
