@@ -44,8 +44,35 @@ function run_exception {
   done
 }
 
+function run_defuse {
+  # ash09
+  data_dir=/data1/aadityanaik/allwalks
 
-run_exception
+  mkdir -p graphs/defuse/dev
+  mkdir -p graphs/defuse/eval
+  mkdir -p graphs/defuse/train
+
+  for d in `ls -1 $data_dir` ;
+  do
+    printf $d,
+    a=`cat $data_dir/$d/unused_local_vars_id.csv | wc -l` >& /dev/null
+    if [[ "$a" == "1" ]] ; then
+      label="used"
+    else
+      label="unused"
+    fi
+    IFS='_' read -ra splits <<< "$d" >& /dev/null
+    category=${splits[1]}
+    num=${splits[3]}
+    python3 gen_graph_jsons.py $data_dir/$d/source.py None $label graphs/defuse/$category/graph_$num.json defuse
+  done
+
+}
+
+run_defuse
+
+#run_exception
+
 # run_varmisuse dev
 # run_varmisuse eval
 # run_varmisuse train
