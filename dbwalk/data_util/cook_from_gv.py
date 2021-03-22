@@ -55,8 +55,12 @@ if __name__ == '__main__':
                     var_set.add(node_type)
                 else:
                     get_or_add(node_types, node_type)
-                tok = []  # TODO: make proper node_value
+                if len(node_value) != 0:
+                    tok = tokenizer.tokenize(node_value, cmd_args.language)
+                else:
+                    tok = []
                 node[1]['val_idx'] = [get_or_add(token_vocab, key) for key in tok]
+                node[1]['raw_val'] = node_value
             for e in graph.edges(data=True):
                 edge = e[2]['label']
                 if edge[0] != '(':
@@ -83,6 +87,7 @@ if __name__ == '__main__':
 
     var_dict = {}
     var_reverse_dict = {}
+    max_num_vars = min(max_num_vars, 100)
     for i in range(max_num_vars):
         val = get_or_add(node_types, var_idx2name(i))
         var_dict[i] = val

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 data_root=$HOME/data/dataset/dbwalk
-data_name=tiny_except
+data_name=exception
 
 bsize=32
 embed=256
@@ -11,7 +11,7 @@ hidden=512
 dropout=0
 setenc=deepset
 online=True
-num_proc=0
+num_proc=8
 shuffle_var=False
 
 export CUDA_VISIBLE_DEVICES=0
@@ -39,5 +39,7 @@ python main.py \
     -iter_per_epoch 1000 \
     -num_proc $num_proc \
     -learning_rate 1e-4 \
+    -min_steps 4 \
+    -max_steps 20 \
     -gpu 0 \
     $@
