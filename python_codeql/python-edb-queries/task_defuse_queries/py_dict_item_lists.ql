@@ -1,0 +1,7 @@
+import python
+import extra_classes
+
+from MyDictItemList dil, MyDictItemListParent dilp
+where py_dict_item_lists(dil, dilp)
+  and dil.getAnItem().getScope().inSource()
+select dil, dilp
