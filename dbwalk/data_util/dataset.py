@@ -110,8 +110,8 @@ def collate_raw_data(list_samples):
             row_ids = (coo[:, 0] * sp_shape[1] + coo[:, 1]) * sp_shape[2] + i
             list_coos.append(np.stack((row_ids, coo[:, 2])))
         list_coos = np.concatenate(list_coos, axis=1)
-        node_val_mat = torch.sparse_coo_tensor(torch.LongTensor(list_coos), torch.ones((list_coos.shape[1],)),
-                                               (sp_shape[0] * sp_shape[1] * sp_shape[2], sp_shape[3]))
+        node_val_mat = (torch.LongTensor(list_coos), torch.ones((list_coos.shape[1],)),
+                        (sp_shape[0] * sp_shape[1] * sp_shape[2], sp_shape[3]))
         return full_node_idx, full_edge_idx, node_val_mat, label
 
 
