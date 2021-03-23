@@ -1,8 +1,10 @@
 import torch
 import torch.nn as nn
+from torch.nn.parameter import Parameter
 from torch.nn.modules.normalization import LayerNorm
 from torch.nn.modules.transformer import TransformerEncoder, TransformerEncoderLayer
 from dbwalk.common.pytorch_util import PositionalEncoding, MLP
+from dbwalk.common.pytorch_util import gnn_spmm, _param_init
 
 
 class ProgWalkTokEmbed(nn.Module):
@@ -20,6 +22,20 @@ class ProgWalkTokEmbed(nn.Module):
         node_embed = self.pos_encoding(node_embed)
         edge_embed = self.pos_encoding(edge_embed)
         return torch.cat((node_embed, edge_embed), dim=0)
+
+
+class ProgWalkTokEmbedWithVal(ProgWalkTokEmbed):
+    def __init__(self, prog_dict, embed_dim, dropout=0.0):
+        super(ProgWalkTokEmbedWithVal, self).__init__(prog_dict, embed_dim, dropout)
+        self.val_tok_embed = Parameter(torch.Tensor(self.pg_dict.num_node_val_tokens, embed_dim))
+        _param_init(self.val_tok_embed)
+
+    def forward(self, node_idx, edge_idx, node_val_mat):
+        node_edge_types = super(ProgWalkTokEmbedWithVal, self).forward(node_idx, edge_idx)
+        node_val_embed = gnn_spmm(node_val_mat, self.val_tok_embed)
+        node_val_embed = self.pos_encoding(node_val_embed)        
+        node_val_embed = node_val_embed.view(-1, node_edge_types.shape[1], node_edge_types.shape[2], node_edge_types.shape[3])
+        return torch.cat((node_edge_types, node_val_embed), dim=0)
 
 
 class ProgWalkEncoder(nn.Module):

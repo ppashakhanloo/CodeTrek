@@ -12,9 +12,10 @@ from collections import defaultdict
 from dbwalk.common.consts import TOK_PAD, UNK
 from dbwalk.rand_walk.walkutils import WalkUtils, JavaWalkUtils
 from dbwalk.rand_walk.randomwalk import RandomWalker
-from dbwalk.data_util.cook_data import make_mat_from_raw
+from dbwalk.data_util.cook_data import make_mat_from_raw, get_or_unk
 from dbwalk.data_util.graph_holder import MergedGraphHolders
 from dbwalk.data_util.util import RawData, RawFile
+from dbwalk.tokenizer import tokenizer
 
 
 class ProgDict(object):
@@ -30,6 +31,7 @@ class ProgDict(object):
                 self.label_map[row] = i
         self.node_types = d['node_types']
         self.edge_types = d['edge_types']
+        self.node_val_tokens = d['token_vocab']
         self.max_num_vars = d['n_vars']
 
         self.var_dict = d['var_dict']
@@ -38,6 +40,10 @@ class ProgDict(object):
         print('# node types', self.num_node_types)
         print('# edge types', self.num_edge_types)
         print('max # vars per program', self.max_num_vars)
+
+    @property
+    def num_node_val_tokens(self):
+        return len(self.node_val_tokens)
 
     @property
     def num_class(self):
@@ -91,7 +97,22 @@ def collate_raw_data(list_samples):
     full_node_idx = torch.LongTensor(full_node_idx)
     full_edge_idx = torch.LongTensor(full_edge_idx)
     label = torch.LongTensor(label)
-    return full_node_idx, full_edge_idx, label
+
+    if list_samples[0].node_val_idx is None:
+        return full_node_idx, full_edge_idx, None, label
+    else:
+        _, word_dim = list_samples[0].node_val_idx
+        sp_shape = (max_node_len, min_walks, len(list_samples), word_dim)
+        list_coos = []
+        word_dim = 0
+        for i, s in enumerate(list_samples):
+            coo, word_dim = s.node_val_idx
+            row_ids = (coo[:, 0] * sp_shape[1] + coo[:, 1]) * sp_shape[2] + i
+            list_coos.append(np.stack((row_ids, coo[:, 2])))
+        list_coos = np.concatenate(list_coos, axis=1)
+        node_val_mat = torch.sparse_coo_tensor(torch.LongTensor(list_coos), torch.ones((list_coos.shape[1],)),
+                                               (sp_shape[0] * sp_shape[1] * sp_shape[2], sp_shape[3]))
+        return full_node_idx, full_edge_idx, node_val_mat, label
 
 
 class InMemDataest(Dataset):
@@ -114,7 +135,7 @@ class InMemDataest(Dataset):
                 d = cp.load(f)
                 for key in d:
                     node_mat, edge_mat, src, str_label = d[key]
-                    raw_sample = RawData(node_mat, edge_mat, src, self.prog_dict.label_map[str_label])
+                    raw_sample = RawData(node_mat, edge_mat, None, src, self.prog_dict.label_map[str_label])
                     self.list_samples.append((key, raw_sample))
                     self.labeled_samples[raw_sample.label].append((key, raw_sample))
 
@@ -193,7 +214,18 @@ class AbstractOnlineWalkDB(Dataset):
         walks = walker.random_walk(max_num_walks=self.args.num_walks, min_num_steps=self.args.min_steps, max_num_steps=self.args.max_steps)
         trajectories = [WalkUtils.build_trajectory(walk).to_dict() for walk in walks]
         node_mat, edge_mat = make_mat_from_raw(trajectories, self.prog_dict.node_types, self.prog_dict.edge_types)
-        return RawData(node_mat, edge_mat, raw_sample.source, self.prog_dict.label_map[raw_sample.label])
+        if self.args.use_node_val:
+            node_val_coo = []
+            for traj_idx, traj in enumerate(trajectories):
+                for node_pos, node_val in enumerate(traj['node_values']):
+                    toks = tokenizer.tokenize(node_val, self.args.language)
+                    for tok in toks:
+                        t = get_or_unk(self.prog_dict.node_val_tokens, tok)
+                        node_val_coo.append((node_pos, traj_idx, t))
+            node_val_coo = np.array(node_val_coo, dtype=np.int32)
+        else:
+            node_val_coo = None
+        return RawData(node_mat, edge_mat, (node_val_coo, self.prog_dict.num_node_val_tokens), raw_sample.source, self.prog_dict.label_map[raw_sample.label])
 
 
 class FastOnlineWalkDataset(AbstractOnlineWalkDB):

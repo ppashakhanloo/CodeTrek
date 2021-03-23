@@ -25,12 +25,12 @@ def train_loop(prog_dict, model, db_train, db_dev=None, fn_eval=None):
         model.train()
         for i in pbar:
             try:
-                node_idx, edge_idx, label = next(train_iter)
+                node_idx, edge_idx, node_val_mat, label = next(train_iter)
             except StopIteration:
                 train_iter = iter(train_loader)
-                node_idx, edge_idx, label = next(train_iter)
+                node_idx, edge_idx, node_val_mat, label = next(train_iter)
             optimizer.zero_grad()
-            loss = model(node_idx.to(cmd_args.device), edge_idx.to(cmd_args.device), label.to(cmd_args.device))
+            loss = model(node_idx.to(cmd_args.device), edge_idx.to(cmd_args.device), node_val_mat=node_val_mat.to(cmd_args.device), label=label.to(cmd_args.device))
             loss.backward()
             if cmd_args.grad_clip > 0:
                 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=cmd_args.grad_clip)

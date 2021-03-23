@@ -39,6 +39,7 @@ cmd_opt.add_argument('-epoch_load', default=None, type=int, help='epoch for load
 cmd_opt.add_argument('-shuffle_var', default=False, type=eval, help='shuffle var index?')
 cmd_opt.add_argument('-online_walk_gen', default=False, type=eval, help='generate random walks on the fly?')
 
+cmd_opt.add_argument('-use_node_val', default=False, type=eval, help='use node value as feature?')
 cmd_opt.add_argument('-set_encoder', default='deepset', help='deepset/transformer')
 
 # data process
