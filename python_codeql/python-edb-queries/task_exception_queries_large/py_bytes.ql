@@ -1,4 +1,5 @@
 import python
+import restrict_boundaries
 
 from string id,BytesOrStr parent,int idx
 where py_bytes(id,parent,idx)
