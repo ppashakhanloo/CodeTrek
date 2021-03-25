@@ -84,21 +84,21 @@ def build_child_edges(main_file, aux_file, task_name):
       get_subtree(node, res, neighbors)
       subtrees[node] = res
 
-      # compute if-then-else information before renaming the edges
-      for node in neighbor_keys:
-        if graph.get_node(node)[0].get('label').startswith(IF_IND) or \
-           graph.get_node(node)[0].get('label').startswith(IF_IND_):
-          condition = ""
-          then_branch = []
-          else_branch = []
-          for neighbor in neighbors[node]:
-            if graph.get_edge(node, neighbor)[0].get('label').startswith('test'):
-              condition = neighbor
-            elif graph.get_edge(node, neighbor)[0].get('label').startswith('body'):
-              then_branch.append(neighbor)
-            elif graph.get_edge(node, neighbor)[0].get('label').startswith('orelse'):
-              else_branch.append(neighbor)
-          if_branches[node] = (condition, then_branch, else_branch)
+    # compute if-then-else information before renaming the edges
+    for node in neighbor_keys:
+      if graph.get_node(node)[0].get('label').startswith(IF_IND) or \
+        graph.get_node(node)[0].get('label').startswith(IF_IND_):
+        condition = ""
+        then_branch = []
+        else_branch = []
+        for neighbor in neighbors[node]:
+          if graph.get_edge(node, neighbor)[0].get('label').startswith('test'):
+            condition = neighbor
+          elif graph.get_edge(node, neighbor)[0].get('label').startswith('body'):
+            then_branch.append(neighbor)
+          elif graph.get_edge(node, neighbor)[0].get('label').startswith('orelse'):
+            else_branch.append(neighbor)
+        if_branches[node] = (condition, then_branch, else_branch)
 
     for edge in edges:
       edge.set('label', 'Child')
@@ -375,5 +375,4 @@ def gen_graph_from_source(infile, aux_file, task_name):
     raise ValueError(task_name, ': not a valid task name.')
   # finally, fix all the labels
   graph = fix_node_labels(graph)
-
   return graph
