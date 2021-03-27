@@ -87,7 +87,7 @@ def build_child_edges(main_file, aux_file, task_name):
     # compute if-then-else information before renaming the edges
     for node in neighbor_keys:
       if graph.get_node(node)[0].get('label').startswith(IF_IND) or \
-        graph.get_node(node)[0].get('label').startswith(IF_IND_):
+         graph.get_node(node)[0].get('label').startswith(IF_IND_):
         condition = ""
         then_branch = []
         else_branch = []

@@ -2,9 +2,9 @@ import os
 import json
 import pickle as cp
 from tqdm import tqdm
-from dbwalk.rand_walk.walkutils import WalkUtils, JavaWalkUtils
-from dbwalk.rand_walk.randomwalk import RandomWalker
-from dbwalk.graph.graphutils import GraphUtils
+from data_prep.random_walk.walkutils import WalkUtils, JavaWalkUtils
+from data_prep.random_walk.randomwalk import RandomWalker
+from data_prep.graph.graphutils import GraphUtils
 
 from dbwalk.common.configs import cmd_args
 from dbwalk.common.consts import TOK_PAD, var_idx2name, UNK

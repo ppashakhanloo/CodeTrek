@@ -2,7 +2,7 @@ import sys
 import json
 import datapoint
 import create_ast
-from dbwalk.tokenizer import tokenizer
+from data_prep.tokenizer import tokenizer
 
 def init(graph):
   # assign unique numbers to nodes
