@@ -1,5 +1,5 @@
 import sys
-from dbwalk.rand_walk.graphbuilder import GraphBuilder
+from data_prep.random_walk.graphbuilder import GraphBuilder
 from typing import List
 
 
