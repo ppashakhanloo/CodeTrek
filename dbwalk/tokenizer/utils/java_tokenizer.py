@@ -22,7 +22,6 @@ from typing import List
 from typing import Sequence
 
 
-from absl import logging
 import dataclasses
 from javalang import tokenizer as javalang
 
@@ -98,8 +97,6 @@ class JavaTokenizer(cubert_tokenizer.CuBertTokenizer):
       # Sometimes, javalang returns a TypeError when reading a number.
       # See
       # https://github.com/c2nes/javalang/blob/0664afb7f4d40254312693f2e833c1ed4ac551c7/javalang/tokenizer.py#L370
-      logging.warning('The tokenizer raised exception `%r` while parsing %s', e,
-                      source_code)
 
       # We don't try to do recovery from errors quite yet. Mark the error as
       # occurring at whatever position we are in and terminate

@@ -27,7 +27,6 @@ from typing import Text
 from typing import Tuple
 
 
-from absl import logging
 import dataclasses
 import regex  # Using instead of `re` because it handles Unicode classes.
 import six
@@ -223,8 +222,6 @@ def code_to_tokens(code):
   """
   token_tuples = list(tokenize.generate_tokens(
       six.StringIO(code.rstrip()).readline))
-  logging.vlog(5, 'Code `%s` was tokenized to token tuples `%s`.', code,
-               token_tuples)
 
   # Now we get rid of an extraneous trailing newline token, if it has been
   # produced. This is a difference in the behavior of generate_tokens between
@@ -233,8 +230,6 @@ def code_to_tokens(code):
     if len(token_tuples) > 1:
       if token_tuples[-2][0] == python_token.NEWLINE:
         del token_tuples[-2]
-        logging.vlog(5, 'Tokenization for `%s` was sanitized. Now token tuples '
-                     'are `%s`.', code, token_tuples)
     # Another similar failure mode is if the final tokens are DEDENT, there may
     # be an extraneous newline before them.
     if len(token_tuples) > 2:
@@ -243,9 +238,6 @@ def code_to_tokens(code):
         current -= 1
       if current and token_tuples[current][0] == tokenize.NEWLINE:
         del token_tuples[current]
-        logging.vlog(5, 'Tokenization for `%s` was sanitized to remove '
-                     'trailing newline after DEDENTs. Now token tuples are '
-                     '`%s`.', code, token_tuples)
 
   return token_tuples
 
@@ -383,8 +375,6 @@ def subtokenize_identifier(identifier):
 
   # Now we want to do camel-case splitting for each non-underscore snake
   # component.
-  logging.vlog(_PEDANTIC, 'Split %r into snake case: %r', identifier,
-               snake_components)
   all_components = []  # type: List[Text]
   for snake_component in snake_components:
     if '_' in snake_component:
@@ -392,8 +382,6 @@ def subtokenize_identifier(identifier):
     else:
       unicodified_snake_component = six.ensure_text(snake_component)
       camel_components = _CAMEL_RE.findall(unicodified_snake_component)
-      logging.vlog(_PEDANTIC, 'Split snake component %r into %r components.',
-                   unicodified_snake_component, camel_components)
       all_components.extend(camel_components)
 
   # Finally, we want to combine the underscore components with the component

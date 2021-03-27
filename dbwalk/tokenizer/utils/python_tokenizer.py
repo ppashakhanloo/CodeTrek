@@ -22,7 +22,6 @@ from typing import Any
 from typing import List
 from typing import Sequence
 from typing import Tuple
-from absl import logging
 
 from dbwalk.tokenizer.utils import cubert_tokenizer
 from dbwalk.tokenizer.utils import unified_tokenizer
@@ -80,9 +79,6 @@ class PythonTokenizer(cubert_tokenizer.CuBertTokenizer):
     try:
       token_tuples = unified_tokenizer.code_to_tokens(source_code)
     except (tokenize.TokenError, IndentationError) as e:
-      logging.warning('The tokenizer raised exception `%s` while parsing %s', e,
-                      source_code)
-
       # We don't try to do recovery from errors quite yet. Emit just an
       # error and end-of-sequence and return.
       agnostic_tokens.append(
