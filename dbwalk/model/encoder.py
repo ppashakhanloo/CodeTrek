@@ -31,11 +31,14 @@ class ProgWalkTokEmbedWithVal(ProgWalkTokEmbed):
         _param_init(self.val_tok_embed)
 
     def forward(self, node_idx, edge_idx, node_val_mat):
-        node_edge_types = super(ProgWalkTokEmbedWithVal, self).forward(node_idx, edge_idx)
-        node_val_embed = gnn_spmm(node_val_mat, self.val_tok_embed)
-        node_val_embed = self.pos_encoding(node_val_embed)        
-        node_val_embed = node_val_embed.view(-1, node_edge_types.shape[1], node_edge_types.shape[2], node_edge_types.shape[3])
-        return torch.cat((node_edge_types, node_val_embed), dim=0)
+        node_embed = self.node_embed(node_idx)
+        edge_embed = self.edge_embed(edge_idx)
+ 
+        node_val_embed = gnn_spmm(node_val_mat, self.val_tok_embed).view(node_embed.shape)
+        node_embed = self.pos_encoding(node_embed)
+        edge_embed = self.pos_encoding(edge_embed)
+        val_embed = self.pos_encoding(node_val_embed)
+        return torch.cat((node_embed, edge_embed, val_embed), dim=0)
 
 
 class ProgWalkEncoder(nn.Module):

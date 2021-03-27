@@ -19,11 +19,13 @@ def eval_dataset(model, phase, eval_loader):
     pred_labels = []
     model.eval()
     pbar = tqdm(eval_loader)
-    for node_idx, edge_idx, label in pbar:
+    for node_idx, edge_idx, node_val_mat, label in pbar:
         if node_idx is None:
             continue
         with torch.no_grad():
-            logits = model(node_idx.to(cmd_args.device), edge_idx.to(cmd_args.device))
+            if node_val_mat is not None:
+                node_val_mat = torch.sparse_coo_tensor(*node_val_mat).to(cmd_args.device)
+            logits = model(node_idx.to(cmd_args.device), edge_idx.to(cmd_args.device), node_val_mat=node_val_mat)
             pred_labels += torch.argmax(logits, dim=1).data.cpu().numpy().flatten().tolist()
             true_labels += label.data.numpy().flatten().tolist()
         pbar.set_description('evaluating %s' % phase)
@@ -47,14 +49,14 @@ if __name__ == '__main__':
     else:
         db_class = InMemDataest
 
-    if cmd_args.phase == 'eval':
+    if cmd_args.phase != 'train':
         assert cmd_args.model_dump is not None
         model_dump = os.path.join(cmd_args.save_dir, cmd_args.model_dump)
         print('loading model from', model_dump)
         model.load_state_dict(torch.load(model_dump, map_location=cmd_args.device))
-        db_eval = db_class(cmd_args, prog_dict, cmd_args.data_dir, 'eval')
+        db_eval = db_class(cmd_args, prog_dict, cmd_args.data_dir, cmd_args.phase)
         eval_loader = db_eval.get_test_loader(cmd_args)
-        eval_dataset(model, 'eval', eval_loader)
+        eval_dataset(model, cmd_args.phase, eval_loader)
         sys.exit()
 
     db_train = db_class(cmd_args, prog_dict, cmd_args.data_dir, 'train', sample_prob=None, shuffle_var=cmd_args.shuffle_var)

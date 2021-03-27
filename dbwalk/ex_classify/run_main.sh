@@ -3,7 +3,7 @@
 data_root=$HOME/data/dataset/dbwalk
 data_name=exception
 
-bsize=32
+bsize=24
 embed=256
 nlayer=4
 nhead=8
@@ -13,10 +13,11 @@ setenc=deepset
 online=True
 num_proc=8
 shuffle_var=False
+use_node_val=True
 
 export CUDA_VISIBLE_DEVICES=0
 
-save_dir=$HOME/scratch/results/dbwalk/exception/gen-$online-b-$bsize-emb-$embed-nl-$nlayer-head-$nhead-hid-$hidden-dp-$dropout-set-$setenc-sv-$shuffle_var
+save_dir=$HOME/scratch/results/dbwalk/exception/gen-$online-b-$bsize-emb-$embed-nl-$nlayer-head-$nhead-hid-$hidden-dp-$dropout-set-$setenc-sv-$shuffle_var-nv-$use_node_val
 
 if [ ! -e $save_dir ];
 then
@@ -38,6 +39,7 @@ python main.py \
     -dropout $dropout \
     -iter_per_epoch 1000 \
     -num_proc $num_proc \
+    -use_node_val $use_node_val \
     -learning_rate 1e-4 \
     -min_steps 4 \
     -max_steps 20 \
