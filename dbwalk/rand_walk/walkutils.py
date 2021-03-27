@@ -1,6 +1,6 @@
 from pygraphviz import Node
 from typing import List, Dict, Tuple
-from dbwalk.rand_walk.datapoint import TrajNodeType, TrajNodeValue, TrajEdge, Trajectory
+from data_prep.datapoint import TrajNodeType, TrajNodeValue, TrajEdge, Trajectory
 
 
 class WalkUtils:
