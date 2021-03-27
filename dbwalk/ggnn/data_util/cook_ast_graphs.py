@@ -10,15 +10,18 @@ from dbwalk.data_util.cook_data import get_or_add
 from data_prep.tokenizer import tokenizer
 
 
-if __name__ == '__main__':
+def main_cook_ast(etype_white_list=None, node_unk=True, edge_unk=True, tok_unk=True):
     node_types = {}
     edge_types = {}
     token_vocab = {}
 
     for key in [UNK]:
-        get_or_add(node_types, key)
-        get_or_add(edge_types, key)
-        get_or_add(token_vocab, key)
+        if node_unk:
+            get_or_add(node_types, key)
+        if edge_unk:
+            get_or_add(edge_types, key)
+        if tok_unk:
+            get_or_add(token_vocab, key)
 
     print('building dict')
     for phase in ['train', 'dev', 'eval']:
@@ -29,14 +32,14 @@ if __name__ == '__main__':
         folder = os.path.join(cmd_args.data_dir, cmd_args.data, phase)
         files = os.listdir(folder)
         chunk_idx = 0
-        gh = GraphHolder()
+        gh = GraphHolder(is_directed=True)
         pbar = tqdm(files)
         for fname in pbar:
             if not fname.endswith('json'):
                 continue
             with open(os.path.join(folder, fname), 'r') as f:
                 d = json.load(f)
-            g = nx.empty_graph(0, nx.MultiGraph)
+            g = nx.empty_graph(0, nx.MultiDiGraph)
             meta_info = {'anchor_index': d['SlotNodeIdx'],
                          'source': d['filename'],
                          'label': d['label']}
@@ -47,7 +50,11 @@ if __name__ == '__main__':
                 tok = [] if len(node_vals[i]) == 0 else node_toks[i]
                 val_idx = [get_or_add(token_vocab, key) for key in tok]
                 g.add_node(i, label=v, val_idx=val_idx, raw_val='')
-            for edge_type in d['ContextGraph']['Edges']:
+            if etype_white_list is None:
+                etype_list = d['ContextGraph']['Edges']
+            else:
+                etype_list = etype_white_list
+            for edge_type in etype_list:
                 get_or_add(edge_types, edge_type)
                 for e in d['ContextGraph']['Edges'][edge_type]:
                     g.add_edge(e[0], e[1], label=edge_type)
@@ -77,3 +84,7 @@ if __name__ == '__main__':
         d['var_reverse_dict'] = var_reverse_dict
         d['token_vocab'] = token_vocab
         cp.dump(d, f, cp.HIGHEST_PROTOCOL)
+
+
+if __name__ == '__main__':
+    main_cook_ast()

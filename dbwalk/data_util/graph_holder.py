@@ -9,7 +9,8 @@ from dbwalk.data_util.util import RawFile
 
 class GraphHolder(object):
 
-    def __init__(self):
+    def __init__(self, is_directed=False):
+        self.is_directed = is_directed
         self.num_graphs = 0
         self.tot_num_nodes = 0
         self.tot_num_edges = 0
@@ -124,8 +125,11 @@ class GraphHolder(object):
 
     def __getitem__(self, g_idx):
         assert g_idx >= 0 and g_idx < self.num_graphs
-        g = nx.empty_graph(0, nx.MultiGraph)
-        
+        if self.is_directed:
+            g = nx.empty_graph(0, nx.MultiGraph)
+        else:
+            g = nx.empty_graph(0, nx.MultiDiGraph)
+
         node_offset = self.list_node_offset[g_idx]
         edge_offset = self.list_edge_offset[g_idx]
 
@@ -147,12 +151,13 @@ class GraphHolder(object):
 
 
 class MergedGraphHolders(object):
-    def __init__(self, list_dumps):
+    def __init__(self, list_dumps, is_directed=False):
         self.list_gh = []
         self.num_graphs = 0
-        
+        self.is_directed = is_directed
+
         for dump_folder in list_dumps:
-            gh = GraphHolder()
+            gh = GraphHolder(is_directed)
             gh.load(dump_folder)
             self.num_graphs += len(gh)
             self.list_gh.append(gh)
