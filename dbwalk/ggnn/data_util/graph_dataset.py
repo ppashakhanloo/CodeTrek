@@ -63,20 +63,8 @@ class AstGraphDataset(Dataset):
         chunks = [os.path.join(data_dir, 'cooked_' + phase, x) for x in chunks]
         self.merged_gh = MergedGraphHolders(chunks)
 
-        json_files = os.listdir(os.path.join(data_dir, phase))
-        json_files = [x for x in json_files if x.endswith('.json')]
-        random.shuffle(json_files)
-        self.list_samples = []
-        self.labeled_samples = defaultdict(list)
-        for json_name in json_files:
-            with open(os.path.join(data_dir, phase, json_name), 'r') as f:
-                d = json.load(f)
-                self.list_samples.append(d)
-                label = self.prog_dict.label_map[d['label']]
-            self.labeled_samples[label].append(d)
-
     def __len__(self):
-        return len(self.list_samples)
+        return len(self.merged_gh)
 
     def __getitem__(self, idx):
         raw_sample = self.merged_gh[idx]
@@ -87,7 +75,7 @@ class AstGraphDataset(Dataset):
         loader = DataLoader(self,
                             batch_size=cmd_args.batch_size,
                             shuffle=False,
-                            drop_last=False,
+                            drop_last=True,
                             collate_fn=collate_graph_data,
                             num_workers=cmd_args.num_proc)
         return loader

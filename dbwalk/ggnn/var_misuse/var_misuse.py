@@ -99,10 +99,10 @@ if __name__ == '__main__':
     torch.manual_seed(cmd_args.seed)
     prog_dict = ProgDict(cmd_args.data_dir)
 
-    db_eval = AstGraphDataset(cmd_args, prog_dict, cmd_args.data_dir, 'eval')
-    eval_loader = db_eval.get_test_loader(cmd_args)
+    #db_eval = AstGraphDataset(cmd_args, prog_dict, cmd_args.data_dir, 'eval')
+    #eval_loader = db_eval.get_test_loader(cmd_args)
     model = GnnBinary(cmd_args, prog_dict).to(cmd_args.device)
 
-    db_train = AstGraphDataset(cmd_args, prog_dict, cmd_args.data_dir, 'train')
     db_dev = AstGraphDataset(cmd_args, prog_dict, cmd_args.data_dir, 'dev')
+    db_train = AstGraphDataset(cmd_args, prog_dict, cmd_args.data_dir, 'train')
     train_loop(prog_dict, model, db_train, db_dev, eval_dataset)

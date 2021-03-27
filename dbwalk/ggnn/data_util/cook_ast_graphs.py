@@ -46,7 +46,7 @@ if __name__ == '__main__':
                 get_or_add(node_types, v)
                 tok = [] if len(node_vals[i]) == 0 else node_toks[i]
                 val_idx = [get_or_add(token_vocab, key) for key in tok]
-                g.add_node(i, label=v, val_idx=val_idx)
+                g.add_node(i, label=v, val_idx=val_idx, raw_val='')
             for edge_type in d['ContextGraph']['Edges']:
                 get_or_add(edge_types, edge_type)
                 for e in d['ContextGraph']['Edges'][edge_type]:
