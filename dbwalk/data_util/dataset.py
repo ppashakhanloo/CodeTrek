@@ -10,12 +10,12 @@ from tqdm import tqdm
 from torch.utils.data import Dataset, DataLoader
 from collections import defaultdict
 from dbwalk.common.consts import TOK_PAD, UNK
-from dbwalk.rand_walk.walkutils import WalkUtils, JavaWalkUtils
-from dbwalk.rand_walk.randomwalk import RandomWalker
+from data_prep.random_walk.walkutils import WalkUtils, JavaWalkUtils
+from data_prep.random_walk.randomwalk import RandomWalker
 from dbwalk.data_util.cook_data import make_mat_from_raw, get_or_unk
 from dbwalk.data_util.graph_holder import MergedGraphHolders
 from dbwalk.data_util.util import RawData, RawFile
-from dbwalk.tokenizer import tokenizer
+from data_prep.tokenizer import tokenizer
 
 
 class ProgDict(object):

@@ -6,7 +6,7 @@ from dbwalk.common.configs import cmd_args
 from dbwalk.common.consts import TOK_PAD, var_idx2name, UNK
 
 from dbwalk.data_util.cook_data import get_or_add
-from dbwalk.tokenizer import tokenizer
+from data_prep.tokenizer import tokenizer
 
 
 if __name__ == '__main__':

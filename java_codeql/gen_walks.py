@@ -1,9 +1,9 @@
 import sys
 from random import choice
 from typing import List
-from dbwalk.rand_walk.datapoint import DataPoint, AnchorNode
-from dbwalk.rand_walk.walkutils import JavaWalkUtils
-from dbwalk.rand_walk.randomwalk import RandomWalker
+from data_prep.random_walk.datapoint import DataPoint, AnchorNode
+from data_prep.random_walk.walkutils import JavaWalkUtils
+from data_prep.random_walk.randomwalk import RandomWalker
 
 
 def main(args: List[str]) -> None:

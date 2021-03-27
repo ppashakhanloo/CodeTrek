@@ -1,5 +1,0 @@
-Compiling query plan for /home/aadityanaik/relational-representation/datasets/cubert/unusedlocalvar.ql.
-[1/1] Compiled /home/aadityanaik/relational-representation/datasets/cubert/unusedlocalvar.ql (1.1s).
-Starting evaluation of python-edb-queries/unusedlocalvar.ql.
-[1/1] Evaluation done (2.4s); writing results to /home/aadityanaik/relational-representation/datasets/cubert/py_files/train/correct/file_234474/codeqldb/unused_local_vars.bqrs.
-Shutting down query evaluator.

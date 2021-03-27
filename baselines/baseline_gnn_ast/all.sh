@@ -44,35 +44,61 @@ function run_exception {
   done
 }
 
-function run_defuse {
-  # ash09
-  data_dir=/data1/aadityanaik/allwalks
+function run_exception_large {
+  # ash12
+  category=$1
+  data_dir=/data1/pardisp/exception_large_programs
 
-  mkdir -p graphs/defuse/dev
-  mkdir -p graphs/defuse/eval
-  mkdir -p graphs/defuse/train
+  mkdir -p graphs/exception_large/$category
 
-  for d in `ls -1 $data_dir` ;
+  for d in `ls -1 $data_dir/$category | grep -E "txt$"` ;
   do
     printf $d,
-    a=`cat $data_dir/$d/unused_local_vars_id.csv | wc -l` >& /dev/null
-    if [[ "$a" == "1" ]] ; then
-      label="used"
-    else
-      label="unused"
-    fi
+    label=`cat $data_dir/$category/$d`
     IFS='_' read -ra splits <<< "$d" >& /dev/null
-    category=${splits[1]}
-    num=${splits[3]}
-    python3 gen_graph_jsons.py $data_dir/$d/source.py None $label graphs/defuse/$category/graph_$num.json defuse
+    name=${splits[0]}
+    num=${splits[1]}
+    python_file=$name'_'$num'.py'
+    $PYTHON_CONVERTOR -w $data_dir/$category/$python_file >& /dev/null
+    python3 gen_graph_jsons.py $data_dir/$category/$python_file None $label graphs/exception_large/$category/graph_$python_file.json exception
+  done
+}
+
+function run_defuse {
+  # ash09
+  category=$1
+  data_dir=/data1/pardisp/defuse_files/$category
+
+  mkdir -p graphs/defuse/$category
+
+  for d in `ls -1 $data_dir | grep -E "\.txt$"` ;
+  do
+    printf $d,
+    label=`cat $data_dir/$d`
+    IFS='_' read -ra splits <<< "$d" >& /dev/null
+    num=${splits[1]}
+    IFS='.' read -ra splits <<< "$num" >& /dev/null
+    num=${splits[0]}
+    python_file="file_"$num.py
+    $PYTHON_CONVERTOR -w $data_dir/$python_file >& /dev/null
+    python3 gen_graph_jsons.py $data_dir/$python_file None $label graphs/defuse/$category/graph_$python_file.json defuse
   done
 
 }
 
-run_defuse
+
+## UNCOMMENT ANY OF THE FUNCTION BELOW TO GENERATE AST-BASED GRAPHS.
+
+#run_defuse dev
+#run_defuse eval
+#run_defuse train
 
 #run_exception
 
-# run_varmisuse dev
-# run_varmisuse eval
-# run_varmisuse train
+#run_exception_large dev
+#run_exception_large eval
+#run_exception_large train
+
+#run_varmisuse dev
+#run_varmisuse eval
+#run_varmisuse train

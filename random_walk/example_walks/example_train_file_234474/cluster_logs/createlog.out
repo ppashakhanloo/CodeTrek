@@ -1,6 +1,0 @@
-[2020-12-26 14:58:23] [build] Calling python3 /home/aadityanaik/codeql/codeql/python/tools/get_venv_lib.py
-[2020-12-26 14:58:23] [build] Calling python3 -S /home/aadityanaik/codeql/codeql/python/tools/python_tracer.py -v -z all -c /home/aadityanaik/relational-representation/datasets/cubert/py_files/train/correct/file_234474/codeqldb/working/trap_cache -p /home/aadityanaik/anaconda3/lib/python3.7/site-packages -R /home/aadityanaik/relational-representation/datasets/cubert/py_files/train/correct/file_234474
-[2020-12-26 14:58:24] [build] [INFO] Python version 3.7.4
-[2020-12-26 14:58:24] [build] [INFO] Python extractor version 5.11
-[2020-12-26 14:58:28] [build] [INFO] [8] Extracted file /home/aadityanaik/relational-representation/datasets/cubert/py_files/train/correct/file_234474/source.py in 1302ms
-[2020-12-26 14:58:29] [build] [INFO] Processed 1 modules in 3.39s

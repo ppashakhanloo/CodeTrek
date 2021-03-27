@@ -5,13 +5,13 @@ import pickle as cp
 from tqdm import tqdm
 import numpy as np
 import random
-from dbwalk.rand_walk.walkutils import WalkUtils, JavaWalkUtils
-from dbwalk.rand_walk.randomwalk import RandomWalker
+from data_prep.random_walk.walkutils import WalkUtils, JavaWalkUtils
+from data_prep.random_walk.randomwalk import RandomWalker
 from dbwalk.data_util.graph_holder import GraphHolder
 from dbwalk.common.configs import cmd_args
 from dbwalk.common.consts import TOK_PAD, var_idx2name, UNK
 from dbwalk.data_util.cook_data import load_label_dict, get_or_add
-from dbwalk.tokenizer import tokenizer
+from data_prep.tokenizer import tokenizer
 import argparse
 
 
