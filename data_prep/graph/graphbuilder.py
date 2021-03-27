@@ -106,12 +106,14 @@ class GraphBuilder:
             call_graph = []
             if 'one_hop_call_graph.csv.facts' in os.listdir(self.facts_dir):
                 callgraph_file = 'one_hop_call_graph.csv.facts'
-            elif 'full_call_graph.csv.facts' in os.listdir(self.facts_dir)
+            elif 'full_call_graph.csv.facts' in os.listdir(self.facts_dir):
                 callgraph_file = 'full_call_graph.csv.facts'
             elif 'one_hop_call_graph.csv' in os.listdir(self.facts_dir):
                 callgraph_file = 'one_hop_call_graph.csv'
             elif 'full_call_graph.csv' in os.listdir(self.facts_dir):
                 callgraph_file = 'full_call_graph.csv'
+            else:
+                return []
 
             with open(os.path.join(self.facts_dir, callgraph_file), 'r') as cf:
                 for line in cf.readlines():
