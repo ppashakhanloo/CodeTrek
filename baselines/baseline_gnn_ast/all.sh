@@ -44,6 +44,27 @@ function run_exception {
   done
 }
 
+function run_exception_large {
+  # ash12
+  category=$1
+  data_dir=/data1/pardisp/exception_large_programs
+
+  mkdir -p graphs/exception_large/$category
+
+  for d in `ls -1 $data_dir/$category | grep -E "txt$"` ;
+  do
+    printf $d,
+    label=`cat $data_dir/$category/$d`
+    IFS='_' read -ra splits <<< "$d" >& /dev/null
+    name=${splits[0]}
+    num=${splits[1]}
+    python_file=$name'_'$num'.py'
+    echo $data_dir/$category/$python_file
+    $PYTHON_CONVERTOR -w $data_dir/$category/$python_file >& /dev/null
+    python3 gen_graph_jsons.py $data_dir/$category/$python_file None $label graphs/exception_large/$category/graph_$python_file.json exception
+  done
+}
+
 function run_defuse {
   # ash09
   data_dir=/data1/aadityanaik/allwalks
@@ -69,10 +90,16 @@ function run_defuse {
 
 }
 
-run_defuse
+
+## UNCOMMENT ANY OF THE FUNCTION BELOW TO GENERATE AST-BASED GRAPHS.
+#run_defuse
 
 #run_exception
 
-# run_varmisuse dev
-# run_varmisuse eval
-# run_varmisuse train
+i#run_exception_large dev
+#run_exception_large eval
+#run_exception_large train
+
+#run_varmisuse dev
+#run_varmisuse eval
+#run_varmisuse train
