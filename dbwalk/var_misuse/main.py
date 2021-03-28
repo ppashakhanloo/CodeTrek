@@ -20,11 +20,15 @@ def eval_dataset(model, phase, eval_loader):
     pred_probs = []
     model.eval()
     pbar = tqdm(eval_loader)
-    for node_idx, edge_idx, label in pbar:
+    for node_idx, edge_idx, node_val_mat, label in pbar:
         if node_idx is None:
             continue
+        if node_val_mat is not None:
+            node_val_mat = torch.sparse_coo_tensor(*node_val_mat).to(cmd_args.device)
+        if edge_idx is not None:
+            edge_idx = edge_idx.to(cmd_args.device)
         with torch.no_grad():
-            pred = model(node_idx.to(cmd_args.device), edge_idx.to(cmd_args.device)).data.cpu().numpy()
+            pred = model(node_idx.to(cmd_args.device), edge_idx, node_val_mat=node_val_mat).data.cpu().numpy()
             pred_probs += pred.flatten().tolist()
             true_labels += label.data.numpy().flatten().tolist()
         pbar.set_description('evaluating %s' % phase)

@@ -31,8 +31,10 @@ def train_loop(prog_dict, model, db_train, db_dev=None, fn_eval=None):
                 node_idx, edge_idx, node_val_mat, label = next(train_iter)
             optimizer.zero_grad()
             if node_val_mat is not None:
-                node_val_mat = torch.sparse_coo_tensor(*node_val_mat)
-            loss = model(node_idx.to(cmd_args.device), edge_idx.to(cmd_args.device), node_val_mat=node_val_mat.to(cmd_args.device), label=label.to(cmd_args.device))
+                node_val_mat = torch.sparse_coo_tensor(*node_val_mat).to(cmd_args.device)
+            if edge_idx is not None:
+                edge_idx = edge_idx.to(cmd_args.device)
+            loss = model(node_idx.to(cmd_args.device), edge_idx, node_val_mat=node_val_mat, label=label.to(cmd_args.device))
             loss.backward()
             if cmd_args.grad_clip > 0:
                 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=cmd_args.grad_clip)
