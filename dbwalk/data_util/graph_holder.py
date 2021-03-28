@@ -4,7 +4,7 @@ import json
 import pickle as cp
 import numpy as np
 import networkx as nx
-
+from collections import defaultdict
 from dbwalk.data_util.util import RawFile
 
 class GraphHolder(object):
@@ -151,14 +151,19 @@ class GraphHolder(object):
 
 
 class MergedGraphHolders(object):
-    def __init__(self, list_dumps, is_directed=False):
+    def __init__(self, list_dumps, is_directed=False, sample_prob=None):
         self.list_gh = []
         self.num_graphs = 0
         self.is_directed = is_directed
+        self.sample_prob = sample_prob
 
+        self.labeled_samples = defaultdict(list)
         for dump_folder in list_dumps:
             gh = GraphHolder(is_directed)
             gh.load(dump_folder)
+            if sample_prob is not None:
+                for i in range(len(gh)):
+                    self.labeled_samples[gh.list_labels[i]].append(self.num_graphs + i)
             self.num_graphs += len(gh)
             self.list_gh.append(gh)
 
@@ -166,6 +171,11 @@ class MergedGraphHolders(object):
         return self.num_graphs
 
     def __getitem__(self, g_idx):
+        if self.sample_prob is not None:
+            sample_cls = np.argmax(np.random.multinomial(1, self.sample_prob))
+            samples = self.labeled_samples[sample_cls]
+            idx = np.random.randint(len(samples))
+            g_idx = samples[idx]
         assert g_idx >= 0 and g_idx < self.num_graphs
         prefix_sum = 0
         for gh in self.list_gh:
@@ -173,4 +183,3 @@ class MergedGraphHolders(object):
                 return gh[g_idx - prefix_sum]
             prefix_sum += len(gh)
         assert False
-

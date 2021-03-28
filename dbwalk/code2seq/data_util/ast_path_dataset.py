@@ -105,12 +105,13 @@ class AstPathDataset(Dataset):
         self.prog_dict = prog_dict
         self.args = args
         self.phase = phase
-        self.sample_prob = sample_prob
+        if self.phase != 'train':
+            assert sample_prob is None
 
         chunks = os.listdir(os.path.join(data_dir, 'cooked_' + phase))
         chunks = sorted(chunks)
         chunks = [os.path.join(data_dir, 'cooked_' + phase, x) for x in chunks]
-        self.merged_gh = MergedGraphHolders(chunks, is_directed=True)
+        self.merged_gh = MergedGraphHolders(chunks, is_directed=True, sample_prob=sample_prob)
 
     def __len__(self):
         return len(self.merged_gh)
