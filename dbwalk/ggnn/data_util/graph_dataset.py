@@ -82,7 +82,7 @@ class AstGraphDataset(Dataset):
         chunks = os.listdir(os.path.join(data_dir, 'cooked_' + phase))
         chunks = sorted(chunks)
         chunks = [os.path.join(data_dir, 'cooked_' + phase, x) for x in chunks]
-        self.merged_gh = MergedGraphHolders(chunks)
+        self.merged_gh = MergedGraphHolders(chunks, is_directed=True, sample_prob=sample_prob)
 
     def __len__(self):
         return len(self.merged_gh)
