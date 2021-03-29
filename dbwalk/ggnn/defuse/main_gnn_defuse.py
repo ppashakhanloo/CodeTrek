@@ -40,6 +40,6 @@ if __name__ == '__main__':
         sys.exit()
 
     db_dev = AstGraphDataset(cmd_args, prog_dict, cmd_args.data_dir, 'dev')
-    db_train = AstGraphDataset(cmd_args, prog_dict, cmd_args.data_dir, 'train', sample_prob=[0.5, 0.5])
+    db_train = AstGraphDataset(cmd_args, prog_dict, cmd_args.data_dir, 'train', sample_prob={'used': 0.5, 'unused': 0.5})
     train_loop(prog_dict, model, db_train, db_dev, eval_func,
                nn_arg_constructor=gnn_arg_constructor)
