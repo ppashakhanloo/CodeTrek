@@ -155,8 +155,13 @@ class MergedGraphHolders(object):
         self.list_gh = []
         self.num_graphs = 0
         self.is_directed = is_directed
-        self.sample_prob = sample_prob
-
+        if sample_prob is not None:
+            self.label_keys = list(sample_prob.keys())
+            self.sample_prob = []
+            for key in self.label_keys:
+                self.sample_prob.append(sample_prob[key])
+        else:
+            self.sample_prob = self.label_keys = None
         self.labeled_samples = defaultdict(list)
         for dump_folder in list_dumps:
             gh = GraphHolder(is_directed)
@@ -173,7 +178,7 @@ class MergedGraphHolders(object):
     def __getitem__(self, g_idx):
         if self.sample_prob is not None:
             sample_cls = np.argmax(np.random.multinomial(1, self.sample_prob))
-            samples = self.labeled_samples[sample_cls]
+            samples = self.labeled_samples[self.label_keys[sample_cls]]
             idx = np.random.randint(len(samples))
             g_idx = samples[idx]
         assert g_idx >= 0 and g_idx < self.num_graphs
