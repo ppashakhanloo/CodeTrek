@@ -16,32 +16,8 @@ from dbwalk.data_util.dataset import ProgDict
 from dbwalk.ggnn.data_util.graph_dataset import AstGraphDataset
 from dbwalk.common.configs import cmd_args, set_device
 
-from dbwalk.ggnn.graphnet.graph_embed import get_gnn
+from dbwalk.ggnn.graphnet.classifier import GnnBinary
 from dbwalk.training.train import train_loop
-
-
-class GnnBinary(nn.Module):
-    def __init__(self, args, prog_dict):
-        super(GnnBinary, self).__init__()
-        self.gnn = get_gnn(args, len(prog_dict.node_types), len(prog_dict.edge_types))
-        self.out_classifier = nn.Linear(args.latent_dim * 2, 1)
-
-    def forward(self, graph_list, label=None):
-        node_sel = []
-        offset = 0
-        for g in graph_list:
-            node_sel.append(g.target_idx)
-            offset += g.num_nodes
-        graph_embed, (_, node_embed) = self.gnn(graph_list)
-        target_embed = node_embed[node_sel]
-        logits = self.out_classifier(torch.cat([graph_embed, target_embed], dim=1))
-        prob = torch.sigmoid(logits)
-        if label is not None:
-            label = label.to(prob).view(prob.shape)
-            loss = -label * torch.log(prob + 1e-18) - (1 - label) * torch.log(1 - prob + 1e-18)
-            return torch.mean(loss)
-        else:
-            return prob
 
 
 def eval_dataset(model, phase, eval_loader):
@@ -74,7 +50,7 @@ if __name__ == '__main__':
     torch.manual_seed(cmd_args.seed)
     prog_dict = ProgDict(cmd_args.data_dir)
 
-    model = GnnBinary(cmd_args, prog_dict).to(cmd_args.device)
+    model = GnnBinary(cmd_args, prog_dict, has_anchor=True).to(cmd_args.device)
     if cmd_args.phase == 'eval': 
         db_eval = AstGraphDataset(cmd_args, prog_dict, cmd_args.data_dir, 'eval')
         eval_loader = db_eval.get_test_loader(cmd_args)

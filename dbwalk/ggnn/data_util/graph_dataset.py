@@ -20,7 +20,10 @@ class ProgGraph(object):
         graph = sample.gv_file
 
         self.label = prog_dict.label_map[sample.label]
-        self.target_idx = int(sample.anchor)
+        if sample.anchor != 'None':
+            self.target_idx = int(sample.anchor)
+        else:
+            self.target_idx = None
         self.num_node_feats = len(prog_dict.node_types)
         self.num_nodes = len(graph)
         self.typed_edge_list = [[] for _ in range(len(prog_dict.edge_types))]

@@ -14,20 +14,31 @@ from dbwalk.model.classifier import MulticlassNet
 from dbwalk.training.train import train_loop
 
 
-def eval_dataset(model, phase, eval_loader):
+def eval_nn_args(nn_args):
+    node_idx, edge_idx, node_val_mat, label = nn_args
+    if node_idx is None:
+        return None, None
+    if node_val_mat is not None:
+        node_val_mat = torch.sparse_coo_tensor(*node_val_mat).to(cmd_args.device)
+    if edge_idx is not None:
+        edge_idx = edge_idx.to(cmd_args.device)
+    nn_args = {'node_idx': node_idx.to(cmd_args.device),
+               'edge_idx': edge_idx,
+               'node_val_mat': node_val_mat}
+    return nn_args, label
+
+
+def eval_dataset(model, phase, eval_loader, fn_parse_eval_nn_args=eval_nn_args):
     true_labels = []
     pred_labels = []
     model.eval()
     pbar = tqdm(eval_loader)
-    for node_idx, edge_idx, node_val_mat, label in pbar:
-        if node_idx is None:
-            continue
+    for nn_args in pbar:
         with torch.no_grad():
-            if node_val_mat is not None:
-                node_val_mat = torch.sparse_coo_tensor(*node_val_mat).to(cmd_args.device)
-            if edge_idx is not None:
-                edge_idx = edge_idx.to(cmd_args.device)
-            logits = model(node_idx.to(cmd_args.device), edge_idx, node_val_mat=node_val_mat)
+            nn_args, label = fn_parse_eval_nn_args(nn_args)
+            if nn_args is None:
+                continue
+            logits = model(**nn_args)
             pred_labels += torch.argmax(logits, dim=1).data.cpu().numpy().flatten().tolist()
             true_labels += label.data.numpy().flatten().tolist()
         pbar.set_description('evaluating %s' % phase)
