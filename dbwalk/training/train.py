@@ -12,8 +12,23 @@ from dbwalk.common.configs import cmd_args, set_device
 from tqdm import tqdm
 
 
+def path_based_arg_constructor(nn_args):
+    node_idx, edge_idx, node_val_mat, label = nn_args
+    if node_val_mat is not None:
+        node_val_mat = torch.sparse_coo_tensor(*node_val_mat).to(cmd_args.device)
+    if edge_idx is not None:
+        edge_idx = edge_idx.to(cmd_args.device)
+    nn_args = {'node_idx': node_idx.to(cmd_args.device),
+               'edge_idx': edge_idx,
+               'node_val_mat': node_val_mat,
+               'label': label.to(cmd_args.device)}
+    return nn_args
 
-def train_loop(prog_dict, model, db_train, db_dev=None, fn_eval=None):
+
+def train_loop(prog_dict, model, db_train,
+               db_dev=None, 
+               fn_eval=None,
+               nn_arg_constructor=path_based_arg_constructor):
     train_loader = db_train.get_train_loader(cmd_args)
     dev_loader = db_dev.get_test_loader(cmd_args)
     optimizer = optim.Adam(model.parameters(), lr=cmd_args.learning_rate)
@@ -25,16 +40,13 @@ def train_loop(prog_dict, model, db_train, db_dev=None, fn_eval=None):
         model.train()
         for i in pbar:
             try:
-                node_idx, edge_idx, node_val_mat, label = next(train_iter)
+                nn_args = next(train_iter)
             except StopIteration:
                 train_iter = iter(train_loader)
-                node_idx, edge_idx, node_val_mat, label = next(train_iter)
+                nn_args = next(train_iter)
             optimizer.zero_grad()
-            if node_val_mat is not None:
-                node_val_mat = torch.sparse_coo_tensor(*node_val_mat).to(cmd_args.device)
-            if edge_idx is not None:
-                edge_idx = edge_idx.to(cmd_args.device)
-            loss = model(node_idx.to(cmd_args.device), edge_idx, node_val_mat=node_val_mat, label=label.to(cmd_args.device))
+            nn_args = nn_arg_constructor(nn_args)
+            loss = model(**nn_args)
             loss.backward()
             if cmd_args.grad_clip > 0:
                 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=cmd_args.grad_clip)

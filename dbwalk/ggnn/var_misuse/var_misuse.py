@@ -17,6 +17,7 @@ from dbwalk.ggnn.data_util.graph_dataset import AstGraphDataset
 from dbwalk.common.configs import cmd_args, set_device
 
 from dbwalk.ggnn.graphnet.graph_embed import get_gnn
+from dbwalk.training.train import train_loop
 
 
 class GnnBinary(nn.Module):
@@ -61,35 +62,9 @@ def eval_dataset(model, phase, eval_loader):
     return roc_auc
 
 
-def train_loop(prog_dict, model, db_train, db_dev=None, fn_eval=None):
-    train_loader = db_train.get_train_loader(cmd_args)
-    dev_loader = db_dev.get_test_loader(cmd_args)
-    optimizer = optim.Adam(model.parameters(), lr=cmd_args.learning_rate)
-    train_iter = iter(train_loader)
-
-    best_metric = -1
-    for epoch in range(cmd_args.num_epochs):
-        pbar = tqdm(range(cmd_args.iter_per_epoch))
-        model.train()
-        for i in pbar:
-            try:
-                graph_list, label = next(train_iter)
-            except StopIteration:
-                train_iter = iter(train_loader)
-                graph_list, label = next(train_iter)
-            optimizer.zero_grad()
-            loss = model(graph_list, label.to(cmd_args.device))
-            loss.backward()
-            if cmd_args.grad_clip > 0:
-                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=cmd_args.grad_clip)
-            pbar.set_description('step %d, loss: %.2f' % (cmd_args.iter_per_epoch * epoch + i, loss.item()))
-            optimizer.step()
-        if fn_eval is not None:
-            auc = fn_eval(model, 'dev', dev_loader)
-            if auc > best_metric:
-                best_metric = auc
-                print('saving model with best dev metric: %.4f' % best_metric)
-                torch.save(model.state_dict(), os.path.join(cmd_args.save_dir, 'model-best_dev.ckpt'))
+def gnn_arg_constructor(nn_args):
+    graph_list, label = nn_args
+    return {'graph_list': graph_list, 'label': label.to(cmd_args.device)}
 
 
 if __name__ == '__main__':
@@ -99,10 +74,18 @@ if __name__ == '__main__':
     torch.manual_seed(cmd_args.seed)
     prog_dict = ProgDict(cmd_args.data_dir)
 
-    #db_eval = AstGraphDataset(cmd_args, prog_dict, cmd_args.data_dir, 'eval')
-    #eval_loader = db_eval.get_test_loader(cmd_args)
     model = GnnBinary(cmd_args, prog_dict).to(cmd_args.device)
+    if cmd_args.phase == 'eval': 
+        db_eval = AstGraphDataset(cmd_args, prog_dict, cmd_args.data_dir, 'eval')
+        eval_loader = db_eval.get_test_loader(cmd_args)
+        assert cmd_args.model_dump is not None
+        model_dump = os.path.join(cmd_args.save_dir, cmd_args.model_dump)
+        print('loading model from', model_dump)
+        model.load_state_dict(torch.load(model_dump, map_location=cmd_args.device))    
+        eval_dataset(model, 'eval', eval_loader)
+        sys.exit()
 
     db_dev = AstGraphDataset(cmd_args, prog_dict, cmd_args.data_dir, 'dev')
     db_train = AstGraphDataset(cmd_args, prog_dict, cmd_args.data_dir, 'train')
-    train_loop(prog_dict, model, db_train, db_dev, eval_dataset)
+    train_loop(prog_dict, model, db_train, db_dev, eval_dataset,
+               nn_arg_constructor=gnn_arg_constructor)
