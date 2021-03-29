@@ -15,7 +15,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-from dbwalk.common.pytorch_util import gnn_spmm, MLP
+from dbwalk.common.pytorch_util import gnn_spmm, MLP, _param_init
 from dbwalk.ggnn.graphnet.s2v_lib import S2VLIB
 
 from torch_geometric.nn.conv import MessagePassing
@@ -24,15 +24,18 @@ from dbwalk.ggnn.graphnet.utils import get_agg, ReadoutNet, NONLINEARITIES, scat
 
 
 class GraphNN(nn.Module):
-    def __init__(self, latent_dim, output_dim, num_node_feats, num_edge_feats, max_lv, act_func, readout_agg, gnn_out):
+    def __init__(self, latent_dim, output_dim, num_node_feats, num_edge_feats, num_node_val_feats, max_lv, act_func, readout_agg, gnn_out):
         super(GraphNN, self).__init__()
         self.num_node_feats = num_node_feats
         self.num_edge_feats = num_edge_feats
+        self.num_node_val_feats = num_node_val_feats
         self.latent_dim = latent_dim
         self.output_dim = output_dim
         self.max_lv = max_lv
         self.act_func = NONLINEARITIES[act_func]
 
+        self.node_val_embedding = Parameter(torch.Tensor(num_node_val_feats, latent_dim))
+        _param_init(self.node_val_embedding)
         self.readout_net = ReadoutNet(node_state_dim=latent_dim,
                                       output_dim=output_dim,
                                       max_lv=max_lv,
@@ -62,8 +65,8 @@ class _MeanFieldLayer(MessagePassing):
 
 
 class S2VSingle(GraphNN):
-    def __init__(self, latent_dim, output_dim, num_node_feats, num_edge_feats, max_lv=3, act_func='relu', readout_agg='max', gnn_out='last'):
-        super(S2VSingle, self).__init__(latent_dim, output_dim, num_node_feats, num_edge_feats, max_lv, act_func, readout_agg, gnn_out)
+    def __init__(self, latent_dim, output_dim, num_node_feats, num_edge_feats, num_node_val_feats, max_lv=3, act_func='relu', readout_agg='max', gnn_out='last'):
+        super(S2VSingle, self).__init__(latent_dim, output_dim, num_node_feats, num_edge_feats, num_node_val_feats, max_lv, act_func, readout_agg, gnn_out)
 
         self.w_n2l = nn.Linear(num_node_feats, latent_dim)
         if self.num_edge_feats > 0:
@@ -81,10 +84,12 @@ class S2VSingle(GraphNN):
         self.msg_bn = nn.ModuleList(msg_bn)
         self.hidden_bn = nn.ModuleList(hidden_bn)
 
-    def forward(self, graph_list):
+    def forward(self, graph_list, node_val_mat):
         device = self.device
         node_feat = S2VLIB.ConcatFeats(graph_list, device)
         input_node_linear = self.w_n2l(node_feat)
+        node_embed_feat = gnn_spmm(node_val_mat, self.node_val_embedding)
+        input_node_linear = input_node_linear + node_embed_feat
         edge_from_idx, edge_to_idx, g_idx = S2VLIB.PrepareIndices(graph_list, device)
         input_message = input_node_linear
         if self.num_edge_feats > 0:
@@ -112,8 +117,9 @@ class S2VSingle(GraphNN):
 
 
 class S2VMulti(GraphNN):
-    def __init__(self, latent_dim, output_dim, num_node_feats, num_edge_feats, max_lv=3, readout_agg='max', act_func='tanh', gnn_out='last'):
-        super(S2VMulti, self).__init__(latent_dim, output_dim, num_node_feats, num_edge_feats, max_lv, act_func, readout_agg, gnn_out)
+    def __init__(self, latent_dim, output_dim, num_node_feats, num_edge_feats, num_node_val_feats,
+                max_lv=3, readout_agg='max', act_func='tanh', gnn_out='last'):
+        super(S2VMulti, self).__init__(latent_dim, output_dim, num_node_feats, num_edge_feats, num_node_val_feats, max_lv, act_func, readout_agg, gnn_out)
         self.readout_agg = get_agg(readout_agg)
 
         self.w_n2l = nn.Linear(num_node_feats, latent_dim)
@@ -159,16 +165,17 @@ class S2VMulti(GraphNN):
             all_embeds.append(cur_message_layer)
         return self.readout_net(all_embeds, g_idx, len(graph_list))
 
-    def forward(self, graph_list):
+    def forward(self, graph_list, node_val_mat):
         device = self.device
         node_feat = S2VLIB.ConcatFeats(graph_list, device)
-        input_node_linear = self.w_n2l(node_feat)
+        node_embed_feat = gnn_spmm(node_val_mat, self.node_val_embedding)
+        input_node_linear = self.w_n2l(node_feat) + node_embed_feat
         return self._forward(input_node_linear, graph_list)
 
 
 class Code2InvMulti(GraphNN):
-    def __init__(self, latent_dim, output_dim, num_node_feats, num_edge_feats, max_lv=3, readout_agg='max', act_func='tanh', gnn_out='last'):
-        super(Code2InvMulti, self).__init__(latent_dim, output_dim, num_node_feats, num_edge_feats, max_lv, act_func, readout_agg, gnn_out)
+    def __init__(self, latent_dim, output_dim, num_node_feats, num_edge_feats, num_node_val_feats, max_lv=3, readout_agg='max', act_func='tanh', gnn_out='last'):
+        super(Code2InvMulti, self).__init__(latent_dim, output_dim, num_node_feats, num_edge_feats, num_node_val_feats, max_lv, act_func, readout_agg, gnn_out)
         self.readout_agg = get_agg(readout_agg)
 
         self.w_n2l = nn.Linear(num_node_feats, latent_dim)
@@ -181,11 +188,13 @@ class Code2InvMulti(GraphNN):
         self.conv_param_list = nn.ModuleList(self.conv_param_list)
         self.merge_param_list = nn.ModuleList(self.merge_param_list)
 
-    def forward(self, graph_list):
+    def forward(self, graph_list, node_val_mat):
         device = self.device
         node_feat = S2VLIB.ConcatFeats(graph_list, device)
         sp_list = S2VLIB.PrepareMeanField(graph_list, device)
         input_node_linear = self.w_n2l(node_feat)
+        node_embed_feat = gnn_spmm(node_val_mat, self.node_val_embedding)
+        input_node_linear = input_node_linear + node_embed_feat
         h = self.mean_field(input_node_linear, sp_list)
         g_idx = []
         for i, g in enumerate(graph_list):
@@ -247,12 +256,13 @@ class GGNN(Code2InvMulti):
         return self.readout_net(h, g_idx, len(graph_list))
 
 
-def get_gnn(args, node_dim, edge_dim, name_dim=None):
+def get_gnn(args, node_dim, edge_dim, node_val_dim):
     if args.gnn_type == 's2v_code2inv':
         gnn = Code2InvMulti(args.gnn_msg_dim,
                             args.latent_dim,
                             node_dim,
                             edge_dim,
+                            node_val_dim,
                             max_lv=args.max_lv,
                             act_func=args.act_func)
     elif args.gnn_type == 's2v_single':
@@ -260,6 +270,7 @@ def get_gnn(args, node_dim, edge_dim, name_dim=None):
                         args.latent_dim,
                         node_dim,
                         edge_dim,
+                        node_val_dim,
                         max_lv=args.max_lv,
                         act_func=args.act_func,
                         readout_agg=args.readout_agg_type,
@@ -269,6 +280,7 @@ def get_gnn(args, node_dim, edge_dim, name_dim=None):
                        output_dim=args.latent_dim,
                        num_node_feats=node_dim,
                        num_edge_feats=edge_dim,
+                       num_node_val_feats=node_val_dim,
                        max_lv=args.max_lv,
                        act_func=args.act_func,
                        readout_agg=args.readout_agg_type,

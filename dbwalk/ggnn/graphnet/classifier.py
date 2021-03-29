@@ -15,16 +15,17 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from dbwalk.ggnn.graphnet.graph_embed import get_gnn
+from dbwalk.common.configs import cmd_args
 
 
 class GnnClassifierBase(nn.Module):
     def __init__(self, args, prog_dict, has_anchor):
         super(GnnClassifierBase, self).__init__()
-        self.gnn = get_gnn(args, len(prog_dict.node_types), len(prog_dict.edge_types))
+        self.gnn = get_gnn(args, len(prog_dict.node_types), len(prog_dict.edge_types), prog_dict.num_node_val_tokens)
         self.has_anchor = has_anchor
 
-    def get_embedding(self, graph_list):
-        graph_embed, (_, node_embed) = self.gnn(graph_list)
+    def get_embedding(self, graph_list, node_val_mat):
+        graph_embed, (_, node_embed) = self.gnn(graph_list, node_val_mat)
         if self.has_anchor:
             node_sel = []
             offset = 0
@@ -42,8 +43,8 @@ class GnnBinary(GnnClassifierBase):
         super(GnnBinary, self).__init__(args, prog_dict, has_anchor)
         self.out_classifier = nn.Linear(args.latent_dim * (2 if has_anchor else 1), 1)
 
-    def forward(self, graph_list, label=None):
-        state_repr = self.get_embedding(graph_list)
+    def forward(self, graph_list, node_val_mat, label=None):
+        state_repr = self.get_embedding(graph_list, node_val_mat)
         logits = self.out_classifier(state_repr)
         prob = torch.sigmoid(logits)
         if label is not None:
@@ -59,8 +60,8 @@ class GnnMulticlass(GnnClassifierBase):
         super(GnnMulticlass, self).__init__(args, prog_dict, has_anchor)
         self.out_classifier = nn.Linear(args.latent_dim * (2 if has_anchor else 1), prog_dict.num_class)
 
-    def forward(self, graph_list, label=None):
-        state_repr = self.get_embedding(graph_list)
+    def forward(self, graph_list, node_val_mat, label=None):
+        state_repr = self.get_embedding(graph_list, node_val_mat)
         logits = self.out_classifier(state_repr)
         if label is not None:
             label = label.to(logits.device).view(logits.shape[0])
@@ -68,3 +69,15 @@ class GnnMulticlass(GnnClassifierBase):
             return loss
         else:
             return logits
+
+
+def gnn_eval_nn_args(nn_args):
+    graph_list, node_val_mat, label = nn_args
+    node_val_mat = torch.sparse_coo_tensor(*node_val_mat).to(cmd_args.device)
+    return {'graph_list': graph_list, 'node_val_mat': node_val_mat}, label
+
+
+def gnn_arg_constructor(nn_args):
+    graph_list, node_val_mat, label = nn_args
+    node_val_mat = torch.sparse_coo_tensor(*node_val_mat).to(cmd_args.device)
+    return {'graph_list': graph_list, 'node_val_mat': node_val_mat, 'label': label.to(cmd_args.device)}

@@ -20,6 +20,7 @@ class ProgGraph(object):
         graph = sample.gv_file
 
         self.label = prog_dict.label_map[sample.label]
+        self.node_val_dim = prog_dict.num_node_val_tokens
         if sample.anchor != 'None':
             self.target_idx = int(sample.anchor)
         else:
@@ -40,17 +41,34 @@ class ProgGraph(object):
             self.typed_edge_list[fwd_idx].append((x, y))
             self.typed_edge_list[backwd_idx].append((y, x))
         self.node_list = [None] * self.num_nodes
-
+        self.node_val_coo = []
         for idx, node in enumerate(graph.nodes(data=True)):
+            assert idx == int(node[0])
             self.node_list[idx] = prog_dict.node_types[node[1]['label']]
+            for i in node[1]['val_idx']:
+                self.node_val_coo.append((idx, i))
+        if len(self.node_val_coo):
+            self.node_val_coo = np.array(self.node_val_coo, dtype=np.int32).T
+        else:
+            self.node_val_coo = None
 
 
 def collate_graph_data(list_samples):
     labels = []
+    list_val_coo = []
+    offset = 0
     for g in list_samples:
         labels.append(g.label)
+        if g.pg.node_val_coo is not None:
+            cur_coo = g.pg.node_val_coo.copy()
+            cur_coo[0, :] += offset
+            list_val_coo.append(cur_coo)
+        offset += g.num_nodes
+    list_val_coo = np.concatenate(list_val_coo, axis=1)
     labels = torch.LongTensor(labels)
-    return list_samples, labels
+    node_val_mat = (torch.LongTensor(list_val_coo), torch.ones((list_val_coo.shape[1],)),
+                    (offset, g.pg.node_val_dim))
+    return list_samples, node_val_mat, labels
 
 
 class AstGraphDataset(Dataset):

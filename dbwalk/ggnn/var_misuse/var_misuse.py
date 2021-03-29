@@ -5,7 +5,7 @@ import sys
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+from functools import partial
 from tqdm import tqdm
 import numpy as np
 import random
@@ -16,31 +16,8 @@ from dbwalk.data_util.dataset import ProgDict
 from dbwalk.ggnn.data_util.graph_dataset import AstGraphDataset
 from dbwalk.common.configs import cmd_args, set_device
 
-from dbwalk.ggnn.graphnet.classifier import GnnBinary
-from dbwalk.training.train import train_loop
-
-
-def eval_dataset(model, phase, eval_loader):
-    true_labels = []
-    pred_probs = []
-    model.eval()
-    pbar = tqdm(eval_loader)
-    for graph_list, label in pbar:
-        with torch.no_grad():
-            pred = model(graph_list).data.cpu().numpy()
-            pred_probs += pred.flatten().tolist()
-            true_labels += label.data.numpy().flatten().tolist()
-        pbar.set_description('evaluating %s' % phase)
-    roc_auc = roc_auc_score(true_labels, pred_probs)
-    pred_label = np.where(np.array(pred_probs) > 0.5, 1, 0)
-    acc = np.mean(pred_label == np.array(true_labels, dtype=pred_label.dtype))
-    print('%s auc: %.4f, acc: %.4f' % (phase, roc_auc, acc))
-    return roc_auc
-
-
-def gnn_arg_constructor(nn_args):
-    graph_list, label = nn_args
-    return {'graph_list': graph_list, 'label': label.to(cmd_args.device)}
+from dbwalk.ggnn.graphnet.classifier import GnnBinary, gnn_arg_constructor, gnn_eval_nn_args
+from dbwalk.training.train import train_loop, binary_eval_dataset
 
 
 if __name__ == '__main__':
@@ -51,6 +28,7 @@ if __name__ == '__main__':
     prog_dict = ProgDict(cmd_args.data_dir)
 
     model = GnnBinary(cmd_args, prog_dict, has_anchor=True).to(cmd_args.device)
+    eval_func = partial(binary_eval_dataset, fn_parse_eval_nn_args=gnn_eval_nn_args)
     if cmd_args.phase == 'eval': 
         db_eval = AstGraphDataset(cmd_args, prog_dict, cmd_args.data_dir, 'eval')
         eval_loader = db_eval.get_test_loader(cmd_args)
@@ -58,10 +36,10 @@ if __name__ == '__main__':
         model_dump = os.path.join(cmd_args.save_dir, cmd_args.model_dump)
         print('loading model from', model_dump)
         model.load_state_dict(torch.load(model_dump, map_location=cmd_args.device))    
-        eval_dataset(model, 'eval', eval_loader)
+        eval_func(model, 'eval', eval_loader)
         sys.exit()
 
     db_dev = AstGraphDataset(cmd_args, prog_dict, cmd_args.data_dir, 'dev')
     db_train = AstGraphDataset(cmd_args, prog_dict, cmd_args.data_dir, 'train')
-    train_loop(prog_dict, model, db_train, db_dev, eval_dataset,
+    train_loop(prog_dict, model, db_train, db_dev, eval_func,
                nn_arg_constructor=gnn_arg_constructor)

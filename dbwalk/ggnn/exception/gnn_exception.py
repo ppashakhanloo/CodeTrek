@@ -9,17 +9,9 @@ from functools import partial
 
 from dbwalk.data_util.dataset import ProgDict
 from dbwalk.common.configs import cmd_args, set_device
-from dbwalk.training.train import train_loop
-from dbwalk.ex_classify.main import eval_dataset
-
-from dbwalk.ggnn.graphnet.classifier import GnnMulticlass
-from dbwalk.ggnn.var_misuse.var_misuse import gnn_arg_constructor
+from dbwalk.training.train import train_loop, multiclass_eval_dataset
+from dbwalk.ggnn.graphnet.classifier import GnnMulticlass, gnn_eval_nn_args, gnn_arg_constructor
 from dbwalk.ggnn.data_util.graph_dataset import AstGraphDataset
-
-
-def gnn_eval_nn_args(nn_args):
-    graph_list, label = nn_args
-    return {'graph_list': graph_list}, label
 
 
 if __name__ == '__main__':
@@ -31,7 +23,7 @@ if __name__ == '__main__':
 
     model = GnnMulticlass(cmd_args, prog_dict, has_anchor=False).to(cmd_args.device)
 
-    eval_func = partial(eval_dataset, fn_parse_eval_nn_args=gnn_eval_nn_args)
+    eval_func = partial(multiclass_eval_dataset, fn_parse_eval_nn_args=gnn_eval_nn_args)
     if cmd_args.phase == 'eval': 
         db_eval = AstGraphDataset(cmd_args, prog_dict, cmd_args.data_dir, 'eval')
         eval_loader = db_eval.get_test_loader(cmd_args)
