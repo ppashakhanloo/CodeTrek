@@ -27,7 +27,7 @@ python code2seq_exception.py \
     -dim_feedforward $hidden \
     -transformer_layers $nlayer \
     -max_steps $max_steps \
-    -iter_per_epoch 1000 \
+    -iter_per_epoch 600 \
     -learning_rate 1e-3 \
     -num_proc 0 \
     -gpu 0 \

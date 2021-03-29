@@ -19,7 +19,7 @@ if __name__ == '__main__':
     torch.manual_seed(cmd_args.seed)
     prog_dict = ProgDict(cmd_args.data_dir)
 
-    model = MultiClassCode2seqNet(cmd_args, prog_dict)
+    model = MultiClassCode2seqNet(cmd_args, prog_dict).to(cmd_args.device)
     if cmd_args.phase == 'eval': 
         db_eval = AstPathDataset(cmd_args, prog_dict, cmd_args.data_dir, 'eval')
         eval_loader = db_eval.get_test_loader(cmd_args)
