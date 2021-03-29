@@ -107,10 +107,16 @@ def collate_raw_data(list_samples):
         word_dim = 0
         for i, s in enumerate(list_samples):
             coo, word_dim = s.node_val_idx
-            row_ids = (coo[:, 0] * sp_shape[1] + coo[:, 1]) * sp_shape[2] + i
-            list_coos.append(np.stack((row_ids, coo[:, 2])))
-        list_coos = np.concatenate(list_coos, axis=1)
-        node_val_mat = (torch.LongTensor(list_coos), torch.ones((list_coos.shape[1],)),
+            if coo.shape[0]:
+                row_ids = (coo[:, 0] * sp_shape[1] + coo[:, 1]) * sp_shape[2] + i
+                list_coos.append(np.stack((row_ids, coo[:, 2])))
+        if len(list_coos):
+            list_coos = torch.LongTensor(np.concatenate(list_coos, axis=1))
+            vals = torch.ones((list_coos.shape[1],))
+        else:
+            list_coos = torch.LongTensor(size=[2, 0])
+            vals = torch.ones((0,))
+        node_val_mat = (list_coos, vals,
                         (sp_shape[0] * sp_shape[1] * sp_shape[2], sp_shape[3]))
         return full_node_idx, full_edge_idx, node_val_mat, label
 
