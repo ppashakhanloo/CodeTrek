@@ -25,7 +25,9 @@ def eval_dataset(model, phase, eval_loader):
         with torch.no_grad():
             if node_val_mat is not None:
                 node_val_mat = torch.sparse_coo_tensor(*node_val_mat).to(cmd_args.device)
-            logits = model(node_idx.to(cmd_args.device), edge_idx.to(cmd_args.device), node_val_mat=node_val_mat)
+            if edge_idx is not None:
+                edge_idx = edge_idx.to(cmd_args.device)
+            logits = model(node_idx.to(cmd_args.device), edge_idx, node_val_mat=node_val_mat)
             pred_labels += torch.argmax(logits, dim=1).data.cpu().numpy().flatten().tolist()
             true_labels += label.data.numpy().flatten().tolist()
         pbar.set_description('evaluating %s' % phase)

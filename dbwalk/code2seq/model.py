@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.nn.parameter import Parameter
 from dbwalk.common.pytorch_util import gnn_spmm, _param_init
 
@@ -49,9 +50,8 @@ class BinaryCode2seqNet(nn.Module):
         super(BinaryCode2seqNet, self).__init__()
         assert prog_dict.num_class == 2
         self.tok_encoder = Code2seqTokEmbedWithVal(prog_dict, args.embed_dim)
-
-        self.out_classifier = nn.Linear(args.embed_dim, 1)
         self.ctx_encoder = Code2seqEncoder(args.transformer_layers, args.embed_dim)
+        self.out_classifier = nn.Linear(args.embed_dim, 1)
 
     def forward(self, node_idx, edge_idx, *, node_val_mat, label=None):
         assert edge_idx is None
@@ -66,3 +66,24 @@ class BinaryCode2seqNet(nn.Module):
             return torch.mean(loss)
         else:
             return prob
+
+
+class MultiClassCode2seqNet(nn.Module):
+    def __init__(self, args, prog_dict):
+        super(MultiClassCode2seqNet, self).__init__()
+        self.tok_encoder = Code2seqTokEmbedWithVal(prog_dict, args.embed_dim)
+        self.ctx_encoder = Code2seqEncoder(args.transformer_layers, args.embed_dim)
+        self.out_classifier = nn.Linear(args.embed_dim, prog_dict.num_class)
+
+    def forward(self, node_idx, edge_idx, *, node_val_mat, label=None):
+        assert edge_idx is None
+        node_embed, node_val_embed = self.tok_encoder(node_idx, node_val_mat)
+        prog_repr = self.ctx_encoder(node_embed, node_val_embed)
+
+        logits = self.out_classifier(prog_repr)
+        if label is not None:
+            label = label.to(logits.device).view(logits.shape[0])
+            loss = F.cross_entropy(logits, label)
+            return loss
+        else:
+            return logits
