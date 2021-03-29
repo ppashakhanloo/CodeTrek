@@ -19,7 +19,6 @@ class AstTree(object):
         graph = sample.gv_file
         self.graph = graph
         self.label = prog_dict.label_map[sample.label]
-        self.target_idx = int(sample.anchor)
         self.num_nodes = len(graph)
         self.root = None
         self.parent_list = [-1] * self.num_nodes
@@ -29,7 +28,9 @@ class AstTree(object):
             assert self.parent_list[y] < 0
             self.parent_list[y] = x
             self.is_leaf[x] = False
-        assert self.is_leaf[self.target_idx]
+        if sample.anchor != 'None':
+            self.target_idx = int(sample.anchor)
+            assert self.is_leaf[self.target_idx]
         for i in range(self.num_nodes):
             if self.parent_list[i] < 0:
                 assert self.root is None
@@ -49,7 +50,7 @@ class AstTree(object):
             p.append(x)
         return p
 
-    def sample_paths(self, num_paths):
+    def sample_paths(self, num_paths, max_steps):
         node_val_coo = []
         list_traj = []
         max_len = 0
@@ -58,6 +59,9 @@ class AstTree(object):
             p1 = self._get_path2root(x)
             p2 = self._get_path2root(y)
             path = p1[:-1] + p2[::-1]
+            if len(path) > max_steps:
+                st = np.random.randint(len(path) - max_steps + 1)
+                path = path[st:st+max_steps]
             max_len = max(max_len, len(path))
             for i in self.node_val_list[x]:
                 node_val_coo.append((0, traj_idx, i))
@@ -90,9 +94,10 @@ def collate_raw_data(list_samples):
     sp_shape = (2, num_paths, len(list_samples), word_dim)
     list_coos = []
     for i, s in enumerate(list_samples):
-        coo, word_dim = s.node_val_idx    
-        row_ids = (coo[:, 0] * sp_shape[1] + coo[:, 1]) * sp_shape[2] + i
-        list_coos.append(np.stack((row_ids, coo[:, 2])))
+        coo, word_dim = s.node_val_idx
+        if coo.shape[0]:
+            row_ids = (coo[:, 0] * sp_shape[1] + coo[:, 1]) * sp_shape[2] + i
+            list_coos.append(np.stack((row_ids, coo[:, 2])))
     list_coos = np.concatenate(list_coos, axis=1)
     node_val_mat = (torch.LongTensor(list_coos), torch.ones((list_coos.shape[1],)),
                     (sp_shape[0] * sp_shape[1] * sp_shape[2], sp_shape[3]))
@@ -105,6 +110,7 @@ class AstPathDataset(Dataset):
         self.prog_dict = prog_dict
         self.args = args
         self.phase = phase
+        self.max_steps = args.max_steps
         if self.phase != 'train':
             assert sample_prob is None
 
@@ -119,7 +125,7 @@ class AstPathDataset(Dataset):
     def __getitem__(self, idx):
         raw_sample = self.merged_gh[idx]
         tree = AstTree(raw_sample, self.prog_dict)
-        mat_path, node_val_coo = tree.sample_paths(self.args.num_walks)
+        mat_path, node_val_coo = tree.sample_paths(self.args.num_walks, self.max_steps)
         return RawData(mat_path, None, (node_val_coo, self.prog_dict.num_node_val_tokens), raw_sample.source, self.prog_dict.label_map[raw_sample.label])
 
     def get_train_loader(self, cmd_args):

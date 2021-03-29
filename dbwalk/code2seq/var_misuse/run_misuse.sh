@@ -1,16 +1,16 @@
 #!/bin/bash
 
 data_root=$HOME/data/dataset/dbwalk/code2seq
-data_name=debug_code2seq_misuse
+data_name=code2seq_varmisuse
 
-bsize=11
-nlayer=1
-embed=16
+bsize=32
+nlayer=4
+embed=256
 hidden=512
+max_steps=25
+export CUDA_VISIBLE_DEVICES=1
 
-export CUDA_VISIBLE_DEVICES=0
-
-save_dir=$HOME/scratch/results/dbwalk/code2seq/$data_name/b-$bsize-emb-$embed-nl-$nlayer
+save_dir=$HOME/scratch/results/dbwalk/code2seq/$data_name/b-$bsize-emb-$embed-nl-$nlayer-ms-$max_steps
 
 if [ ! -e $save_dir ];
 then
@@ -26,6 +26,7 @@ python code2sec_var_misuse.py \
     -embed_dim $embed \
     -dim_feedforward $hidden \
     -transformer_layers $nlayer \
+    -max_steps $max_steps \
     -iter_per_epoch 1000 \
     -learning_rate 1e-3 \
     -num_proc 0 \

@@ -1,7 +1,8 @@
 #!/bin/bash
 
 data_root=$HOME/data/dataset/dbwalk/code2seq
-data_name=debug_code2seq_misuse
+data_name=code2seq_varmisuse
+lang=python
 
 python -m dbwalk.code2seq.data_util.cook_ast_trees \
     -data_dir $data_root \
