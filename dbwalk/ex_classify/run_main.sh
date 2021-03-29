@@ -17,7 +17,7 @@ use_node_val=True
 
 export CUDA_VISIBLE_DEVICES=0
 
-save_dir=$HOME/scratch/results/dbwalk/exception/gen-$online-b-$bsize-emb-$embed-nl-$nlayer-head-$nhead-hid-$hidden-dp-$dropout-set-$setenc-sv-$shuffle_var-nv-$use_node_val
+save_dir=$HOME/scratch/results/dbwalk/$data_name/gen-$online-b-$bsize-emb-$embed-nl-$nlayer-head-$nhead-hid-$hidden-dp-$dropout-set-$setenc-sv-$shuffle_var-nv-$use_node_val
 
 if [ ! -e $save_dir ];
 then

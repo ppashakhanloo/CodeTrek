@@ -19,7 +19,7 @@ python gnn_exception.py \
     -save_dir $save_dir \
     -batch_size 64 \
     -max_lv $lv \
-    -iter_per_epoch 10 \
+    -iter_per_epoch 300 \
     -num_proc 0 \
     -gpu 0 \
     -learning_rate 1e-4 \

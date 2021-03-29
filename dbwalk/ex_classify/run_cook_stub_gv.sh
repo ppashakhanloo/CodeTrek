@@ -1,7 +1,7 @@
 #!/bin/bash
 
 data_root=$HOME/data/dataset/dbwalk
-data_name=debug_except_large
+data_name=exception_large
 lang=python
 
 python -m dbwalk.data_util.cook_from_gv_stub \
