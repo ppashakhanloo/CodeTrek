@@ -1,20 +1,20 @@
 #!/bin/bash
 
 ## set the following two lines:
-PYTHON_SRC_BASE=/home/pardisp/raw_source_files
+DATA_SOURCE_BASE=/home/pardisp/raw_source_files
 IMPLEMENTATION_BASE=/home/pardisp/relational-representation
 
 
 
-GEN_STUBS_BASE=$IMPLEMENTATION_BASE/data_prep/random_walk.py
+GEN_STUB_BASE=$IMPLEMENTATION_BASE/data_prep/random_walk
 TASK_QUERIES_BASE=$IMPLEMENTATION_BASE/python_codeql/python-edb-queries
 GRAPH_BUILDER=$IMPLEMENTATION_BASE/data_prep/graph/build_graph.py
 
 run_one_dir_exception() {
-  category="$1"
+  category="$1" # dev, eval, train
   size=$2 # small, large
-  data_dir="$PYTHON_SRC_BASE/$category"
-  db_dir=db-$data_dir
+  data_dir="$DATA_SOURCE_BASE/$category"  # example: /home/pardisp/raw_source_data/dev/{.py,_label.txt}
+  db_dir=$DATA_SOURCE_BASE"-db"/$category
   tmp_filename=tmp_src_el_$category
   query_dir=$TASK_QUERIES_BASE/task_exception_queries_$size
   log_filename=log_el_$category.txt
@@ -28,7 +28,8 @@ run_one_dir_exception() {
     echo $data_dir/$f >> $log_filename
 
     echo "generate database..."
-    rm -rf $tmp_filename && mkdir $tmp_filename
+    rm -rf $tmp_filename
+    mkdir $tmp_filename
     cp $data_dir/$f $tmp_filename/
     codeql database create $db_dir/$f --threads=32 --language=python --quiet --source-root=$tmp_filename >& /dev/null
     echo "gen db" $? >> $log_filename
@@ -42,16 +43,16 @@ run_one_dir_exception() {
     echo "graph" $? >> $log_filename
 
     echo "gen stubs..."
-    python3 $RANDOM_WALK_BASE/gen_stubs_exception.py $db_dir/$f/graph_$f.gv $db_dir/$f/tables $data_dir/$f_label.txt $db_dir/$f/stub_$f.json
+    python3 $GEN_STUB_BASE/gen_stubs_exception.py $db_dir/$f/graph_$f.gv $db_dir/$f/tables $data_dir/"$f"_label.txt $db_dir/$f/stub_$f.json
     echo "stub" $? >> $log_filename
   done
 }
 
 run_one_dir_misuse() {
-  category="$1"
-  label="$2" # correct or misuse
-  data_dir="$PYTHON_SRC_BASE/$category"
-  db_dir=db-$data_dir
+  category="$1" # dev, eval, train
+  label="$2" # correct, misuse
+  data_dir="$DATA_SOURCE_BASE/$category" # example: /home/pardisp/raw_source_data/dev/{correct,misuse}/{.py}
+  db_dir=$DATA_SOURCE_BASE"-db"/$category
   tmp_filename=tmp_src_vmu_$category
   query_dir=$TASK_QUERIES_BASE/task_varmisuse_queries
   log_filename=log_vmu_$category.txt
@@ -65,7 +66,8 @@ run_one_dir_misuse() {
     echo $data_dir/$f >> $log_filename
 
     echo "generate database..."
-    rm -rf $tmp_filename && mkdir $tmp_filename
+    rm -rf $tmp_filename
+    mkdir $tmp_filename
     cp $data_dir/$f $tmp_filename/
     codeql database create $db_dir/$f --threads=32 --language=python --quiet --source-root=$tmp_filename >& /dev/null
     echo "gen db" $? >> $log_filename
@@ -79,15 +81,15 @@ run_one_dir_misuse() {
     echo "graph" $? >> $log_filename
 
     echo "gen stubs..."
-    python3 $RANDOM_WALK_BASE/gen_stubs_varmisuse.py $db_dir/$f/graph_$f.gv $label $db_dir/$f/stub_$f.json
+    python3 $GEN_STUB_BASE/gen_stubs_varmisuse.py $db_dir/$f/graph_$f.gv $label $db_dir/$f/stub_$f.json
     echo "stub" $? >> $log_filename
   done
 }
 
 run_one_dir_defuse() {
-  category="$1"
-  data_dir="$PYTHON_SRC_BASE/$category"
-  db_dir=db-$data_dir
+  category="$1" # dev, eval, train
+  data_dir="$DATA_SOURCE_BASE/$category" # example: /home/pardisp/raw_source_data/dev/{.py}
+  db_dir="$DATA_SOURCE_BASE"-db/$category
   tmp_filename=tmp_src_du_$category
   query_dir=$TASK_QUERIES_BASE/task_defuse_queries
   log_filename=log_du_$category.txt
@@ -101,7 +103,8 @@ run_one_dir_defuse() {
     echo $data_dir/$f >> $log_filename
 
     echo "generate database..."
-    rm -rf $tmp_filename && mkdir $tmp_filename
+    rm -rf $tmp_filename
+    mkdir $tmp_filename
     cp $data_dir/$f $tmp_filename/
     codeql database create $db_dir/$f --threads=32 --language=python --quiet --source-root=$tmp_filename >& /dev/null
     echo "gen db" $? >> $log_filename
@@ -115,7 +118,7 @@ run_one_dir_defuse() {
     echo "graph" $? >> $log_filename
 
     echo "gen stubs..."
-    python3 $RANDOM_WALK_BASE/gen_stubs_defuse.py $db_dir/$f/graph_$f.gv $db_dir/$f/tables $db_dir/$f/tables/unused_var.csv $db_dir/$f/stub_$f.json
+    python3 $GEN_STUB_BASE/gen_stubs_defuse.py $db_dir/$f/graph_$f.gv $db_dir/$f/tables $db_dir/$f/tables/unused_var.csv $db_dir/$f/stub_$f.json
     echo "stub" $? >> $log_filename
   done
 }
