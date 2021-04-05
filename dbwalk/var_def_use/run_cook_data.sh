@@ -1,7 +1,7 @@
 #!/bin/bash
 
 data_root=$HOME/data/dataset/dbwalk
-data_name=walks
+data_name=defuse_offline
 chunk_size=50000
 
 python -m dbwalk.data_util.cook_data \

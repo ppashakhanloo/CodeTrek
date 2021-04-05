@@ -127,7 +127,13 @@ class InMemDataest(Dataset):
 
         self.prog_dict = prog_dict
         self.phase = phase
-        self.sample_prob = sample_prob
+        if sample_prob is not None:
+            self.label_keys = list(sample_prob.keys())
+            self.sample_prob = []
+            for key in self.label_keys:
+                self.sample_prob.append(sample_prob[key])
+        else:
+            self.sample_prob = self.label_keys = None
         self.shuffle_var = shuffle_var
         assert self.prog_dict.node_idx(TOK_PAD) == self.prog_dict.edge_idx(TOK_PAD) == 0
 
@@ -143,7 +149,7 @@ class InMemDataest(Dataset):
                     node_mat, edge_mat, src, str_label = d[key]
                     raw_sample = RawData(node_mat, edge_mat, None, src, self.prog_dict.label_map[str_label])
                     self.list_samples.append((key, raw_sample))
-                    self.labeled_samples[raw_sample.label].append((key, raw_sample))
+                    self.labeled_samples[str_label].append((key, raw_sample))
 
         print('# samples in %s: %d' % (phase, len(self.list_samples)))
 
@@ -156,7 +162,7 @@ class InMemDataest(Dataset):
         else:
             assert self.phase == 'train'
             sample_cls = np.argmax(np.random.multinomial(1, self.sample_prob))
-            samples = self.labeled_samples[sample_cls]
+            samples = self.labeled_samples[self.label_keys[sample_cls]]
             idx = np.random.randint(len(samples))
             _, raw_sample = samples[idx]
         if self.shuffle_var:
@@ -228,10 +234,10 @@ class AbstractOnlineWalkDB(Dataset):
                     for tok in toks:
                         t = get_or_unk(self.prog_dict.node_val_tokens, tok)
                         node_val_coo.append((node_pos, traj_idx, t))
-            node_val_coo = np.array(node_val_coo, dtype=np.int32)
+            node_val_coo = (np.array(node_val_coo, dtype=np.int32), self.prog_dict.num_node_val_tokens)
         else:
             node_val_coo = None
-        return RawData(node_mat, edge_mat, (node_val_coo, self.prog_dict.num_node_val_tokens), raw_sample.source, self.prog_dict.label_map[raw_sample.label])
+        return RawData(node_mat, edge_mat, node_val_coo, raw_sample.source, self.prog_dict.label_map[raw_sample.label])
 
 
 class FastOnlineWalkDataset(AbstractOnlineWalkDB):

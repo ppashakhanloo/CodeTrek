@@ -33,6 +33,7 @@ if __name__ == '__main__':
     for phase in ['train', 'dev', 'eval']:
         folder = os.path.join(cmd_args.data_dir, cmd_args.data, phase)
         files = os.listdir(folder)
+        json_files = set([fname for fname in files if fname.endswith('json')])
         files = [fname for fname in files if fname.endswith('gv')]
         out_folder = os.path.join(cmd_args.data_dir, cmd_args.data, 'cooked_' + phase)
         if not os.path.isdir(out_folder):
@@ -67,8 +68,11 @@ if __name__ == '__main__':
                 get_or_add(edge_types, edge)
             if len(var_set) > max_num_vars:
                 max_num_vars = len(var_set)
-            json_name = sep.join(fname.split(sep)[1:])
-            json_name = 'stub' + sep + '.'.join(json_name.split('.')[:-1]) + '.json'                
+            tmp = sep.join(fname.split(sep)[1:])
+            for cand in ['stub', 'walks', 'stubs']:
+                json_name = cand + sep + '.'.join(tmp.split('.')[:-1]) + '.json'
+                if json_name in json_files:
+                    break
             with open(os.path.join(folder, json_name), 'r') as f:
                 meta_data_list = json.load(f)
             for meta_data in meta_data_list:

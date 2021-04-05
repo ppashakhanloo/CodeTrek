@@ -126,9 +126,9 @@ class GraphHolder(object):
     def __getitem__(self, g_idx):
         assert g_idx >= 0 and g_idx < self.num_graphs
         if self.is_directed:
-            g = nx.empty_graph(0, nx.MultiGraph)
-        else:
             g = nx.empty_graph(0, nx.MultiDiGraph)
+        else:
+            g = nx.empty_graph(0, nx.MultiGraph)
 
         node_offset = self.list_node_offset[g_idx]
         edge_offset = self.list_edge_offset[g_idx]

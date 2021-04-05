@@ -48,16 +48,16 @@ def make_mat(list_traj, max_n_nodes, max_n_edges):
     return mat_node, mat_edge
 
 
-def make_mat_from_raw(list_traj_dict, node_types, edge_types):
+def make_mat_from_raw(list_traj_dict, node_types, edge_types, type_filed='node_types'):
     var_dict = {}
     list_traj = []
     max_len_nodes = 0
     max_len_edges = 0
     for traj in list_traj_dict:
         seq_nodes = []
-        max_len_nodes = max(max_len_nodes, len(traj['node_types']))
+        max_len_nodes = max(max_len_nodes, len(traj[type_filed]))
         max_len_edges = max(max_len_edges, len(traj['edges']))
-        for node in traj['node_types']:
+        for node in traj[type_filed]:
             if node.startswith('v_'):
                 v_idx = get_or_add(var_dict, node)
                 seq_nodes.append(get_or_unk(node_types, 'var_%d' % v_idx))
@@ -74,10 +74,12 @@ if __name__ == '__main__':
     print(label_dict)
     node_types = {}
     edge_types = {}
+    token_vocab = {}
 
     for key in [TOK_PAD, UNK]:
         get_or_add(node_types, key)
         get_or_add(edge_types, key)
+        get_or_add(token_vocab, key)
 
     max_num_vars = 0
     print('building dict')
@@ -118,6 +120,7 @@ if __name__ == '__main__':
         d['edge_types'] = edge_types
         d['n_vars'] = max_num_vars
         d['var_dict'] = var_dict
+        d['token_vocab'] = token_vocab
         d['var_reverse_dict'] = var_reverse_dict
         cp.dump(d, f, cp.HIGHEST_PROTOCOL)
 
@@ -139,7 +142,7 @@ if __name__ == '__main__':
             with open(os.path.join(folder, fname), 'r') as f:
                 d = json.load(f)
                 for sample_idx, sample in enumerate(d):
-                    node_mat, edge_mat = make_mat_from_raw(sample['trajectories'], node_types, edge_types)
+                    node_mat, edge_mat = make_mat_from_raw(sample['trajectories'], node_types, edge_types, type_filed='nodes')
                     assert sample['label'] in label_dict, 'unknown label %s' % sample['label']
                     chunk_buf['%s-%d' % (fname_prefix, sample_idx)] = (node_mat, edge_mat, sample['source'], sample['label'])
             if len(chunk_buf) >= cmd_args.data_chunk_size:
