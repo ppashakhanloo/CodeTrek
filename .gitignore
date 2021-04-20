@@ -35,6 +35,6 @@ java_codeql/**/*.pdf
 *.egg-info/
 
 # Keep test files
-!dbwalk/rand_walk/testfiles/*.json
-!java_codeql/testfiles/*.gv
+!**/testfiles/**/*.gv
+!**/testfiles/**/*.json
 

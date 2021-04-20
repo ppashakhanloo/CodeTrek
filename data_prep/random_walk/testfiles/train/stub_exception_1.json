@@ -1,0 +1,9 @@
+[
+    {
+        "anchor": "py_stmts(4374,6,4373,0)",
+        "trajectories": [],
+        "hints": [],
+        "label": "KeyError",
+        "source": "allwalks/walks_exception_train_file_1/file_1_graph.gv"
+    }
+]
