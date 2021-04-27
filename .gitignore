@@ -13,11 +13,11 @@ __pycache__
 
 # temp files
 *.json
+*.gv
 python_codeql/**/.cache
 python_codeql/**/*.bqrs
 python_codeql/**/*.csv
 python_codeql/**/*.facts
-python_codeql/**/*.gv
 python_codeql/**/*.pdf
 python_codeql/pysrc
 python_codeql/pydb
@@ -30,7 +30,6 @@ java_codeql/**/.cache
 java_codeql/**/*.bqrs
 java_codeql/**/*.csv
 java_codeql/**/*.facts
-java_codeql/**/*.gv
 java_codeql/**/*.pdf
 *.egg-info/
 

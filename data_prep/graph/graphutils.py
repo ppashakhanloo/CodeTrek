@@ -33,7 +33,7 @@ class GraphUtils:
         outfile.close()
 
     @staticmethod
-    def find_node_by_label(graph: AGraph, node_label: str) -> Node:
+    def find_node_by_label(graph: AGraph, node_label: str) -> str:
         for node in graph.nodes():
             if graph.nodes()[node]['label'] == node_label:
                 return node
