@@ -175,11 +175,11 @@ class InMemDataest(Dataset):
                         raw_sample.node_idx[i, j] = self.prog_dict.var_dict[var_remap[old_var_idx]]
         return raw_sample
 
-    def get_test_loader(self, cmd_args):
-        return DataLoader(self, batch_size=cmd_args.batch_size, shuffle=False, drop_last=False, collate_fn=collate_raw_data, num_workers=0)
+    def get_test_loader(self, args):
+        return DataLoader(self, batch_size=args.batch_size, shuffle=False, drop_last=False, collate_fn=collate_raw_data, num_workers=0)
 
-    def get_train_loader(self, cmd_args):
-        return DataLoader(self, batch_size=cmd_args.batch_size, shuffle=True, drop_last=True, collate_fn=collate_raw_data, num_workers=0)        
+    def get_train_loader(self, args):
+        return DataLoader(self, batch_size=args.batch_size, shuffle=True, drop_last=True, collate_fn=collate_raw_data, num_workers=0)        
 
 
 class WorkerContext(object):
@@ -204,22 +204,22 @@ class AbstractOnlineWalkDB(Dataset):
         self.shuffle_var = shuffle_var
         assert self.prog_dict.node_idx(TOK_PAD) == self.prog_dict.edge_idx(TOK_PAD) == 0
 
-    def get_train_loader(self, cmd_args):
+    def get_train_loader(self, args):
         loader = DataLoader(self,
-                            batch_size=cmd_args.batch_size,
+                            batch_size=args.batch_size,
                             shuffle=True,
                             drop_last=True,
                             collate_fn=collate_raw_data,
-                            num_workers=cmd_args.num_proc)
+                            num_workers=args.num_proc)
         return loader
 
-    def get_test_loader(self, cmd_args):
+    def get_test_loader(self, args):
         loader = DataLoader(self,
-                            batch_size=cmd_args.batch_size,
+                            batch_size=args.batch_size,
                             shuffle=False,
                             drop_last=False,
                             collate_fn=collate_raw_data,
-                            num_workers=cmd_args.num_proc)
+                            num_workers=args.num_proc)
         return loader
 
     def get_item_from_rawfile(self, raw_sample, walker):
