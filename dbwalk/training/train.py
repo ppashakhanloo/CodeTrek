@@ -121,11 +121,15 @@ def train_loop(args, device, prog_dict, model, db_train,
                db_dev=None, 
                fn_eval=None,
                nn_arg_constructor=path_based_arg_constructor):
+    mp.set_start_method('fork', force=True)
     is_distributed = args.num_train_proc > 1
     if is_distributed:
         rank = dist.get_rank()
     else:
         rank = 0
+    np.random.seed(args.seed + rank)
+    random.seed(args.seed + rank)
+    torch.manual_seed(args.seed + rank)
     model = model.to(device)
     train_loader = db_train.get_train_loader(args)
     dev_loader = db_dev.get_test_loader(args)
@@ -153,7 +157,9 @@ def train_loop(args, device, prog_dict, model, db_train,
                     dist.all_reduce(param.grad.data, op=dist.ReduceOp.SUM)
             if args.grad_clip > 0:
                 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=args.grad_clip)
-            pbar.set_description('step %d, loss: %.2f' % (args.iter_per_epoch * epoch + i, loss.item()))
+            if rank == 0:
+                pbar.set_description('step %d, loss: %.2f' % (args.iter_per_epoch * epoch + i, 
+                    loss.item() * args.num_train_proc))
             optimizer.step()
         if fn_eval is not None:
             if rank == 0:
@@ -162,7 +168,8 @@ def train_loop(args, device, prog_dict, model, db_train,
                     best_metric = auc
                     print('saving model with best dev metric: %.4f' % best_metric)
                     torch.save(model.state_dict(), os.path.join(args.save_dir, 'model-best_dev.ckpt'))
-            dist.barrier()
+            if is_distributed:
+                dist.barrier()
 
 
 @thread_wrapped_func

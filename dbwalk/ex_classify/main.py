@@ -8,14 +8,15 @@ import random
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from dbwalk.data_util.dataset import InMemDataest, ProgDict, FastOnlineWalkDataset, SlowOnlineWalkDataset
-from dbwalk.common.configs import cmd_args, get_torch_device
 from tqdm import tqdm
 from dbwalk.model.classifier import MulticlassNet
+from dbwalk.common.configs import cmd_args, get_torch_device
 from dbwalk.training.train import train_loop, multiclass_eval_dataset, train_mp
 import torch.multiprocessing as mp
 
 
 if __name__ == '__main__':
+    mp.set_start_method('spawn')
     np.random.seed(cmd_args.seed)
     random.seed(cmd_args.seed)
     torch.manual_seed(cmd_args.seed)
