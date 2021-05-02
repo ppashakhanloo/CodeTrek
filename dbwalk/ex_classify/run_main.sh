@@ -1,9 +1,9 @@
 #!/bin/bash
 
 data_root=$HOME/data/dataset/dbwalk
-data_name=exception
+data_name=exception_jan
 
-bsize=24
+bsize=20
 embed=256
 nlayer=4
 nhead=8
@@ -41,7 +41,7 @@ python main.py \
     -num_proc $num_proc \
     -use_node_val $use_node_val \
     -learning_rate 1e-4 \
-    -min_steps 4 \
-    -max_steps 20 \
+    -min_steps 16 \
+    -max_steps 24 \
     -gpu 0 \
     $@

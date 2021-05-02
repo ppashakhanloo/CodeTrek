@@ -16,7 +16,6 @@ import torch.multiprocessing as mp
 
 
 if __name__ == '__main__':
-    mp.set_start_method('spawn')
     np.random.seed(cmd_args.seed)
     random.seed(cmd_args.seed)
     torch.manual_seed(cmd_args.seed)
@@ -33,16 +32,19 @@ if __name__ == '__main__':
         assert cmd_args.model_dump is not None
         model_dump = os.path.join(cmd_args.save_dir, cmd_args.model_dump)
         print('loading model from', model_dump)
-        model.load_state_dict(torch.load(model_dump, map_location=cmd_args.device))
+        device = get_torch_device(cmd_args.gpu)
+        model = model.to(device)
+        model.load_state_dict(torch.load(model_dump))
         db_eval = db_class(cmd_args, prog_dict, cmd_args.data_dir, cmd_args.phase)
         eval_loader = db_eval.get_test_loader(cmd_args)
-        multiclass_eval_dataset(model, cmd_args.phase, eval_loader)
+        multiclass_eval_dataset(model, cmd_args.phase, eval_loader, device)
         sys.exit()
 
     db_train = db_class(cmd_args, prog_dict, cmd_args.data_dir, 'train', sample_prob=None, shuffle_var=cmd_args.shuffle_var)
     db_dev = db_class(cmd_args, prog_dict, cmd_args.data_dir, 'dev')
 
     if cmd_args.num_train_proc > 1:
+        mp.set_start_method('spawn')
         if cmd_args.gpu_list is not None:
             devices = [get_torch_device(int(x.strip())) for x in cmd_args.gpu_list.split(',')]
         else:
