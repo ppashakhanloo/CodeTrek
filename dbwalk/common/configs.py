@@ -18,6 +18,10 @@ cmd_opt.add_argument('-model_dump', default=None, help='load model dump')
 cmd_opt.add_argument('-gpu', type=int, default=-1, help='-1: cpu; 0 - ?: specific gpu index')
 cmd_opt.add_argument('-num_proc', type=int, default=1, help='number of processes')
 
+cmd_opt.add_argument('-gpu_list', default=None, type=str, help='list of gpus')
+cmd_opt.add_argument('-num_train_proc', type=int, default=1, help='number of training processes')
+cmd_opt.add_argument('-port', default='29500', type=str, help='dist port')
+
 # transformer
 cmd_opt.add_argument('-embed_dim', default=256, type=int, help='embed size')
 cmd_opt.add_argument('-nhead', default=4, type=int, help='multi-head attention')
@@ -72,6 +76,13 @@ if cmd_args.save_dir is not None:
         os.makedirs(cmd_args.save_dir)
 
 print(cmd_args)
+
+
+def get_torch_device(device_id):
+    if device_id >= 0 and torch.cuda.is_available():
+        return 'cuda:{}'.format(device_id)
+    return 'cpu'
+
 
 def set_device(gpu):
     if torch.cuda.is_available() and gpu >= 0:
