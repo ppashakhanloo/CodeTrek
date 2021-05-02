@@ -33,4 +33,6 @@ Currently the default configuration should give you ~60.5% accuracy.
 =======May 1 update======
 
 The new script with distributed training gets 61.94% test accuracy on the exception_januray version.
+To reproduce that, simply run `./dist_main.sh` with 4 gpus. 
+
 However the same code on the exception_apr29 version only gets ~57%.
