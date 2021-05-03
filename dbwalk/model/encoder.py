@@ -61,7 +61,7 @@ class ProgWalkEncoder(nn.Module):
                  dim_feedforward: int = 512, dropout: float = 0.0, activation: str = "relu"):
         super(ProgWalkEncoder, self).__init__()
         self.d_model = d_model
-        encoder_layer = PreNormTransformer(d_model, nhead, dim_feedforward, dropout, activation)
+        encoder_layer = TransformerEncoderLayer(d_model, nhead, dim_feedforward, dropout, activation)
         encoder_norm = LayerNorm(d_model)
         self.encoder = TransformerEncoder(encoder_layer, num_encoder_layers, encoder_norm)
 
@@ -92,7 +92,7 @@ class ProgTransformer(nn.Module):
     def __init__(self, d_model: int = 256, nhead: int = 4, num_encoder_layers: int = 3, 
                  dim_feedforward: int = 512, dropout: float = 0.0, activation: str = "relu"):
         super(ProgTransformer, self).__init__()
-        encoder_layer = PreNormTransformer(d_model, nhead, dim_feedforward, dropout, activation)
+        encoder_layer = TransformerEncoderLayer(d_model, nhead, dim_feedforward, dropout, activation)
         encoder_norm = LayerNorm(d_model)
         self.encoder = TransformerEncoder(encoder_layer, num_encoder_layers, encoder_norm)
 
