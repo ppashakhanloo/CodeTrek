@@ -7,6 +7,21 @@ from dbwalk.common.pytorch_util import PositionalEncoding, MLP
 from dbwalk.common.pytorch_util import gnn_spmm, _param_init
 
 
+class PreNormTransformer(TransformerEncoderLayer):
+    def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1, activation="relu"):
+        super(PreNormTransformer, self).__init__(d_model, nhead, dim_feedforward, dropout, activation)
+
+    def forward(self, src, src_mask=None, src_key_padding_mask=None):
+        x = self.norm1(src)
+        x = self.self_attn(x, x, x, attn_mask=src_mask,
+                           key_padding_mask=src_key_padding_mask)[0]
+        x = self.dropout1(x) + src
+        z = self.norm2(x)
+        z = self.linear2(self.dropout(self.activation(self.linear1(z))))
+        z = x + self.dropout2(z)
+        return z
+
+
 class ProgWalkTokEmbed(nn.Module):
     def __init__(self, prog_dict, embed_dim, dropout=0.0):
         super(ProgWalkTokEmbed, self).__init__()
@@ -46,7 +61,7 @@ class ProgWalkEncoder(nn.Module):
                  dim_feedforward: int = 512, dropout: float = 0.0, activation: str = "relu"):
         super(ProgWalkEncoder, self).__init__()
         self.d_model = d_model
-        encoder_layer = TransformerEncoderLayer(d_model, nhead, dim_feedforward, dropout, activation)
+        encoder_layer = PreNormTransformer(d_model, nhead, dim_feedforward, dropout, activation)
         encoder_norm = LayerNorm(d_model)
         self.encoder = TransformerEncoder(encoder_layer, num_encoder_layers, encoder_norm)
 
@@ -77,7 +92,7 @@ class ProgTransformer(nn.Module):
     def __init__(self, d_model: int = 256, nhead: int = 4, num_encoder_layers: int = 3, 
                  dim_feedforward: int = 512, dropout: float = 0.0, activation: str = "relu"):
         super(ProgTransformer, self).__init__()
-        encoder_layer = TransformerEncoderLayer(d_model, nhead, dim_feedforward, dropout, activation)
+        encoder_layer = PreNormTransformer(d_model, nhead, dim_feedforward, dropout, activation)
         encoder_norm = LayerNorm(d_model)
         self.encoder = TransformerEncoder(encoder_layer, num_encoder_layers, encoder_norm)
 
