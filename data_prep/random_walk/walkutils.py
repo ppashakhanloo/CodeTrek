@@ -90,62 +90,6 @@ class WalkUtils:
         38: 'py_SpecialOperation'
     }
 
-    cmpop_kinds = {  # type: Dict[int, str]
-        0: 'py_Eq',
-        1: 'py_Gt',
-        2: 'py_GtE',
-        3: 'py_In',
-        4: 'py_Is',
-        5: 'py_IsNot',
-        6: 'py_Lt',
-        7: 'py_LtE',
-        8: 'py_NotEq',
-        9: 'py_NotIn'
-    }
-
-    dict_item_kinds = {  # type: Dict[int, str]
-        0: 'py_DictUnpacking',
-        1: 'py_KeyValuePair',
-        2: 'py_keyword'
-    }
-
-    expr_context_kinds = {  # type: Dict[int, str]
-        0: 'py_AugLoad',
-        1: 'py_AugStore',
-        2: 'py_Del',
-        3: 'py_Load',
-        4: 'py_Param',
-        5: 'py_Store'
-    }
-
-    operator_kinds = {  # type: Dict[int, str]
-        0: 'py_Add',
-        1: 'py_BitAnd',
-        2: 'py_BitOr',
-        3: 'py_BitXor',
-        4: 'py_Div',
-        5: 'py_FloorDiv',
-        6: 'py_LShift',
-        7: 'py_Mod',
-        8: 'py_Mult',
-        9: 'py_Pow',
-        10: 'py_RShift',
-        11: 'py_Sub',
-        12: 'py_MatMult'
-    }
-
-    unaryop_kinds = {  # type: Dict[int, str]
-        0: 'py_Invert',
-        1: 'py_Not',
-        2: 'py_UAdd',
-        3: 'py_USub'
-    }
-
-    boolop_kinds = {
-        0: 'py_And',
-        1: 'py_Or'
-    }
-
     stmt_kinds = {  # type: Dict[int, str]
         0: 'py_Assert',
         1: 'py_Assign',
@@ -173,6 +117,7 @@ class WalkUtils:
         23: 'py_AnnAssign'
     }
 
+
     @staticmethod
     def gen_node_type_value(rel_name: str, values: List[str]):
         node_type = rel_name
@@ -193,30 +138,18 @@ class WalkUtils:
         if rel_name == 'py_stmts':
             kind = int(values[1])
             node_type = 'stmt_' + WalkUtils.stmt_kinds[kind]
-        # Distinguish different kinds of boolean ops
         if rel_name == 'py_boolops':
-            kind = int(values[1])
-            node_type = 'boolop_' + WalkUtils.boolop_kinds[kind]
-        # Distinguish different comparison ops
+            node_value = int(values[1])
         if rel_name == 'py_cmpops':
-            kind = int(values[1])
-            node_type = 'cmpop_' + WalkUtils.cmpop_kinds[kind]
-        # Distinguish different dict item kinds
+            node_value = int(values[1])
         if rel_name == 'py_dict_items':
-            kind = int(values[1])
-            node_type = 'ditem_' + WalkUtils.dict_item_kinds[kind]
-        # Distinguish different expression context kinds
+            node_value = int(values[1])
         if rel_name == 'py_expr_contexts':
-            kind = int(values[1])
-            node_type = 'ctx_' + WalkUtils.expr_context_kinds[kind]
-        # distinguish different operators
+            node_value = int(values[1])
         if rel_name == 'py_operators':
-            kind = int(values[1])
-            node_type = 'ops_' + WalkUtils.operator_kinds[kind]
-        # distinguish different unary operators
+            node_value = int(values[1])
         if rel_name == 'py_unaryops':
-            kind = int(values[1])
-            node_type = 'uops_' + WalkUtils.unaryop_kinds[kind]
+            node_value = int(values[1])
         # Otherwise, use relation name as the label
         return node_type, node_value
 
@@ -493,4 +426,5 @@ class JavaWalkUtils:
             else:           # edge
                 edges.append(JavaWalkUtils.build_traj_edge(walk[i]))
         return Trajectory(nodes, edges)
+
 

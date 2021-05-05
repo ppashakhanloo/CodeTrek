@@ -95,6 +95,10 @@ class GraphBuilder:
                 table_name = fact_file[:-10]  # remove ".csv.facts"
                 if table_name in col_dict:
                     database[table_name] = self.load_fact_table(fact_file)
+            elif fact_file.endswith('.bqrs.csv'):
+                table_name = fact_file[:-9]  # remove ".bqrs.csv"
+                if table_name in col_dict:
+                    database[table_name] = self.load_csv_table(fact_file)
             elif fact_file.endswith('.csv'):
                 table_name = fact_file[:-4]  # remove ".csv"
                 if table_name in col_dict:
@@ -112,6 +116,10 @@ class GraphBuilder:
                 callgraph_file = 'one_hop_call_graph.csv'
             elif 'full_call_graph.csv' in os.listdir(self.facts_dir):
                 callgraph_file = 'full_call_graph.csv'
+            elif 'one_hop_call_graph.bqrs.csv' in os.listdir(self.facts_dir):
+                callgraph_file = 'one_hop_call_graph.bqrs.csv'
+            elif 'full_call_graph.bqrs.csv' in os.listdir(self.facts_dir):
+                callgraph_file = 'full_call_graph.bqrs.csv'
             else:
                 return []
 
