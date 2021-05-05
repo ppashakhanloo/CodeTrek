@@ -31,8 +31,8 @@ def get_anchor(edb_dir: str, label: str):
     assert len(misuse_locs) == 1
 
     misuse_loc_ids = []
-    with open(os.path.join(edb_dir, "locations_ast.csv")) as locations_ast,\
-            open(os.path.join(edb_dir, "py_locations.csv")) as py_locations:
+    with open(os.path.join(edb_dir, "locations_ast.bqrs.csv")) as locations_ast,\
+            open(os.path.join(edb_dir, "py_locations.bqrs.csv")) as py_locations:
         ast_loc_reader = csv.reader(locations_ast, delimiter=',')
         ast_loc_rows = list(ast_loc_reader)
         ast_loc_ids = []
@@ -50,7 +50,7 @@ def get_anchor(edb_dir: str, label: str):
     assert len(misuse_loc_ids) >= 1
 
     anchors = set()
-    with open(os.path.join(edb_dir, "py_variables.csv")) as py_variables:
+    with open(os.path.join(edb_dir, "py_variables.bqrs.csv")) as py_variables:
         reader = csv.reader(py_variables, delimiter=',')
         for row in reader:
             for id in misuse_loc_ids:
@@ -62,10 +62,7 @@ def get_anchor(edb_dir: str, label: str):
 
 
 def main(args: List[str]) -> None:
-    if not len(args) == 5:
-        print('Usage: python3 gen_stubs_misuse.py <gv-file> <edb_path> <ground-truth> <out-file>')
-        exit(1)
-
+    
     gv_file = args[1]
     edb_path = args[2]
     gt = args[3]
@@ -74,13 +71,9 @@ def main(args: List[str]) -> None:
     
     anchor_nodes = set()
 
-    print("Loading Anchors")
     anchors = get_anchor(edb_path, gt)
-    print("Anchors Loaded")
     
-    print("Loading Graph")
     graph = RandomWalker.load_graph_from_gv(gv_file)
-    print("Graph Loaded")
 
     for node in graph.nodes():
         element = graph.nodes[node]['label']
@@ -91,20 +84,18 @@ def main(args: List[str]) -> None:
     for anchor, label in anchor_nodes:
         anchor_label = graph.nodes[anchor]['label']
         walks = []
-        # generate the Json file
         source = gv_file
         traj_anchor = TrajNodeValue(anchor_label)
         trajectories = [WalkUtils.build_trajectory(walk) for walk in walks]
-        #hints = [used_var_hint(walks, anchor_label) for walk in walks]
         data_point = DataPoint(traj_anchor, trajectories, [], label, source)
         walklist.append(data_point.to_dict())
-    js = json.dumps(walklist, indent=4)
+    js = json.dumps(walklist)
     
     with open(out_file, 'w') as op_file:
         op_file.write(js)
-        print("Written the walks to " + out_file)
 
 
 if __name__ == '__main__':
     main(sys.argv)
+
 
