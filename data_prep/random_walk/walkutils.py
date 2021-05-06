@@ -139,17 +139,15 @@ class WalkUtils:
             kind = int(values[1])
             node_type = 'stmt_' + WalkUtils.stmt_kinds[kind]
         if rel_name == 'py_boolops':
-            node_value = int(values[1])
+            node_value = values[1]
         if rel_name == 'py_cmpops':
-            node_value = int(values[1])
+            node_value = values[1]
         if rel_name == 'py_dict_items':
-            node_value = int(values[1])
-        if rel_name == 'py_expr_contexts':
-            node_value = int(values[1])
+            node_value = values[1]
         if rel_name == 'py_operators':
-            node_value = int(values[1])
+            node_value = values[1]
         if rel_name == 'py_unaryops':
-            node_value = int(values[1])
+            node_value = values[1]
         # Otherwise, use relation name as the label
         return node_type, node_value
 
