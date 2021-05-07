@@ -5,7 +5,7 @@ wget https://www2.graphviz.org/Packages/stable/portable_source/graphviz-2.44.1.t
 cd graphviz
 path="$(pwd)"
 ./configure --prefix="$path/graphviz_bins"
-make
+make -j
 make install
 
 export PKG_CONFIG_PATH="$path/graphviz_bins/lib/pkgconfig/"

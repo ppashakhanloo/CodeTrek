@@ -43,7 +43,7 @@ def run(tables_path):
 
       os.system("gsutil -m cp  -r " + remote_tables_dir + "/*" + " " + tables_dir)
       os.system("python3 " + diff_bin + " " + tables_dir + "/" + file_1_src + " " + tables_dir + "/" + file_2_src + " " + tables_dir + "/var_misuses.csv")
-      os.system("python3 " + graph_bin + " " + tables_dir + " " + os.path.join(home_path, "data_prep/join.txt") + " " + tables_dir + "/graph_" + filename)
+      os.system("python3 " + graph_bin + " " + tables_dir + " join.txt " + tables_dir + "/graph_" + filename)
       assert os.path.exists(tables_dir + "/graph_" + filename + ".gv"), "graph not created."
 
       os.system("python3 " + varmisuse_stub_bin + " " + tables_dir + "/graph_" + filename + ".gv" + " "\

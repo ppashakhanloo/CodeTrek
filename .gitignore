@@ -3,6 +3,8 @@ build/
 ._*
 *.swp
 *~
+scaled_data_gen/done
+scaled_data_gen/log
 
 # Python
 __pycache__
