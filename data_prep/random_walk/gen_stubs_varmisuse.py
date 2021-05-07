@@ -10,6 +10,7 @@ from typing import List
 
 
 def get_anchor(edb_dir: str, label: str):
+    diff_len = []
     misuse_locs = []
     with open(os.path.join(edb_dir, "var_misuses.csv")) as misuse_file:
         reader = csv.reader(misuse_file, delimiter=',')
@@ -20,6 +21,7 @@ def get_anchor(edb_dir: str, label: str):
                     loc[3] = str(int(loc[3]) + 1)
                 if loc not in misuse_locs:
                     misuse_locs.append(loc)
+                    diff_len.append(len(row[1]) - len(row[7]))
             else:
                 assert label == "misuse"
                 loc = [ x.strip() for x in row[6:-1] ] + [str(int(row[-1])-1)]
@@ -27,9 +29,13 @@ def get_anchor(edb_dir: str, label: str):
                     loc[3] = str(int(loc[3]) + 1)
                 if loc not in misuse_locs:
                     misuse_locs.append(loc)
+                    diff_len.append(len(row[1]) - len(row[7]))
 
-    assert len(misuse_locs) == 1
-
+    assert len(misuse_locs) > 0
+    m_loc = misuse_locs[0]
+    if diff_len[0] != 0:
+        misuse_locs.append([m_loc[0], m_loc[1], m_loc[2], m_loc[3], m_loc[4], str(int(m_loc[5])+diff_len[0])])
+ 
     misuse_loc_ids = []
     with open(os.path.join(edb_dir, "locations_ast.bqrs.csv")) as locations_ast,\
             open(os.path.join(edb_dir, "py_locations.bqrs.csv")) as py_locations:
@@ -46,7 +52,7 @@ def get_anchor(edb_dir: str, label: str):
             for row in py_loc_rows:
                 if loc[0] == row[0]:
                     misuse_loc_ids.append(row)
-    
+
     assert len(misuse_loc_ids) >= 1
 
     anchors = set()
