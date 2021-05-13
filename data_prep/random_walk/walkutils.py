@@ -45,7 +45,8 @@ class WalkUtils:
         'py_ssa_phi': ['phi', 'arg'],
         'py_ssa_var': ['id', 'var'],
         'py_ssa_use': ['node', 'var'],
-        'py_ssa_defn': ['id', 'node']
+        'py_ssa_defn': ['id', 'node'],
+        'call_graph': ['f1def', 'f2def', 'f1', 'f2', 'call']
     }
 
     expr_kinds = {  # type: Dict[int, str]
@@ -122,11 +123,6 @@ class WalkUtils:
     def gen_node_type_value(rel_name: str, values: List[str]):
         node_type = rel_name
         node_value = ''
-        # Compute node values
-        if rel_name == 'py_bytes':
-            node_value = values[0]
-        if rel_name == 'py_numbers':
-            node_value = values[0]
         if rel_name == 'variable':
             node_type = 'v_' + values[0]
             node_value = values[2]
@@ -138,19 +134,6 @@ class WalkUtils:
         if rel_name == 'py_stmts':
             kind = int(values[1])
             node_type = 'stmt_' + WalkUtils.stmt_kinds[kind]
-        
-        ##### uncomment the following lines for more node values #####
-        #if rel_name == 'py_boolops':
-        #    node_value = values[1]
-        #if rel_name == 'py_cmpops':
-        #    node_value = values[1]
-        #if rel_name == 'py_dict_items':
-        #    node_value = values[1]
-        #if rel_name == 'py_operators':
-        #    node_value = values[1]
-        #if rel_name == 'py_unaryops':
-        #    node_value = values[1]
-        ###############################################################
 
         # Otherwise, use relation name as the label
         return node_type, node_value

@@ -1,18 +1,20 @@
 import csv
+import json
 import os
 import graphviz
+import networkx as nx
 from io import StringIO
 from data_prep.random_walk.walkutils import WalkUtils, JavaWalkUtils
 from typing import List, Set, Dict, Tuple
 
 
 class GraphBuilder:
-    facts_dir = None      # type: str
+    tables_dir = None      # type: str
     join_filepath = None  # type: str
     language = None       # type: str
 
-    def __init__(self, facts_dir: str, join_filepath: str, language: str):
-        self.facts_dir = facts_dir
+    def __init__(self, tables_dir: str, join_filepath: str, language: str):
+        self.tables_dir = tables_dir
         self.join_filepath = join_filepath
         self.language = GraphBuilder.parse_language(language)
 
@@ -33,17 +35,9 @@ class GraphBuilder:
         else:
             raise ValueError('Cannot load columns for language:', self.language)
 
-    def load_fact_table(self, fact_file: str) -> List[Tuple]:
+    def load_table(self, table_file: str) -> List[Tuple]:
         table = []
-        with open(self.facts_dir + '/' + fact_file, 'r') as f:
-            reader = csv.reader(f, delimiter=',')
-            for line in reader:
-                table.append(tuple(line))
-        return table
-
-    def load_csv_table(self, fact_file: str) -> List[Tuple]:
-        table = []
-        with open(self.facts_dir + '/' + fact_file, 'r') as f:
+        with open(self.tables_dir + '/' + table_file, 'r') as f:
             data = f.read()
             data = data.replace('\x00', '**NULLBYTE**', -1)
             reader = csv.reader(StringIO(data), delimiter=',')
@@ -88,53 +82,19 @@ class GraphBuilder:
 
         return joins, keys
 
-    def load_db(self, col_dict: Dict) -> Dict[str, List[Tuple]]:
+    def load_db(self, col_dict: Dict, include_callgraph=False) -> Dict[str, List[Tuple]]:
         database = {}  # type: Dict[str, List[Tuple]]
-        for fact_file in os.listdir(self.facts_dir):
-            if fact_file.endswith('.csv.facts'):
-                table_name = fact_file[:-10]  # remove ".csv.facts"
+        for table_file in os.listdir(self.tables_dir):
+            if table_file.endswith('.csv'):
+                if 'call_graph' in table_file and not include_callgraph:
+                    continue # skip the call_graph if call graph is not requested.
+                elif 'call_graph' in table_file and include_callgraph:
+                    table_name = 'call_graph'
+                else:
+                    table_name = table_file[:table_file.find('.')] # remove suffixes
                 if table_name in col_dict:
-                    database[table_name] = self.load_fact_table(fact_file)
-            elif fact_file.endswith('.bqrs.csv'):
-                table_name = fact_file[:-9]  # remove ".bqrs.csv"
-                if table_name in col_dict:
-                    database[table_name] = self.load_csv_table(fact_file)
-            elif fact_file.endswith('.csv'):
-                table_name = fact_file[:-4]  # remove ".csv"
-                if table_name in col_dict:
-                    database[table_name] = self.load_csv_table(fact_file)
+                    database[table_name] = self.load_table(table_file)
         return database
-
-    def load_callgraph(self):
-        if self.language == 'python':
-            call_graph = []
-            if 'one_hop_call_graph.csv.facts' in os.listdir(self.facts_dir):
-                callgraph_file = 'one_hop_call_graph.csv.facts'
-            elif 'full_call_graph.csv.facts' in os.listdir(self.facts_dir):
-                callgraph_file = 'full_call_graph.csv.facts'
-            elif 'one_hop_call_graph.csv' in os.listdir(self.facts_dir):
-                callgraph_file = 'one_hop_call_graph.csv'
-            elif 'full_call_graph.csv' in os.listdir(self.facts_dir):
-                callgraph_file = 'full_call_graph.csv'
-            elif 'one_hop_call_graph.bqrs.csv' in os.listdir(self.facts_dir):
-                callgraph_file = 'one_hop_call_graph.bqrs.csv'
-            elif 'full_call_graph.bqrs.csv' in os.listdir(self.facts_dir):
-                callgraph_file = 'full_call_graph.bqrs.csv'
-            else:
-                return []
-
-            with open(os.path.join(self.facts_dir, callgraph_file), 'r') as cf:
-                for line in cf.readlines():
-                    call_edge = line.split(',')
-                    call_graph.append([s.strip() for s in call_edge])
-            if callgraph_file.endswith('facts'):
-                return call_graph
-            else:
-                return call_graph [1:]
-        elif self.language == 'java':
-            raise NotImplementedError
-        else:
-            raise ValueError('Cannot load the call graph for langauge:', self.language)
 
     @staticmethod
     def build_value_to_tuple_map(db: Dict, keys: Dict) -> Dict[str, Set[Tuple[Tuple, str]]]:
@@ -182,7 +142,7 @@ class GraphBuilder:
                 labels.append(GraphBuilder.edb_edge_label(l_rel, l_col, r_rel, r_col))
         return labels
 
-    def build_graph(self, db: Dict, joins: Dict, keys: Dict, columns: Dict, call_graph: List) -> graphviz.Graph:
+    def build_graph(self, db: Dict, joins: Dict, keys: Dict, columns: Dict) -> graphviz.Graph:
         val_tuple_map = self.build_value_to_tuple_map(db, keys)  # type: Dict[str, Set[Tuple[Tuple, str]]]
         tuple_index_map = {}  # type: Dict[str, Dict[Tuple, int]]
         index_rel_map = {}    # type: Dict[int, str]
@@ -199,6 +159,7 @@ class GraphBuilder:
                 index += 1
         # Build the graph
         graph = graphviz.Graph()
+
         for i in index_tuple_map:
             graph.node(str(i), self.edb_tuple_label(index_tuple_map[i], index_rel_map[i]))
         for val in val_tuple_map:
@@ -216,33 +177,13 @@ class GraphBuilder:
                     for edge_label in edge_labels:
                         graph.edge(str(index_i), str(index_j), edge_label)
 
-        def search_py_exprs(expr_id):
-            indices = []
-            for i in index_rel_map:
-                if index_rel_map[i] == 'py_exprs':
-                    indices.append(i)
-            for i in indices:
-                if index_tuple_map[i][0] == expr_id:
-                    return i
-            return None
-
-        for call_edge in call_graph:
-            function1_expr_id = search_py_exprs(call_edge[0])
-            function2_expr_id = search_py_exprs(call_edge[1])
-            edge_label = '(callgraph.0,call_graph.1)'
-            if function1_expr_id and function2_expr_id:
-                graph.edge(str(function1_expr_id), str(function2_expr_id), edge_label)
         return graph
 
     def build(self, include_callgraph=False) -> graphviz.Graph:
         columns = self.load_columns()
-        db = self.load_db(columns)
-        if include_callgraph:
-            callgraph = self.load_callgraph()
-        else:
-            callgraph = []
+        db = self.load_db(columns, include_callgraph)
         joins, keys = self.load_joins()
-        graph = self.build_graph(db, joins, keys, columns, callgraph)
+        graph = self.build_graph(db, joins, keys, columns)
         return graph
 
     @staticmethod

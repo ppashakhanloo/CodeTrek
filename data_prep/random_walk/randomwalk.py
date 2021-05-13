@@ -3,14 +3,10 @@ from pygraphviz import AGraph, Node
 from random import choice, choices, randint
 from typing import List, Dict, Set
 from data_prep.random_walk.walkutils import WalkUtils, JavaWalkUtils
-import time
-
-def ms():
-    return round(time.time() * 1000)
 
 class RandomWalker:
     BIAS_WEIGHT = 5
-    PYTHON_BIAS_TABLES = {'py_exprs', 'py_stmts', 'variable', 'py_variables'}
+    PYTHON_BIAS_TABLES = {'py_exprs', 'py_stmts', 'py_variables'}
     JAVA_BIAS_TABLES = {'exprs', 'stmts'}
 
     language = None         # type: str
@@ -123,8 +119,9 @@ class RandomWalker:
 
     @staticmethod
     def load_graph_from_gv(path: str) -> AGraph:
-        graph = AGraph(path, directed=False)
-        return nx.nx_agraph.from_agraph(graph)
+        g = AGraph()
+        g.read(path)
+        return nx.nx_agraph.from_agraph(g)
 
     # Padding the given list to size `num` by duplicating elements that are
     # selected from the list at random.

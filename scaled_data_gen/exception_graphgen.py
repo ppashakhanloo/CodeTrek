@@ -22,27 +22,25 @@ def run(tables_path):
 
   try:
     with tempfile.TemporaryDirectory() as tables_dir:
-
       remote_tables_dir = os.path.join("gs://" + bucket_name, remote_table_dirname, tables_path)
-      
-      os.system("gsutil -m cp  -r " + remote_tables_dir + "/*" + " " + tables_dir)
-      os.system("python3 " + graph_bin + " " + tables_dir + " " + os.path.join(home_path, "data_prep/join.txt") + " " + tables_dir + "/graph_" + filename)
+
+      os.system("gsutil -m cp -r " + remote_tables_dir + "/*" + " " + tables_dir)
+      os.system("python3 " + graph_bin + " " + tables_dir + " " + os.path.join(home_path, "python_codeql/join.txt") + " " + tables_dir + "/graph_" + filename)
       assert os.path.exists(tables_dir + "/graph_" + filename + ".gv"), "graph not created."
 
       os.system("python3 " + ex_stub_bin + " " + tables_dir + "/graph_" + filename + ".gv" + " "\
         + tables_dir + " " + label + " " + tables_dir + "/stub_" + filename + ".json")
       assert os.path.exists(tables_dir+"/stub_" + filename + ".json"), "stub not created."
-      
+
       if os.path.exists(tables_dir + "/graph_" + filename + ".gv") and\
-         os.path.exists(tables_dir+"/stub_"+filename+".json"):
+        os.path.exists(tables_dir+"/stub_"+filename+".json"):
         os.system("gsutil cp  " + tables_dir + "/graph_" + filename + ".gv" + " " + "gs://" + bucket_name + "/" + output_graphs_dirname + "/" + task + "/" + category + "/" + "graph_" + filename + ".gv")
         os.system("gsutil cp  " + tables_dir + "/stub_" + filename + ".json" + " " + "gs://" + bucket_name + "/" + output_graphs_dirname + "/" + task + "/" + category + "/" + "stub_" + filename + ".json")
-   
 
-    with open("done", "a") as done:
+    with open(tables_paths_file + "-done", "a") as done:
       done.write(tables_path + "\n")
   except Exception as e:
-    with open("log", "a") as log:
+    with open(tables_paths_file + "-log", "a") as log:
       log.write(">>" + tables_path + str(e) + "\n")
 
 tables_paths_file = sys.argv[1] # paths.txt

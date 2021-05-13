@@ -73,6 +73,7 @@ if __name__ == '__main__':
                 json_name = cand + sep + '.'.join(tmp.split('.')[:-1]) + '.json'
                 if json_name in json_files:
                     break
+            # meta_data_list contains the parsed contents of *.json file.
             with open(os.path.join(folder, json_name), 'r') as f:
                 meta_data_list = json.load(f)
             for meta_data in meta_data_list:
@@ -84,7 +85,7 @@ if __name__ == '__main__':
             pbar.set_description('#n: %d, #e: %d, #v: %d, #t: %d' % (len(node_types), len(edge_types), max_num_vars, len(token_vocab)))
         if len(gh):
             gh.dump(os.path.join(out_folder, 'chunk_%d' % chunk_idx))
-            
+
     print('# node types', len(node_types))
     print('# edge types', len(edge_types))
     print('max # vars per program', max_num_vars)
@@ -92,7 +93,7 @@ if __name__ == '__main__':
 
     var_dict = {}
     var_reverse_dict = {}
-    max_num_vars = min(max_num_vars, 100)
+    #max_num_vars = min(max_num_vars, 200)
     for i in range(max_num_vars):
         val = get_or_add(node_types, var_idx2name(i))
         var_dict[i] = val
