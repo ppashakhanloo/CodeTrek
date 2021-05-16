@@ -66,10 +66,10 @@ def run(tables_path):
         os.system("gsutil cp  " + tables_dir + "/stub_du_" + filename + ".json" + " " + "gs://" + sources_bucket_name + "/"+output_graphs_dirname + "_du/" + task + "/" + category + "/" + "stub_" + filename + ".json")
    
 
-    with open("done", "a") as done:
+    with open(tables_paths_file + "-done", "a") as done:
       done.write(tables_path + "\n")
   except Exception as e:
-    with open("log", "a") as log:
+    with open(tables_paths_file + "-log", "a") as log:
       log.write(">>" + tables_path + str(e) + "\n")
 
 
