@@ -12,7 +12,7 @@ class GraphSampler:
         new_id = 1               # type: int
         name_map = {}            # type: Dict[str, str]
         graph = Graph()
-        q = queue.SimpleQueue()  # type: SimpleQueue
+        q = queue.Queue()  # type: SimpleQueue
         q.put(anchor_id)
         visited = set()          # type: Set[str]
         # sample the nodes in breadth-first order
