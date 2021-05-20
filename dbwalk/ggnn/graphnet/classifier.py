@@ -15,7 +15,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from dbwalk.ggnn.graphnet.graph_embed import get_gnn
-from dbwalk.common.configs import cmd_args
+from dbwalk.common.configs import args
 
 
 class GnnClassifierBase(nn.Module):
@@ -63,6 +63,7 @@ class GnnMulticlass(GnnClassifierBase):
     def forward(self, graph_list, node_val_mat, label=None):
         state_repr = self.get_embedding(graph_list, node_val_mat)
         logits = self.out_classifier(state_repr)
+
         if label is not None:
             label = label.to(logits.device).view(logits.shape[0])
             loss = F.cross_entropy(logits, label)
@@ -73,11 +74,11 @@ class GnnMulticlass(GnnClassifierBase):
 
 def gnn_eval_nn_args(nn_args):
     graph_list, node_val_mat, label = nn_args
-    node_val_mat = torch.sparse_coo_tensor(*node_val_mat).to(cmd_args.device)
+    node_val_mat = torch.sparse_coo_tensor(*node_val_mat).to(args.device)
     return {'graph_list': graph_list, 'node_val_mat': node_val_mat}, label
 
 
-def gnn_arg_constructor(nn_args):
+def gnn_arg_constructor(nn_args, device):
     graph_list, node_val_mat, label = nn_args
-    node_val_mat = torch.sparse_coo_tensor(*node_val_mat).to(cmd_args.device)
-    return {'graph_list': graph_list, 'node_val_mat': node_val_mat, 'label': label.to(cmd_args.device)}
+    node_val_mat = torch.sparse_coo_tensor(*node_val_mat).to(device)
+    return {'graph_list': graph_list, 'node_val_mat': node_val_mat, 'label': label.to(device)}

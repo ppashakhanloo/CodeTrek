@@ -46,20 +46,19 @@ class GraphHolder(object):
 
         anchor_idx = None
         anchor_str = meta_info['anchor'] if 'anchor' in meta_info else None
-        node_map = {}
         for idx, node in enumerate(g.nodes(data=True)):
             node_label = node[1]['label']
-            node_raw_idx = int(node[0])
-            node_map[node_raw_idx] = idx
+            node_idx = int(node[0]) - node_index_base
+            assert idx == node_idx  # assume ordered
             self.list_node_labels.append(node_label)
             node_tok = ' '.join([str(x) for x in node[1]['val_idx']])
             raw_node_val = node[1]['raw_val']
             self.list_node_tokens.append(node_tok)
             self.list_node_values.append(raw_node_val)
             if node_label == anchor_str:
-                anchor_idx = idx
+                anchor_idx = node_idx
         if anchor_idx is None:
-            anchor_idx = meta_info['anchor_index'] - node_index_base
+            anchor_idx = meta_info['anchor_index']
             anchor_str = str(anchor_idx)
         self.list_anchors.append(anchor_str)
         self.list_labels.append(meta_info['label'])
@@ -68,8 +67,8 @@ class GraphHolder(object):
         for e in g.edges(data=True):
             edge = e[2]['label']
             e_type = self._get_or_add_etype(edge)
-            x = node_map[int(e[0])]
-            y = node_map[int(e[1])]
+            x = int(e[0]) - node_index_base
+            y = int(e[1]) - node_index_base
             self.edge_list.append((x, y, e_type))
             num_edges += 1
 

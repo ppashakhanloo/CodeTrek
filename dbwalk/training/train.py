@@ -8,16 +8,16 @@ import random
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from dbwalk.data_util.dataset import InMemDataest, ProgDict
+from dbwalk.common.configs import args, set_device
 from tqdm import tqdm
 from sklearn.metrics import roc_auc_score
 
-from functools import wraps
-import torch.multiprocessing as mp
 from torch.multiprocessing import Queue
+from functools import wraps
 from _thread import start_new_thread
-import torch.distributed as dist
 import traceback
-
+import torch.distributed as dist
+import torch.multiprocessing as mp
 
 def thread_wrapped_func(func):
     """Wrapped func for torch.multiprocessing.Process.
@@ -48,7 +48,6 @@ def thread_wrapped_func(func):
             raise exception.__class__(trace)
     return decorated_function
 
-
 def path_based_arg_constructor(nn_args, device):
     node_idx, edge_idx, node_val_mat, label = nn_args
     if node_val_mat is not None:
@@ -62,28 +61,28 @@ def path_based_arg_constructor(nn_args, device):
     return nn_args
 
 
-def eval_path_based_nn_args(nn_args, device):
+def eval_path_based_nn_args(nn_args):
     node_idx, edge_idx, node_val_mat, label = nn_args
     if node_idx is None:
         return None, None
     if node_val_mat is not None:
-        node_val_mat = torch.sparse_coo_tensor(*node_val_mat).to(device)
+        node_val_mat = torch.sparse_coo_tensor(*node_val_mat).to(args.device)
     if edge_idx is not None:
-        edge_idx = edge_idx.to(device)
-    nn_args = {'node_idx': node_idx.to(device),
+        edge_idx = edge_idx.to(args.device)
+    nn_args = {'node_idx': node_idx.to(args.device),
                'edge_idx': edge_idx,
                'node_val_mat': node_val_mat}
     return nn_args, label
 
 
-def multiclass_eval_dataset(model, phase, eval_loader, device, fn_parse_eval_nn_args=eval_path_based_nn_args):
+def multiclass_eval_dataset(model, phase, eval_loader, fn_parse_eval_nn_args=eval_path_based_nn_args):
     true_labels = []
     pred_labels = []
     model.eval()
     pbar = tqdm(eval_loader)
     for nn_args in pbar:
         with torch.no_grad():
-            nn_args, label = fn_parse_eval_nn_args(nn_args, device)
+            nn_args, label = fn_parse_eval_nn_args(nn_args)
             if nn_args is None:
                 continue
             logits = model(**nn_args)
@@ -96,14 +95,14 @@ def multiclass_eval_dataset(model, phase, eval_loader, device, fn_parse_eval_nn_
     return acc
 
 
-def binary_eval_dataset(model, phase, eval_loader, device, fn_parse_eval_nn_args=eval_path_based_nn_args):
+def binary_eval_dataset(model, phase, eval_loader, fn_parse_eval_nn_args=eval_path_based_nn_args):
     true_labels = []
     pred_probs = []
     model.eval()
     pbar = tqdm(eval_loader)
     for nn_args in pbar:
         with torch.no_grad():
-            nn_args, label = fn_parse_eval_nn_args(nn_args, device)
+            nn_args, label = fn_parse_eval_nn_args(nn_args)
             if nn_args is None:
                 continue
             pred = model(**nn_args).data.cpu().numpy()
@@ -118,7 +117,7 @@ def binary_eval_dataset(model, phase, eval_loader, device, fn_parse_eval_nn_args
 
 
 def train_loop(args, device, prog_dict, model, db_train,
-               db_dev=None, 
+               db_dev=None,
                fn_eval=None,
                nn_arg_constructor=path_based_arg_constructor):
     mp.set_start_method('fork', force=True)
@@ -158,7 +157,7 @@ def train_loop(args, device, prog_dict, model, db_train,
             if args.grad_clip > 0:
                 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=args.grad_clip)
             if rank == 0:
-                pbar.set_description('step %d, loss: %.2f' % (args.iter_per_epoch * epoch + i, 
+                pbar.set_description('step %d, loss: %.2f' % (args.iter_per_epoch * epoch + i,
                     loss.item() * args.num_train_proc))
             optimizer.step()
         if fn_eval is not None:
@@ -175,7 +174,7 @@ def train_loop(args, device, prog_dict, model, db_train,
 @thread_wrapped_func
 def train_mp(args, rank, device, prog_dict, model, db_train, db_dev=None, fn_eval=None, n_arg_constructor=path_based_arg_constructor):
     if args.num_train_proc > 1:
-        torch.set_num_threads(1)    
+        torch.set_num_threads(1)
     os.environ['MASTER_ADDR'] = '127.0.0.1'
     os.environ['MASTER_PORT'] = args.port
     if device == 'cpu':

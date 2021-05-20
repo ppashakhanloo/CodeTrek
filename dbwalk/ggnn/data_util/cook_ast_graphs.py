@@ -3,7 +3,7 @@ import os
 from tqdm import tqdm
 import networkx as nx
 import pickle as cp
-from dbwalk.common.configs import cmd_args
+from dbwalk.common.configs import args
 from dbwalk.common.consts import TOK_PAD, var_idx2name, UNK
 from dbwalk.data_util.graph_holder import GraphHolder
 from dbwalk.data_util.cook_data import get_or_add
@@ -25,11 +25,11 @@ def main_cook_ast(etype_white_list=None, node_unk=True, edge_unk=True, tok_unk=T
 
     print('building dict')
     for phase in ['train', 'dev', 'eval']:
-        out_folder = os.path.join(cmd_args.data_dir, cmd_args.data, 'cooked_' + phase)
+        out_folder = os.path.join(args.data_dir, args.data, 'cooked_' + phase)
         if not os.path.isdir(out_folder):
             os.makedirs(out_folder)
         
-        folder = os.path.join(cmd_args.data_dir, cmd_args.data, phase)
+        folder = os.path.join(args.data_dir, args.data, phase)
         files = os.listdir(folder)
         chunk_idx = 0
         gh = GraphHolder(is_directed=True)
@@ -59,7 +59,7 @@ def main_cook_ast(etype_white_list=None, node_unk=True, edge_unk=True, tok_unk=T
                 for e in d['ContextGraph']['Edges'][edge_type]:
                     g.add_edge(e[0], e[1], label=edge_type)
             gh.add_graph(g, meta_info, node_index_base=0)
-            if len(gh) >= cmd_args.data_chunk_size:
+            if len(gh) >= args.data_chunk_size:
                 gh.dump(os.path.join(out_folder, 'chunk_%d' % chunk_idx))
                 chunk_idx += 1
                 gh = GraphHolder()
@@ -75,7 +75,7 @@ def main_cook_ast(etype_white_list=None, node_unk=True, edge_unk=True, tok_unk=T
     print('# edge types', len(edge_types))
     print('# tokens', len(token_vocab))
 
-    with open(os.path.join(cmd_args.data_dir, cmd_args.data, 'dict.pkl'), 'wb') as f:
+    with open(os.path.join(args.data_dir, args.data, 'dict.pkl'), 'wb') as f:
         d = {}
         d['node_types'] = node_types
         d['edge_types'] = edge_types

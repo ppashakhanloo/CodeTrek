@@ -5,6 +5,7 @@ import pickle as cp
 from tqdm import tqdm
 import numpy as np
 import random
+from dbwalk.common.configs import args
 from dbwalk.common.consts import TOK_PAD, var_idx2name, UNK
 
 
@@ -69,7 +70,6 @@ def make_mat_from_raw(list_traj_dict, node_types, edge_types, type_filed='node_t
 
 
 if __name__ == '__main__':
-    from dbwalk.common.configs import cmd_args
     label_dict = load_label_dict(os.path.join(cmd_args.data_dir, cmd_args.data))
     print(label_dict)
     node_types = {}

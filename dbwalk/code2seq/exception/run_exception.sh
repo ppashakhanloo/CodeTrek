@@ -3,7 +3,7 @@
 data_root=$HOME/data/dataset/dbwalk/code2seq
 data_name=code2seq_exception
 
-bsize=32
+bsize=1
 nlayer=4
 embed=256
 hidden=512
@@ -18,7 +18,7 @@ then
 fi
 
 
-python code2seq_exception.py \
+python3 code2seq_exception.py \
     -data_dir $data_root/$data_name \
     -save_dir $save_dir \
     -data $data_name \

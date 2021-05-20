@@ -1,14 +1,14 @@
 #!/bin/bash
 
 data_root=$HOME/data/dataset/dbwalk
-data_name=tiny_except
+data_name=exception_small
 lang=python
-min_step=8
-max_step=16
-n_walk=100
+min_step=4
+max_step=20
+n_walk=300
 
 
-python -m dbwalk.data_util.cook_from_gv \
+python3 -m dbwalk.data_util.cook_from_gv \
     -data_dir $data_root \
     -data $data_name \
     -language $lang \
