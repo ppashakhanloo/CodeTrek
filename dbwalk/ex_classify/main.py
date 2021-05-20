@@ -56,4 +56,4 @@ if __name__ == '__main__':
         for proc in procs:
             proc.join()
     else:
-        train_loop(cmd_args, get_torch_device(args.gpu), prog_dict, model, db_train, db_dev, multiclass_eval_dataset)
+        train_loop(args, get_torch_device(args.gpu), prog_dict, model, db_train, db_dev, multiclass_eval_dataset)

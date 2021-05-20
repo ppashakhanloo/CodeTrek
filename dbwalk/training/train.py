@@ -51,13 +51,13 @@ def thread_wrapped_func(func):
 def path_based_arg_constructor(nn_args, device):
     node_idx, edge_idx, node_val_mat, label = nn_args
     if node_val_mat is not None:
-        node_val_mat = torch.sparse_coo_tensor(*node_val_mat).to(device)
+        node_val_mat = torch.sparse_coo_tensor(*node_val_mat).to(args.device)
     if edge_idx is not None:
-        edge_idx = edge_idx.to(device)
-    nn_args = {'node_idx': node_idx.to(device),
+        edge_idx = edge_idx.to(args.device)
+    nn_args = {'node_idx': node_idx.to(args.device),
                'edge_idx': edge_idx,
                'node_val_mat': node_val_mat,
-               'label': label.to(device)}
+               'label': label.to(args.device)}
     return nn_args
 
 
@@ -120,16 +120,6 @@ def train_loop(args, device, prog_dict, model, db_train,
                db_dev=None,
                fn_eval=None,
                nn_arg_constructor=path_based_arg_constructor):
-    mp.set_start_method('fork', force=True)
-    is_distributed = args.num_train_proc > 1
-    if is_distributed:
-        rank = dist.get_rank()
-    else:
-        rank = 0
-    np.random.seed(args.seed + rank)
-    random.seed(args.seed + rank)
-    torch.manual_seed(args.seed + rank)
-    model = model.to(device)
     train_loader = db_train.get_train_loader(args)
     dev_loader = db_dev.get_test_loader(args)
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
@@ -137,7 +127,7 @@ def train_loop(args, device, prog_dict, model, db_train,
 
     best_metric = -1
     for epoch in range(args.num_epochs):
-        pbar = tqdm(range(args.iter_per_epoch)) if rank == 0 else range(args.iter_per_epoch)
+        pbar = tqdm(range(args.iter_per_epoch))
         model.train()
         for i in pbar:
             try:
@@ -146,14 +136,9 @@ def train_loop(args, device, prog_dict, model, db_train,
                 train_iter = iter(train_loader)
                 nn_args = next(train_iter)
             optimizer.zero_grad()
-            nn_args = nn_arg_constructor(nn_args, device)
-            loss = model(**nn_args) / args.num_train_proc
+            nn_args = nn_arg_constructor(nn_args)
+            loss = model(**nn_args)
             loss.backward()
-            if is_distributed:
-                for param in model.parameters():
-                    if param.grad is None:
-                        param.grad = param.data.new(param.data.shape).zero_()
-                    dist.all_reduce(param.grad.data, op=dist.ReduceOp.SUM)
             if args.grad_clip > 0:
                 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=args.grad_clip)
             if rank == 0:
