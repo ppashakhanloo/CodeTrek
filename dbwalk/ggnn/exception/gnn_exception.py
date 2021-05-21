@@ -8,13 +8,14 @@ import random
 from functools import partial
 
 from dbwalk.data_util.dataset import ProgDict
-from dbwalk.common.configs import args, set_device
+from dbwalk.common.configs import args, set_device, get_torch_device
 from dbwalk.training.train import train_loop, multiclass_eval_dataset
 from dbwalk.ggnn.graphnet.classifier import GnnMulticlass, gnn_eval_nn_args, gnn_arg_constructor
 from dbwalk.ggnn.data_util.graph_dataset import AstGraphDataset
 
 
 if __name__ == '__main__':
+    torch.cuda.empty_cache()
     set_device(args.gpu)
     np.random.seed(args.seed)
     random.seed(args.seed)
@@ -36,5 +37,5 @@ if __name__ == '__main__':
 
     db_dev = AstGraphDataset(args, prog_dict, args.data_dir, 'dev')
     db_train = AstGraphDataset(args, prog_dict, args.data_dir, 'train')
-    train_loop(prog_dict, model, db_train, db_dev, eval_func,
+    train_loop(args, get_torch_device(args.gpu), prog_dict, model, db_train, db_dev, eval_func,
                nn_arg_constructor=gnn_arg_constructor)
