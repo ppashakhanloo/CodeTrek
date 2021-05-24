@@ -162,7 +162,7 @@ def train_loop(args, device, prog_dict, model, db_train,
             optimizer.step()
         if fn_eval is not None:
             if rank == 0:
-                auc = fn_eval(model, 'dev', dev_loader, device)
+                auc = fn_eval(model, 'dev', dev_loader)
                 if auc > best_metric:
                     best_metric = auc
                     print('saving model with best dev metric: %.4f' % best_metric)
