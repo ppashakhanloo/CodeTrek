@@ -1,7 +1,7 @@
 #!/bin/bash
 
 data_root=$HOME/data/dataset/dbwalk/code2seq
-data_name=code2seq_varmisuse
+data_name=varmisuse
 lang=python
 
 python -m dbwalk.code2seq.data_util.cook_ast_trees \

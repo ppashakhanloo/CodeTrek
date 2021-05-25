@@ -25,15 +25,16 @@ class AstTree(object):
         self.is_leaf = [True] * self.num_nodes
         for e in graph.edges():
             x, y = e
-            assert self.parent_list[y] < 0
+            if self.parent_list[y] >= 0:
+                continue
             self.parent_list[y] = x
             self.is_leaf[x] = False
-        if sample.anchor != 'None':
+        if sample.anchor != 'None' and self.is_leaf[int(sample.anchor)]:
             self.target_idx = int(sample.anchor)
-            assert self.is_leaf[self.target_idx]
         for i in range(self.num_nodes):
             if self.parent_list[i] < 0:
-                assert self.root is None
+                if self.root is not None:
+                    continue
                 self.root = i
         self.leaves = [x for x in range(self.num_nodes) if self.is_leaf[x]]
 

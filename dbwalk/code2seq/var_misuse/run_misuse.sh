@@ -1,7 +1,7 @@
 #!/bin/bash
 
 data_root=$HOME/data/dataset/dbwalk/code2seq
-data_name=code2seq_varmisuse
+data_name=varmisuse
 
 bsize=32
 nlayer=4
@@ -18,7 +18,7 @@ then
 fi
 
 
-python code2sec_var_misuse.py \
+python -m dbwalk.code2seq.var_misuse.code2sec_var_misuse \
     -data_dir $data_root/$data_name \
     -save_dir $save_dir \
     -data $data_name \
@@ -30,5 +30,5 @@ python code2sec_var_misuse.py \
     -iter_per_epoch 1000 \
     -learning_rate 1e-3 \
     -num_proc 0 \
-    -gpu 0 \
+    -gpu -1 \
     $@

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 data_root=$HOME/data/dataset/dbwalk/ggnn
-data_name=gnn_varmisuse
+data_name=varmisuse
 
 lv=5
 
@@ -21,5 +21,5 @@ python var_misuse.py \
     -max_lv $lv \
     -iter_per_epoch 10000 \
     -num_proc 0 \
-    -gpu 0 \
+    -gpu -1 \
     $@
