@@ -8,7 +8,7 @@ import random
 from functools import partial
 
 from dbwalk.data_util.dataset import ProgDict
-from dbwalk.common.configs import args, set_device, get_torch_device
+from dbwalk.common.configs import args, get_torch_device
 from dbwalk.training.train import train_loop, multiclass_eval_dataset
 from dbwalk.ggnn.graphnet.classifier import GnnMulticlass, gnn_eval_nn_args, gnn_arg_constructor
 from dbwalk.ggnn.data_util.graph_dataset import AstGraphDataset
@@ -16,14 +16,12 @@ from dbwalk.ggnn.data_util.graph_dataset import AstGraphDataset
 
 if __name__ == '__main__':
     torch.cuda.empty_cache()
-    set_device(args.gpu)
     np.random.seed(args.seed)
     random.seed(args.seed)
     torch.manual_seed(args.seed)
     prog_dict = ProgDict(args.data_dir)
 
-    model = GnnMulticlass(args, prog_dict, has_anchor=False).to(args.device)
-
+    model = GnnMulticlass(args, prog_dict, has_anchor=False)
     eval_func = partial(multiclass_eval_dataset, fn_parse_eval_nn_args=gnn_eval_nn_args)
     if args.phase == 'eval': 
         db_eval = AstGraphDataset(args, prog_dict, args.data_dir, 'eval')
@@ -31,8 +29,8 @@ if __name__ == '__main__':
         assert args.model_dump is not None
         model_dump = os.path.join(args.save_dir, args.model_dump)
         print('loading model from', model_dump)
-        model.load_state_dict(torch.load(model_dump, map_location=args.device))    
-        eval_func(model, 'eval', eval_loader)
+        model.load_state_dict(torch.load(model_dump, map_location=get_torch_device(args.gpu)))
+        eval_func(model, 'eval', eval_loader, get_torch_device(args.gpu))
         sys.exit()
 
     db_dev = AstGraphDataset(args, prog_dict, args.data_dir, 'dev')

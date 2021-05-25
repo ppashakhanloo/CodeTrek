@@ -1,10 +1,10 @@
 #!/bin/bash
 
 data_root=$HOME/data/dataset/dbwalk
-data_name=exception_small
+data_name=exception
 lang=python
 
-python3 -m dbwalk.data_util.cook_from_gv_stub \
+python -m dbwalk.data_util.cook_from_gv_stub \
     -data_dir $data_root \
     -data $data_name \
     -language $lang \

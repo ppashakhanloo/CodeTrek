@@ -15,7 +15,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from dbwalk.ggnn.graphnet.graph_embed import get_gnn
-from dbwalk.common.configs import args
+from dbwalk.common.configs import args, get_torch_device
 
 
 class GnnClassifierBase(nn.Module):
@@ -72,9 +72,9 @@ class GnnMulticlass(GnnClassifierBase):
             return logits
 
 
-def gnn_eval_nn_args(nn_args):
+def gnn_eval_nn_args(nn_args, device):
     graph_list, node_val_mat, label = nn_args
-    node_val_mat = torch.sparse_coo_tensor(*node_val_mat).to(args.device)
+    node_val_mat = torch.sparse_coo_tensor(*node_val_mat).to(device)
     return {'graph_list': graph_list, 'node_val_mat': node_val_mat}, label
 
 

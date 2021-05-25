@@ -1,7 +1,7 @@
 #!/bin/bash
 
 data_root=$HOME/data/dataset/dbwalk/ggnn
-data_name=gnn_exception
+data_name=exception
 lang=python
 
 python -m dbwalk.ggnn.data_util.cook_ast_graphs \

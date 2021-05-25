@@ -1,7 +1,7 @@
 #!/bin/bash
 
 data_root=$HOME/data/dataset/dbwalk
-data_name=exception_small
+data_name=exception
 
 bsize=32
 embed=256
@@ -24,7 +24,7 @@ then
     mkdir -p $save_dir
 fi
 
-python3 main.py \
+python -m dbwalk.ex_classify.main \
     -data_dir $data_root/$data_name \
     -save_dir $save_dir \
     -data $data_name \
