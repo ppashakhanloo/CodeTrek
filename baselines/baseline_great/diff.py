@@ -4,7 +4,6 @@ import sys
 
 def findnth(string, substring, n):
   parts = list(re.split('(?<=[,|\.|=|\(|\)|\[|\]| +|:|-|\+|\*|\\|/|<|>|!=|\{|\}])' + substring + '(?=,|\.|=|\(|\)|\[|\]| +|:|-|\+|\*|\\|/|<|>|!=|\{|\})', string, maxsplit=n+1))
-  # print(parts)
   if len(parts) <= n + 1:
     return -1
   return len(string) - len(parts[-1]) - len(substring)
@@ -45,7 +44,6 @@ def get_diff(file1, file2):
           col -= idx
           
           return os.path.abspath(file1), line1[index], row+1, col+1, row+1, col+len(line1[index])+1, os.path.abspath(file2), line2[index], row+1, col+1, row+1, col+len(line2[index])+1
-          # raise Exception
           assert tok1 == file1_lines[row][col:col+len(tok1)] and tok2 == file2_lines[row][col:col+len(tok2)]
 
           break

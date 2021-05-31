@@ -1,94 +1,77 @@
-import sys
 import json
-import datapoint
-import create_ast
-from data_prep.tokenizer import tokenizer
+import sys
 
-def init(graph):
-  # assign unique numbers to nodes
-  node_to_num = {}
-  num = 0
-  for node in graph.get_nodes():
-    node_to_num[node.get_name()] = num
-    num += 1
-  slot_node_index = None
-  if graph.get_node('SlotNode'):
-      slot_node_index = node_to_num[graph.get_node('SlotNode')[0].get_name()]
-  return graph, node_to_num, slot_node_index
+import networkx as nx
 
-def get_each_edge_category(graph, node_to_num, cat_names):
-  edges = {}
-  for cat in cat_names:
-    edges[cat] = []
-  graph_edges = graph.get_edges()
-  for edge in graph_edges:
-    if edge.get('label') in cat_names:
-      n1 = node_to_num[edge.get_source()]
-      n2 = node_to_num[edge.get_destination()]
-      e = datapoint.GraphEdge(n1, n2)
-      edges[edge.get('label')].append(e)
-  return edges
+from create_ast import gen_graph_from_source
+
 
 def main(args):
   if len(args) != 6:
     print('Usage: python3 gen_graph_jsons.py <file1.py> <file2.py> <label> <output.json> <task_name>')
     print('Possible task_names: varmisuse, defuse, exception.')
     exit(1)
-  if args[6] == 'varmisuse':
-    graph, node_to_num, slot_node_idx = init(create_ast.gen_graph_from_source(args[1], args[2], args[5]))
-  if args[6] == 'defuse':
-    pass
-  if args[6] == 'exception':
 
-  # prepare edges
-  cat_names = ['Child', 'NextToken', 'LastLexicalUse', 'ComputedFrom',
-               'LastRead', 'LastWrite', 'ReturnsTo', 'GuardedBy', 'GuardedByNegation']
-  all_edges = get_each_edge_category(graph, node_to_num, cat_names)
-  edges = datapoint.Edges(
-    child=all_edges['Child'],
-    next_token=all_edges['NextToken'],
-    last_lexical_use=all_edges['LastLexicalUse'],
-    computed_from=all_edges['ComputedFrom'],
-    last_use=all_edges['LastRead'],
-    last_write=all_edges['LastWrite'],
-    returns_to=all_edges['ReturnsTo'],
-    guarded_by=all_edges['GuardedBy'],
-    guarded_by_negation=all_edges['GuardedByNegation']
-  )
+  file1 = args[1]
+  file2 = args[2]
+  label = args[3]
+  outfile = args[4]
+  task_name = args[5]
 
-  # prepare node_types, node_values, and node tokens
-  node_types = [0] * len(node_to_num.keys())
-  node_values = [0] * len(node_types)
-  node_tokens = [0] * len(node_types)
-  for node in node_to_num.keys():
-    splits = graph.get_node(node)[0].get('label').split('[SEP]')
-    if len(splits) == 2: # the node has type and value
-      node_types[node_to_num[node]] = splits[0]
-      node_values[node_to_num[node]] = splits[1]
-      node_tokens[node_to_num[node]] = tokenizer.tokenize(splits[1], 'python')
-    else: # the node only has type
-      node_types[node_to_num[node]] = splits[0]
-      node_values[node_to_num[node]] = ""
-      node_tokens[node_to_num[node]] = splits[0]
+  corr_except = None
+  defuse_label = None
+  has_bug = False
+  bug_kind = None
+  if task_name == "defuse":
+    defuse_label = label
+    if defuse_label == 'unused': has_bug = True
+    bug_kind = 1
+  if task_name == "exception":
+    corr_except = label
+    has_bug = True
+    bug_kind = 2
+  if task_name == "varmisuse":
+    if label == 'misuse': has_bug = True
+    bug_kind = 3
+  if has_bug:
+    bug_kind_name = task_name
+  else:
+    bug_kind_name = "NONE"
 
-  # prepare context_graph
-  context_graph = datapoint.ContextGraph(
-    edges=edges,
-    node_types=node_types,
-    node_values=node_values,
-    node_tokens=node_tokens
-  )
+  flat_graph, err_loc, rep_targets, rep_cands, label = gen_graph_from_source(file1, file2, task_name, corr_except=corr_except, defuse_label=defuse_label)
 
-  # create data point
-  point = datapoint.DataPoint(
-    filename=args[1],
-    slot_node_idx=slot_node_idx,
-    context_graph=context_graph,
-    label=args[3]
-  )
+  source_tokens = []
+  index = 1
+  node_to_num = {}
+  for node in sorted(list(flat_graph.nodes(data='loc')), key=lambda x:x[1]):
+    source_tokens.append(list({d['tok'] for n, d in flat_graph.nodes.items() if 'tok' in d and d['loc'] == node[1]})[0])
+    node_to_num[node[0]] = index
+    index += 1
+
+  edges = []
+  for edge in flat_graph.edges(data=True):
+    src = edge[0]
+    dst = edge[1]
+    node_type = edge[2]['label']
+    node_type_id = edge[2]['id']
+
+    edges.append([node_to_num[src], node_to_num[dst], int(node_type_id), node_type])
   
-  with open(args[4], 'w', 1000*(2**20)) as outfile:
-    json.dump(point.to_dict(), outfile)
+  point = {
+    "has_bug": has_bug,
+    "bug_kind": bug_kind,
+    "bug_kind_name": bug_kind_name,
+    "source_tokens": source_tokens,
+    "edges": edges,
+    "label": label,
+    "error_location": node_to_num[err_loc],
+    "repair_targets": [node_to_num[i] for i in rep_targets],
+    "repair_candidates": [node_to_num[i] for i in rep_cands],
+    "provenances": [{"datasetProvenance": {"datasetName": "cubert", "filepath": file1, "license": "", "note": ""}}]
+  }
+
+  with open(outfile, 'w') as f:
+    f.write(json.dumps(point))
 
 if __name__ == "__main__":
   main(sys.argv)

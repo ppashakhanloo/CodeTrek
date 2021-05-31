@@ -1,7 +1,9 @@
 import ast
-from diff import get_diff
-import networkx as nx
+
 import asttokens
+import networkx as nx
+
+from diff import get_diff
 
 CURR_STR = 'HOLE'
 
@@ -43,8 +45,7 @@ def get_AST_nodes(contents):
 
     if isinstance(node, ast.If):
       ifs_info[node] = {'test': [], 'body': []}
-  
-  print(nodes_AST)
+
   for val in subtrees:
     for node in ast.walk(val):
       if isinstance(node, ast.Name):
@@ -61,49 +62,45 @@ def get_AST_nodes(contents):
 
   return nodes_AST, assigns, subtrees, ifs_info
 
-def add_defuse_specials(AST_nodes, label):
+def add_defuse_specials(label, graph):
   classes = ['used', 'unused']
-  sorted_keys = sorted(AST_nodes.keys())
-  error_location = 0
-  repair_targets = [classes.index(label)]
-  repair_candidates = [classes.index(label)]
-  return error_location, repair_targets, repair_candidates
+  error_location = get_node_by_loc(graph, (0, 0))
+  repair_targets = []
+  repair_candidates = []
+  return error_location, repair_targets, repair_candidates, classes.index(label)
 
-def add_exception_specials(AST_nodes, unique_ids, corr_except):
+def add_exception_specials(unique_ids, corr_except, graph):
   classes = ["ValueError", "KeyError", "AttributeError", "TypeError",
              "OSError", "IOError", "ImportError", "IndexError", "DoesNotExist",
              "KeyboardInterrupt", "StopIteration", "AssertionError", "SystemExit",
              "RuntimeError", "HTTPError", "UnicodeDecodeError", "NotImplementedError",
              "ValidationError", "ObjectDoesNotExist", "NameError"]
-  sorted_keys = sorted(AST_nodes.keys())
-  error_location = sorted_keys.index(unique_ids['HoleException'])
-  repair_targets = [classes.index(corr_except)]
-  repair_candidates = [classes.index(corr_except)]
-  return error_location, repair_targets, repair_candidates
+  error_location = get_node_by_loc(graph, unique_ids['HoleException'][0])
+  repair_targets = []
+  repair_candidates = []
+  return error_location, repair_targets, repair_candidates, classes.index(corr_except)
 
-def add_varmisue_specials(main_file, aux_file, AST_nodes, unique_ids):
-  sorted_keys = sorted(AST_nodes.keys())
+def add_varmisue_specials(main_file, aux_file, unique_ids, graph, vm_label):
   with open(main_file, 'r') as mfile:
     _, tok1, row1_s, col1_s, _, _, _, _, _, _, _, _ = get_diff(main_file, aux_file)
     lines = mfile.readlines()
     different_line = lines[row1_s-1]
     new_line = different_line[:col1_s-1] + different_line[col1_s-1:].replace(tok1, CURR_STR, 1)
     lines[row1_s-1] = new_line
-    error_location = sorted_keys.index((row1_s, col1_s-1))
+    error_location = get_node_by_loc(graph, (row1_s, col1_s-1))
     repair_targets = []
     for ind in unique_ids[tok1]:
-      repair_targets.append(sorted_keys.index(ind))
+      repair_targets.append(get_node_by_loc(graph, ind))
     repair_candidates = []
     for ind in unique_ids:
       for ind2 in unique_ids[ind]:
-        repair_candidates.append(sorted_keys.index(ind2))
-    return error_location, repair_targets, repair_candidates
+        repair_candidates.append(get_node_by_loc(graph, ind2))
+    return error_location, repair_targets, repair_candidates, vm_label
 
-def save_graph(graph, output_file):
-  # save graph
-  pass
+def get_node_by_loc(G, loc):
+  return list({n: d['loc'] for n, d in G.nodes.items() if 'loc' in d and d['loc']==loc}.keys())[0]
 
-def gen_graph_from_source(main_file, aux_file, task_name, corr_except=None, defuse_label=None):
+def gen_graph_from_source(main_file, aux_file, task_name, corr_except=None, defuse_label=None, vm_label=None):
   infile_content = ""
   with open(main_file, 'r') as f:
     infile_content = f.read()
@@ -118,28 +115,29 @@ def gen_graph_from_source(main_file, aux_file, task_name, corr_except=None, defu
       unique_ids[AST_nodes[loc][1]].append(loc)
     else:
       unique_ids[AST_nodes[loc][1]] = [loc]
+  flat_graph.add_node(ast.Expr(), tok='', loc=(0,0))
 
   # NextToken
   sorted_locs = sorted(AST_nodes.keys())
   for i, loc in enumerate(sorted_locs):
     if i + 1 == len(sorted_locs):
       continue
-    prev_node = AST_nodes[sorted_locs[i]]
-    curr_node = AST_nodes[sorted_locs[i+1]]
+    prev_node = get_node_by_loc(flat_graph, sorted_locs[i])
+    curr_node = get_node_by_loc(flat_graph, sorted_locs[i+1])
     flat_graph.add_edge(prev_node, curr_node, label='enum_NEXT_SYNTAX', id='8')
 
   # LastLexicalUse
   for n in unique_ids:
     for i in range(1, len(unique_ids[n])):
-      prev_node = AST_nodes[unique_ids[n][i-1]][0]
-      curr_node = AST_nodes[unique_ids[n][i]][0]
+      prev_node = get_node_by_loc(flat_graph, unique_ids[n][i-1])
+      curr_node = get_node_by_loc(flat_graph, unique_ids[n][i])
       flat_graph.add_edge(prev_node, curr_node, label='enum_LAST_LEXICAL_USE', id='9')
 
   # LastRead/LastWrite
   reads, writes = [], []
   for id in unique_ids:
     for n in unique_ids[id]:
-      curr_node = AST_nodes[n][0]
+      curr_node = get_node_by_loc(flat_graph, n)
       if isinstance(curr_node, ast.Name):
         if isinstance(curr_node.ctx, ast.Store):
           writes.append(curr_node)
@@ -148,8 +146,8 @@ def gen_graph_from_source(main_file, aux_file, task_name, corr_except=None, defu
   for n in unique_ids:
     for i in range(len(unique_ids[n])):
       for j in range(i, len(unique_ids[n])):
-        node1 = AST_nodes[unique_ids[n][i]][0]
-        node2 = AST_nodes[unique_ids[n][j]][0]
+        node1 = get_node_by_loc(flat_graph, unique_ids[n][i])
+        node2 = get_node_by_loc(flat_graph, unique_ids[n][j])
         if node2 in writes:
           flat_graph.add_edge(node1, node2, label='enum_LAST_WRITE', id='2')
         if node2 in reads:
@@ -157,13 +155,12 @@ def gen_graph_from_source(main_file, aux_file, task_name, corr_except=None, defu
 
   # ReturnsTo
   for loc in sorted_locs:
-    node = AST_nodes[loc][0]
+    node = get_node_by_loc(flat_graph, loc)
     if isinstance(node, ast.FunctionDef):
       for elem in node.body:
         if isinstance(elem, ast.Return):
           flat_graph.add_edge(elem, node, label='enum_RETURNS_TO', id='4')
-          print('****', elem, type(elem))
-        
+
   # ComputedFrom
   for loc in assigns:
     lhs, rhs = [], []
@@ -185,12 +182,12 @@ def gen_graph_from_source(main_file, aux_file, task_name, corr_except=None, defu
           flat_graph.add_edge(entry1, entry2, label='enum_CFG_NEXT', id='0')
 
   if task_name == 'varmisuse':
-    err_loc, rep_targets, rep_cands = add_varmisue_specials(main_file, aux_file, AST_nodes, unique_ids)
+    err_loc, rep_targets, rep_cands, label = add_varmisue_specials(main_file, aux_file, unique_ids, flat_graph, vm_label)
   elif task_name == 'defuse':
-    err_loc, rep_targets, rep_cands = add_defuse_specials(AST_nodes, defuse_label)
+    err_loc, rep_targets, rep_cands, label = add_defuse_specials(defuse_label, flat_graph)
   elif task_name == 'exception':
-    err_loc, rep_targets, rep_cands = add_exception_specials(AST_nodes, unique_ids, corr_except)
+    err_loc, rep_targets, rep_cands, label = add_exception_specials(unique_ids, corr_except, flat_graph)
   else:
     raise ValueError(task_name, 'not a valid task name.')
 
-  return flat_graph, err_loc, rep_targets, rep_cands
+  return flat_graph, err_loc, rep_targets, rep_cands, label

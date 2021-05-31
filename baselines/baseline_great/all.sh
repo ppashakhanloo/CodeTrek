@@ -17,23 +17,20 @@ function run_varmisuse {
   done
 }
 
-
 function run_exception {
-  indir="$1" # py_files
-  outdir="$2" # exception_graphs
+  category=$1 # dev, eval, train
+  indir="$2" # py_files
+  outdir="$3" # exception_graphs
 
-  for category in `ls -1 "$indir"` ;
+  for exception in `ls -1 "$indir/$category"` ;
   do
-    for exception in `ls -1 "$indir/$category"` ;
+    mkdir -p $outdir/$category/$exception
+    for source_file in `ls -1 "$indir/$category/$exception"` ;
     do
-      mkdir -p $outdir/$category/$exception
-      for source_file in `ls -1 "$indir/$category/$exception"` ;
-      do
-        py_file="$indir/$category/$exception/$source_file"
-        label=$exception
-        outfile=$outdir/$category/$exception/graph_"$source_file".json
-        python gen_graph_jsons.py "$py_file" None $label $outfile exception
-      done
+      py_file="$indir/$category/$exception/$source_file"
+      label=$exception
+      outfile=$outdir/$category/$exception/graph_"$source_file".json
+      python gen_graph_jsons.py "$py_file" None $label $outfile exception
     done
   done
 }
@@ -55,14 +52,15 @@ function run_defuse {
   done
 }
 
-
 ## UNCOMMENT ANY OF THE FUNCTION BELOW TO GENERATE AST-BASED GRAPHS.
 
 #run_defuse dev pys_dir out_graphs
 #run_defuse eval pys_dir out_graphs
 #run_defuse train pys_dir out_graphs
 
-#run_exception pys_dir out_graphs
+#run_exception dev pys_dir out_graphs
+#run_exception eval pys_dir out_graphs
+#run_exception train pys_dir out_graphs
 
 #run_varmisuse dev pys_dir out_graphs
 #run_varmisuse eval pys_dir out_graphs
