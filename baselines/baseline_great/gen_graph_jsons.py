@@ -38,13 +38,20 @@ def main(args):
   else:
     bug_kind_name = "NONE"
 
-  flat_graph, err_loc, rep_targets, rep_cands, label = gen_graph_from_source(file1, file2, task_name, corr_except=corr_except, defuse_label=defuse_label)
+  flat_graph, err_loc, rep_targets, rep_cands, label =\
+          gen_graph_from_source(file1, file2, task_name, corr_except=corr_except, defuse_label=defuse_label)
 
   source_tokens = []
   index = 1
   node_to_num = {}
-  for node in sorted(list(flat_graph.nodes(data='loc')), key=lambda x:x[1]):
-    source_tokens.append(list({d['tok'] for n, d in flat_graph.nodes.items() if 'tok' in d and d['loc'] == node[1]})[0])
+  for node in sorted(list(flat_graph.nodes(data=True)), key=lambda x:x[1]['loc'] if 'loc' in x[1] else (0,0)):
+    if len(node) > 0 and 'tok' in node[1]:
+      if node[1]['tok']:
+        source_tokens.append(node[1]['tok'])
+      else:
+        source_tokens.append('')
+    else:
+      source_tokens.append('')
     node_to_num[node[0]] = index
     index += 1
 

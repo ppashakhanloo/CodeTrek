@@ -15,10 +15,20 @@ def get_AST_nodes(contents):
 
   atok = asttokens.ASTTokens(contents, parse=True)
   for node in ast.walk(atok.tree):
-    if hasattr(node, 'lineno') and hasattr(node, 'id'):
+    if not hasattr(node, 'lineno'):
+      nodes_AST[(0,0)] = (node, 'other')
+    elif isinstance(node, ast.Attribute):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, '.')
+    elif isinstance(node, ast.Tuple):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, '(')
+    elif isinstance(node, ast.Subscript):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, '[')
+    elif hasattr(node, 'lineno') and hasattr(node, 'id'):
       nodes_AST[(node.lineno, node.col_offset)] = (node, node.id)
     elif hasattr(node, 'lineno') and hasattr(node, 'name'):
       nodes_AST[(node.lineno, node.col_offset)] = (node, node.name)
+    elif hasattr(node, 'lineno') and hasattr(node, 'arg'):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, node.arg)
     elif isinstance(node, ast.Return):
       nodes_AST[(node.lineno, node.col_offset)] = (node, 'return')
     elif isinstance(node, ast.Delete):
@@ -35,6 +45,14 @@ def get_AST_nodes(contents):
       nodes_AST[(node.lineno, node.col_offset)] = (node, 'except')
     elif isinstance(node, ast.Raise):
       nodes_AST[(node.lineno, node.col_offset)] = (node, 'raise')
+    elif isinstance(node, ast.Expr):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, 'expr')
+    elif isinstance(node, ast.Assign):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, 'assign')
+    elif isinstance(node, ast.Assert):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, 'assert')
+    else:
+      nodes_AST[(0,0)] = (node, 'other')
 
     if isinstance(node, ast.AugAssign):
       assigns[(node.lineno, node.col_offset)] = (node, 'assign')
@@ -67,7 +85,7 @@ def add_defuse_specials(label, graph):
   error_location = get_node_by_loc(graph, (0, 0))
   repair_targets = []
   repair_candidates = []
-  return error_location, repair_targets, repair_candidates, classes.index(label)
+  return error_location, repair_targets, repair_candidates, label
 
 def add_exception_specials(unique_ids, corr_except, graph):
   classes = ["ValueError", "KeyError", "AttributeError", "TypeError",
@@ -78,7 +96,7 @@ def add_exception_specials(unique_ids, corr_except, graph):
   error_location = get_node_by_loc(graph, unique_ids['HoleException'][0])
   repair_targets = []
   repair_candidates = []
-  return error_location, repair_targets, repair_candidates, classes.index(corr_except)
+  return error_location, repair_targets, repair_candidates, corr_except
 
 def add_varmisue_specials(main_file, aux_file, unique_ids, graph, vm_label):
   with open(main_file, 'r') as mfile:
