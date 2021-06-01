@@ -65,23 +65,25 @@ function run_exception_large {
 }
 
 function run_defuse {
-  # ash09
   category=$1
-  data_dir=/data1/pardisp/defuse_files/$category
-
-  mkdir -p graphs/defuse/$category
-
-  for d in `ls -1 $data_dir | grep -E "\.txt$"` ;
+  indir=$2
+  outdir=$3
+  
+  logfile=log-defuse-$category.txt
+  rm -f $logfile
+  for label in `ls -1 "$indir/$category"` ;
   do
-    printf $d,
-    label=`cat $data_dir/$d`
-    IFS='_' read -ra splits <<< "$d" >& /dev/null
-    num=${splits[1]}
-    IFS='.' read -ra splits <<< "$num" >& /dev/null
-    num=${splits[0]}
-    python_file="file_"$num.py
-    $PYTHON_CONVERTOR -w $data_dir/$python_file >& /dev/null
-    python3 gen_graph_jsons.py $data_dir/$python_file None $label graphs/defuse/$category/graph_$python_file.json defuse
+    mkdir -p $outdir/$category
+    for py_file in `ls -1 "$indir/$category/$label" | grep "py"` ;
+    do
+      python_file_path="$indir/$category/$label/$py_file"
+      outpath="$outdir/$category/graph_$py_file.json"
+      #$PYTHON_CONVERTOR -w -n $data_dir/$python_file >& /dev/null
+      echo "-------" $python_file_path >> $logfile
+      python gen_graph_jsons.py $python_file_path None $label $outpath defuse #>& /dev/null
+      echo $? >> $logfile
+      echo $py_file
+    done
   done
 
 }
@@ -89,9 +91,9 @@ function run_defuse {
 
 ## UNCOMMENT ANY OF THE FUNCTION BELOW TO GENERATE AST-BASED GRAPHS.
 
-#run_defuse dev
-#run_defuse eval
-#run_defuse train
+run_defuse dev /home/pardisp/defuse /home/pardisp/graphs_defuse
+#run_defuse eval /home/pardisp/defuse /home/pardisp/graphs_defuse
+#run_defuse train /home/pardisp/defuse /home/pardisp/graphs_defuse
 
 #run_exception
 
