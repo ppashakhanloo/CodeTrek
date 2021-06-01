@@ -1,7 +1,7 @@
 #!/bin/bash
 
 data_root=$HOME/data/dataset/dbwalk/ggnn
-data_name=gnn_defuse
+data_name=defuse
 
 lv=5
 
@@ -22,5 +22,5 @@ python main_gnn_defuse.py \
     -iter_per_epoch 300 \
     -learning_rate 1e-4 \
     -num_proc 0 \
-    -gpu 0 \
+    -gpu -1 \
     $@

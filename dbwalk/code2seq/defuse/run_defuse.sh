@@ -1,7 +1,7 @@
 #!/bin/bash
 
 data_root=$HOME/data/dataset/dbwalk/code2seq
-data_name=code2seq_defuse
+data_name=defuse
 
 bsize=32
 nlayer=4
@@ -31,5 +31,5 @@ python code2seq_defuse.py \
     -iter_per_epoch 100 \
     -learning_rate 1e-3 \
     -num_proc 0 \
-    -gpu 0 \
+    -gpu -1 \
     $@
