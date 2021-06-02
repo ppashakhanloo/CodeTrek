@@ -69,7 +69,8 @@ class RandomWalker:
     # walks from the source than the requested number of walks.
     # If that happens, this function pads the return list to max_num_walks by
     # duplicating elements randomly chosen from the sampled walks.
-    def random_walk(self, max_num_walks: int, min_num_steps: int, max_num_steps: int) -> List[List]:
+    def random_walk(self, max_num_walks: int, min_num_steps: int, max_num_steps: int,\
+            limit_to_method=True) -> List[List]:
         walks = list()
         walk = 0
         
@@ -89,6 +90,9 @@ class RandomWalker:
                                  choice(list(self.graph[prev_node][curr_node].values()))['label'])
                     curr_edge_rev = (curr_edge[1], curr_edge[0], curr_edge[2])
 
+                    if limit_to_method:
+                        if 'callgraph' in curr_edge[2]:
+                            continue
                     if curr_edge not in curr_walk \
                             and curr_edge_rev not in curr_walk \
                             and (curr_node, self.graph.nodes[curr_node]['label']) not in curr_walk:
