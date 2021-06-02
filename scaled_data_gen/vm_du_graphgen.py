@@ -42,16 +42,16 @@ def run(tables_path):
       diff_bin = os.path.join(home_path, 'data_prep/random_walk/diff.py')
 
       os.system("gsutil -m cp  -r " + remote_tables_dir + "/*" + " " + tables_dir)
-      os.system("python3 " + diff_bin + " " + tables_dir + "/" + file_1_src + " " + tables_dir + "/" + file_2_src + " " + tables_dir + "/var_misuses.csv")
-      os.system("python3 " + graph_bin + " " + tables_dir + " " + os.path.join(home_path, "python_codeql/join.txt") + " " + tables_dir + "/graph_" + filename)
+      os.system("python " + diff_bin + " " + tables_dir + "/" + file_1_src + " " + tables_dir + "/" + file_2_src + " " + tables_dir + "/var_misuses.csv")
+      os.system("python " + graph_bin + " " + tables_dir + " " + os.path.join(home_path, "python_codeql/join.txt") + " " + tables_dir + "/graph_" + filename)
       assert os.path.exists(tables_dir + "/graph_" + filename + ".gv"), "graph not created."
 
-      os.system("python3 " + varmisuse_stub_bin + " " + tables_dir + "/graph_" + filename + ".gv" + " "\
-        + tables_dir + " " + label + " " + tables_dir + "/stub_vm_" + filename + ".json")
+      os.system("python " + varmisuse_stub_bin + " " + tables_dir + "/graph_" + filename + ".gv" + " "\
+        + tables_dir + " " + label + " " + tables_dir + "/stub_vm_" + filename + ".json" + " " + walks_or_stubs)
       assert os.path.exists(tables_dir+"/stub_vm_"+filename+".json"), "stub vm not created."
       
       if label == "correct":
-        os.system("python3 " + defuse_stub_bin + " " + tables_dir + "/graph_" + filename + ".gv" + " "\
+        os.system("python " + defuse_stub_bin + " " + tables_dir + "/graph_" + filename + ".gv" + " "\
           + tables_dir + " " + tables_dir + "/" + "unused_var.bqrs.csv" + " " + tables_dir + "/stub_du_" + filename + ".json")
         assert os.path.exists(tables_dir+"/stub_du_"+filename+".json"), "stub du not created."
      
@@ -79,6 +79,7 @@ sources_bucket_name = sys.argv[3] # varmisuse-defuse
 remote_table_dirname = sys.argv[4] # outdir_reshuffle
 output_graphs_dirname = sys.argv[5] # output_graphs
 home_path = sys.argv[6] # /home/pardisp/relational-representation
+walks_or_stubs = sys.argv[7] # walks, stubs
 
 programs = []
 

@@ -74,6 +74,7 @@ def main(args: List[str]) -> None:
     gt = args[3]
     assert gt in ["misuse", "correct"]
     out_file = args[4]
+    walks_or_stubs = args[5]
     
     anchor_nodes = set()
 
@@ -89,7 +90,11 @@ def main(args: List[str]) -> None:
     walklist = []
     for anchor, label in anchor_nodes:
         anchor_label = graph.nodes[anchor]['label']
-        walks = []
+        if walks_or_stubs == 'stubs':
+            walks = []
+        else:
+            random_walk = RandomWalker(graph, anchor_label, 'python')
+            walks = random_walk.random_walk(max_num_walks=150, min_num_steps=10, max_num_steps=30)
         source = gv_file
         traj_anchor = TrajNodeValue(anchor_label)
         trajectories = [WalkUtils.build_trajectory(walk) for walk in walks]
