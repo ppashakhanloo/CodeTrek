@@ -29,7 +29,7 @@ class AstTree(object):
                 continue
             self.parent_list[y] = x
             self.is_leaf[x] = False
-        if sample.anchor != 'None' and self.is_leaf[int(sample.anchor)]:
+        if sample.anchor != 'None':
             self.target_idx = int(sample.anchor)
         for i in range(self.num_nodes):
             if self.parent_list[i] < 0:
