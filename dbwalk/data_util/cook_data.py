@@ -158,7 +158,7 @@ if __name__ == '__main__':
                                 for tok in toks:
                                     t = get_or_unk(token_vocab, tok)
                                     node_val_coo.append((node_pos, traj_idx, t))
-                        node_val_coo = (np.array(node_val_coo, dtype=np.int32), max_node_token_length)
+                        node_val_coo = (np.array(node_val_coo, dtype=np.int32), len(token_vocab))
                     else:
                         node_val_coo = None
                     assert sample['label'] in label_dict, 'unknown label %s' % sample['label']
