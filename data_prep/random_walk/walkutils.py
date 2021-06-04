@@ -135,7 +135,8 @@ class WalkUtils:
             kind = int(values[1])
             node_type = 'stmt_' + WalkUtils.stmt_kinds[kind]
         if rel_name == 'py_strs':
-            node_value = values[0]
+            if len(values[0]) < 15:
+                node_value = values[0]
         # Otherwise, use relation name as the label
         return node_type, node_value
 
