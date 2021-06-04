@@ -1,9 +1,9 @@
 #!/bin/bash
 
 data_root=$HOME/data/dataset/dbwalk
-data_name=tiny_except
+data_name=ex_large_walks
 
-bsize=32
+bsize=6
 embed=256
 nlayer=4
 nhead=8
@@ -13,6 +13,7 @@ setenc=deepset
 online=False
 num_proc=0
 shuffle_var=False
+use_node_val=True
 
 export CUDA_VISIBLE_DEVICES=0
 
@@ -28,6 +29,7 @@ python main.py \
     -save_dir $save_dir \
     -data $data_name \
     -online_walk_gen $online \
+    -use_node_val $use_node_val \
     -set_encoder $setenc \
     -shuffle_var $shuffle_var \
     -batch_size $bsize \
@@ -39,5 +41,5 @@ python main.py \
     -iter_per_epoch 1000 \
     -num_proc $num_proc \
     -learning_rate 1e-4 \
-    -gpu 0 \
+    -gpu -1 \
     $@
