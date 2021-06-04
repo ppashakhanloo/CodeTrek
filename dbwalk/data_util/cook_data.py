@@ -76,6 +76,7 @@ if __name__ == '__main__':
     node_types = {}
     edge_types = {}
     token_vocab = {}
+    max_node_token_length = 0
 
     for key in [TOK_PAD, UNK]:
         get_or_add(node_types, key)
@@ -99,6 +100,7 @@ if __name__ == '__main__':
                             toks = tokenizer.tokenize(node_val, args.language)
                             for tok in toks:
                                 get_or_add(token_vocab, tok)
+                                max_node_token_length = max(len(tok), max_node_token_length)
                         for node in traj['node_types']:
                             if node.startswith('v_'):
                                 var_set.add(node)
@@ -156,7 +158,7 @@ if __name__ == '__main__':
                                 for tok in toks:
                                     t = get_or_unk(token_vocab, tok)
                                     node_val_coo.append((node_pos, traj_idx, t))
-                        node_val_coo = (np.array(node_val_coo, dtype=np.int32), len(token_vocab))
+                        node_val_coo = (np.array(node_val_coo, dtype=np.int32), max_node_token_length)
                     else:
                         node_val_coo = None
                     assert sample['label'] in label_dict, 'unknown label %s' % sample['label']
