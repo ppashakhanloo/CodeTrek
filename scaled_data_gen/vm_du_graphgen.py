@@ -38,7 +38,10 @@ def run(tables_path):
       os.system("gsutil cp  " + file_2 + " " + tables_dir + "/" + file_2_src)
 
       remote_tables_dir = "gs://"+tables_bucket_name+"/"+remote_table_dirname+"/" + tables_path
-      
+      if walks_or_stubs == 'walks':
+        s = os.system("gsutil cp  " + 'gs://'+sources_bucket_name + "/" + walks_or_stubs + "_vm/" + task + "/" + category + "/stub_" + py_file + ".json" + " " + tables_dir)
+        assert s != 0, py_file + "-->skipped, already exists."
+
       diff_bin = os.path.join(home_path, 'data_prep/random_walk/diff.py')
 
       os.system("gsutil -m cp  -r " + remote_tables_dir + "/*" + " " + tables_dir)
@@ -60,11 +63,9 @@ def run(tables_path):
         os.system("gsutil cp  " + tables_dir + "/graph_" + filename + ".gv" + " " + "gs://"+sources_bucket_name+"/"+output_graphs_dirname+"_vm/"+task+"/"+category+"/"+"graph_"+filename+".gv")
         os.system("gsutil cp  " + tables_dir + "/stub_vm_" + filename + ".json" + " " + "gs://"+sources_bucket_name+"/"+output_graphs_dirname+"_vm/"+task+"/"+category+"/"+ "stub_"+filename+".json")
    
-
       if os.path.exists(tables_dir + "/graph_" + filename + ".gv") and os.path.exists(tables_dir + "/stub_du_" + filename + ".json"):
         os.system("gsutil cp  " + tables_dir + "/graph_" + filename + ".gv" + " " + "gs://" + sources_bucket_name + "/"+output_graphs_dirname + "_du/" + task + "/" + category + "/" + "graph_" + filename + ".gv")
         os.system("gsutil cp  " + tables_dir + "/stub_du_" + filename + ".json" + " " + "gs://" + sources_bucket_name + "/"+output_graphs_dirname + "_du/" + task + "/" + category + "/" + "stub_" + filename + ".json")
-   
 
     with open(tables_paths_file + "-done", "a") as done:
       done.write(tables_path + "\n")
@@ -88,4 +89,4 @@ with open(tables_paths_file, 'r') as fin:
   for line in fin.readlines():  
     programs.append(line.strip())
 
-Parallel(n_jobs=10, prefer="threads")(delayed(run)(program) for program in programs)
+Parallel(n_jobs=26, prefer="threads")(delayed(run)(program) for program in programs)
