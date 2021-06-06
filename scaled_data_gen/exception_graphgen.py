@@ -29,9 +29,7 @@ def run(tables_path):
       assert os.path.exists(tables_dir + "/graph_" + filename + ".gv"), "graph not created."
 
       os.system("python " + ex_stub_bin + " " + tables_dir + "/graph_" + filename + ".gv" + " "\
-        + tables_dir + " " + label + " " + tables_dir + "/stub_" + filename + ".json" + " " + walks_or_stubs)
-
-
+        + tables_dir + " " + label + " " + tables_dir + "/stub_" + filename + ".json" + " " + walks_or_graphs)
       assert os.path.exists(tables_dir+"/stub_" + filename + ".json"), "stub not created."
 
       if os.path.exists(tables_dir + "/graph_" + filename + ".gv") and\
@@ -50,7 +48,7 @@ bucket_name = sys.argv[2] # exception-storage
 remote_table_dirname = sys.argv[3] # exception_tables
 output_graphs_dirname = sys.argv[4] # output_large_graphs
 home_path = sys.argv[5] # /home/pardisp/relational-representation
-walks_or_stubs = sys.argv[6] # walks, stubs
+walks_or_graph = sys.argv[6] # walks, graphs
 
 programs = []
 

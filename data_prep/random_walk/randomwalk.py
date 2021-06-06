@@ -6,7 +6,7 @@ from data_prep.random_walk.walkutils import WalkUtils, JavaWalkUtils
 
 class RandomWalker:
     BIAS_WEIGHT = 5
-    PYTHON_BIAS_TABLES = {'py_strs', 'variable', 'py_variables', 'py_exprs', 'py_stmts'}
+    PYTHON_BIAS_TABLES = {'py_exprs', 'py_stmts', 'py_variables', 'py_strs'}
     JAVA_BIAS_TABLES = {'exprs', 'stmts'}
 
     language = None         # type: str

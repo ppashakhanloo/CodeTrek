@@ -5,8 +5,6 @@ import pickle as cp
 from tqdm import tqdm
 import numpy as np
 import random
-
-from data_prep.tokenizer import tokenizer
 from dbwalk.common.configs import args
 from dbwalk.common.consts import TOK_PAD, var_idx2name, UNK
 
@@ -50,16 +48,16 @@ def make_mat(list_traj, max_n_nodes, max_n_edges):
     return mat_node, mat_edge
 
 
-def make_mat_from_raw(list_traj_dict, node_types, edge_types, type_field='node_types'):
+def make_mat_from_raw(list_traj_dict, node_types, edge_types, type_filed='node_types'):
     var_dict = {}
     list_traj = []
     max_len_nodes = 0
     max_len_edges = 0
     for traj in list_traj_dict:
         seq_nodes = []
-        max_len_nodes = max(max_len_nodes, len(traj[type_field]))
+        max_len_nodes = max(max_len_nodes, len(traj[type_filed]))
         max_len_edges = max(max_len_edges, len(traj['edges']))
-        for node in traj[type_field]:
+        for node in traj[type_filed]:
             if node.startswith('v_'):
                 v_idx = get_or_add(var_dict, node)
                 seq_nodes.append(get_or_unk(node_types, 'var_%d' % v_idx))
@@ -72,11 +70,11 @@ def make_mat_from_raw(list_traj_dict, node_types, edge_types, type_field='node_t
 
 
 if __name__ == '__main__':
-    label_dict = load_label_dict(os.path.join(args.data_dir, args.data))
+    label_dict = load_label_dict(os.path.join(cmd_args.data_dir, cmd_args.data))
+    print(label_dict)
     node_types = {}
     edge_types = {}
     token_vocab = {}
-    max_node_token_length = 0
 
     for key in [TOK_PAD, UNK]:
         get_or_add(node_types, key)
@@ -86,7 +84,7 @@ if __name__ == '__main__':
     max_num_vars = 0
     print('building dict')
     for phase in ['train', 'dev', 'eval']:
-        folder = os.path.join(args.data_dir, args.data, phase)
+        folder = os.path.join(cmd_args.data_dir, cmd_args.data, phase)
         files = os.listdir(folder)
         for fname in tqdm(files):
             if not fname.endswith('json'):
@@ -95,13 +93,8 @@ if __name__ == '__main__':
                 d = json.load(f)
                 for sample in d:
                     var_set = set()
-                    for traj_idx, traj in enumerate(sample['trajectories']):
-                        for node_pos, node_val in enumerate(traj['node_values']):
-                            toks = tokenizer.tokenize(node_val, args.language)
-                            for tok in toks:
-                                get_or_add(token_vocab, tok)
-                                max_node_token_length = max(len(tok), max_node_token_length)
-                        for node in traj['node_types']:
+                    for traj in sample['trajectories']:
+                        for node in traj['nodes']:
                             if node.startswith('v_'):
                                 var_set.add(node)
                             else:
@@ -121,7 +114,7 @@ if __name__ == '__main__':
         var_dict[i] = val
         var_reverse_dict[val] = i
 
-    with open(os.path.join(args.data_dir, args.data, 'dict.pkl'), 'wb') as f:
+    with open(os.path.join(cmd_args.data_dir, cmd_args.data, 'dict.pkl'), 'wb') as f:
         d = {}
         d['node_types'] = node_types
         d['edge_types'] = edge_types
@@ -133,10 +126,10 @@ if __name__ == '__main__':
 
     for phase in ['train', 'dev', 'eval']:
         print('cooking', phase)
-        folder = os.path.join(args.data_dir, args.data, phase)
+        folder = os.path.join(cmd_args.data_dir, cmd_args.data, phase)
         files = os.listdir(folder)
         random.shuffle(files)
-        out_folder = os.path.join(args.data_dir, args.data, 'cooked_' + phase)
+        out_folder = os.path.join(cmd_args.data_dir, cmd_args.data, 'cooked_' + phase)
         if not os.path.isdir(out_folder):
             os.makedirs(out_folder)
 
@@ -149,21 +142,10 @@ if __name__ == '__main__':
             with open(os.path.join(folder, fname), 'r') as f:
                 d = json.load(f)
                 for sample_idx, sample in enumerate(d):
-                    node_mat, edge_mat = make_mat_from_raw(sample['trajectories'], node_types, edge_types, type_field='node_types')
-                    if args.use_node_val:
-                        node_val_coo = []
-                        for traj_idx, traj in enumerate(sample['trajectories']):
-                            for node_pos, node_val in enumerate(traj['node_values']):
-                                toks = tokenizer.tokenize(node_val, args.language)
-                                for tok in toks:
-                                    t = get_or_unk(token_vocab, tok)
-                                    node_val_coo.append((node_pos, traj_idx, t))
-                        node_val_coo = (np.array(node_val_coo, dtype=np.int32), len(token_vocab))
-                    else:
-                        node_val_coo = None
+                    node_mat, edge_mat = make_mat_from_raw(sample['trajectories'], node_types, edge_types, type_filed='nodes')
                     assert sample['label'] in label_dict, 'unknown label %s' % sample['label']
-                    chunk_buf['%s-%d' % (fname_prefix, sample_idx)] = (node_mat, node_val_coo, edge_mat, sample['source'], sample['label'])
-            if len(chunk_buf) >= args.data_chunk_size:
+                    chunk_buf['%s-%d' % (fname_prefix, sample_idx)] = (node_mat, edge_mat, sample['source'], sample['label'])
+            if len(chunk_buf) >= cmd_args.data_chunk_size:
                 chunk_idx, chunk_buf = dump_data_chunk(out_folder, chunk_idx, chunk_buf) 
         if len(chunk_buf):
             dump_data_chunk(out_folder, chunk_idx, chunk_buf)

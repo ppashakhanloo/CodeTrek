@@ -74,39 +74,37 @@ def main(args: List[str]) -> None:
     gt = args[3]
     assert gt in ["misuse", "correct"]
     out_file = args[4]
-    walks_or_stubs = args[5]
-    
-    anchor_nodes = set()
+    walks_or_graphs = args[5]
 
+    anchor_nodes = set()
     anchors = get_anchor(edb_path, gt)
-    
     graph = RandomWalker.load_graph_from_gv(gv_file)
 
     for node in graph.nodes():
         element = graph.nodes[node]['label']
         if element in anchors:
             anchor_nodes.add((node, gt))
-        
+
     walklist = []
     for anchor, label in anchor_nodes:
         anchor_label = graph.nodes[anchor]['label']
-        if walks_or_stubs == 'stubs':
+
+        if walks_or_graphs == 'graphs':
             walks = []
         else:
             random_walk = RandomWalker(graph, anchor_label, 'python')
-            walks = random_walk.random_walk(max_num_walks=150, min_num_steps=10, max_num_steps=30)
+            walks = random_walk.random_walk(max_num_walks=100, min_num_steps=8, max_num_steps=24)
+
         source = gv_file
         traj_anchor = TrajNodeValue(anchor_label)
         trajectories = [WalkUtils.build_trajectory(walk) for walk in walks]
         data_point = DataPoint(traj_anchor, trajectories, [], label, source)
         walklist.append(data_point.to_dict())
     js = json.dumps(walklist)
-    
+
     with open(out_file, 'w') as op_file:
         op_file.write(js)
 
 
 if __name__ == '__main__':
     main(sys.argv)
-
-

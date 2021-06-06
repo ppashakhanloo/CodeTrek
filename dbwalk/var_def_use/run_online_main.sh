@@ -3,7 +3,7 @@
 data_root=$HOME/data/dataset/dbwalk
 data_name=defuse
 
-bsize=24
+bsize=12
 embed=256
 nlayer=4
 nhead=8

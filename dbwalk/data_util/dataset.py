@@ -146,8 +146,8 @@ class InMemDataest(Dataset):
             with open(os.path.join(data_dir, 'cooked_' + phase, fname), 'rb') as f:
                 d = cp.load(f)
                 for key in d:
-                    node_type_mat, node_val_mat, edge_mat, src, str_label = d[key]
-                    raw_sample = RawData(node_type_mat, edge_mat, node_val_mat, src, self.prog_dict.label_map[str_label])
+                    node_mat, edge_mat, src, str_label = d[key]
+                    raw_sample = RawData(node_mat, edge_mat, None, src, self.prog_dict.label_map[str_label])
                     self.list_samples.append((key, raw_sample))
                     self.labeled_samples[str_label].append((key, raw_sample))
 

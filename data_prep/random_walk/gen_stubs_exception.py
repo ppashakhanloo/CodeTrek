@@ -15,7 +15,7 @@ def main(args: List[str]) -> None:
     edb_path = args[2]
     gt = args[3]
     out_file = args[4]
-    walks_or_stubs = args[5]
+    walks_or_graphs = args[5]
 
     gt_exception = []
     anchor_node = []
@@ -45,11 +45,11 @@ def main(args: List[str]) -> None:
     walklist = []
     for anchor, label in anchor_node:
         anchor_label = graph.nodes[anchor]['label']
-        if walks_or_stubs == 'stubs':
+        if walks_or_graphs == 'graphs':
             walks = []
         else:
             random_walk = RandomWalker(graph, anchor_label, 'python')
-            walks = random_walk.random_walk(max_num_walks=150, min_num_steps=10, max_num_steps=int(len(graph.nodes())**0.4))
+            walks = random_walk.random_walk(max_num_walks=100, min_num_steps=8, max_num_steps=30)
         # generate the Json file
         source = gv_file
         traj_anchor = TrajNodeValue(anchor_label)
