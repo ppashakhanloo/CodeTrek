@@ -7,7 +7,7 @@ import numpy as np
 import random
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from dbwalk.data_util.dataset import InMemDataest, ProgDict, FastOnlineWalkDataset
+from dbwalk.data_util.dataset import InMemDataest, ProgDict, FastOnlineWalkDataset, PreGeneratedWalkDataset
 from dbwalk.common.configs import args, get_torch_device
 from tqdm import tqdm
 import torch.multiprocessing as mp
@@ -26,7 +26,7 @@ if __name__ == '__main__':
     if args.online_walk_gen:
         db_class = FastOnlineWalkDataset
     else:
-        db_class = InMemDataest
+        db_class = PreGeneratedWalkDataset
 
     if args.phase == 'eval':
         assert args.model_dump is not None

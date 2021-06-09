@@ -194,9 +194,9 @@ class WorkerContext(object):
         self.buffer = [None] * n_jobs
 
 
-class AbstractOnlineWalkDB(Dataset):
+class AbstractWalkDB(Dataset):
     def __init__(self, args, prog_dict, data_dir, phase, sample_prob=None, shuffle_var=False):
-        super(AbstractOnlineWalkDB, self).__init__()
+        super(AbstractWalkDB, self).__init__()
         self.args = args
         self.prog_dict = prog_dict
         self.phase = phase
@@ -240,7 +240,7 @@ class AbstractOnlineWalkDB(Dataset):
         return RawData(node_mat, edge_mat, node_val_coo, raw_sample.source, self.prog_dict.label_map[raw_sample.label])
 
 
-class FastOnlineWalkDataset(AbstractOnlineWalkDB):
+class FastOnlineWalkDataset(AbstractWalkDB):
     def __init__(self, args, prog_dict, data_dir, phase, sample_prob=None, shuffle_var=False):
         super(FastOnlineWalkDataset, self).__init__(args, prog_dict, data_dir, phase, sample_prob, shuffle_var)
 
@@ -259,7 +259,50 @@ class FastOnlineWalkDataset(AbstractOnlineWalkDB):
         return self.get_item_from_rawfile(raw_sample, walker)
 
 
-class SlowOnlineWalkDataset(AbstractOnlineWalkDB):
+class PreGeneratedWalkDataset(AbstractWalkDB):
+    def __init__(self, args, prog_dict, data_dir, phase, sample_prob=None, shuffle_var=False):
+        super(PreGeneratedWalkDataset, self).__init__(args, prog_dict, data_dir, phase, sample_prob, shuffle_var)
+
+        self.all_trajectories = []
+        self.labels = []
+        self.sources = []
+        for walkfile in os.listdir(os.path.join(data_dir, phase)):
+            if not walkfile.startswith("stub"):
+                continue
+            with open(os.path.join(data_dir, phase, walkfile), 'r', 1000000) as f:
+                d = json.loads(f.read())[0]
+                self.all_trajectories.append(d["trajectories"])
+                self.labels.append(d["label"])
+                self.sources.append(d["source"])
+        self.language = 'python'
+        assert len(self.all_trajectories) == len(self.labels) == len(self.sources)
+
+    def __len__(self):
+        return len(self.sources)
+
+    def __getitem__(self, idx):
+        trajectories = self.all_trajectories[idx]
+        label = self.labels[idx]
+        source = self.sources[idx]
+        return self.get_item_from_walks(trajectories, label, source)
+
+    def get_item_from_walks(self, trajectories, label, source):
+        node_mat, edge_mat = make_mat_from_raw(trajectories, self.prog_dict.node_types, self.prog_dict.edge_types)
+        if self.args.use_node_val:
+            node_val_coo = []
+            for traj_idx, traj in enumerate(trajectories):
+                for node_pos, node_val in enumerate(traj['node_values']):
+                    toks = tokenizer.tokenize(node_val, self.args.language)
+                    for tok in toks:
+                        t = get_or_unk(self.prog_dict.node_val_tokens, tok)
+                        node_val_coo.append((node_pos, traj_idx, t))
+            node_val_coo = (np.array(node_val_coo, dtype=np.int32), self.prog_dict.num_node_val_tokens)
+        else:
+            node_val_coo = None
+        return RawData(node_mat, edge_mat, node_val_coo, source, self.prog_dict.label_map[label])
+
+
+class SlowOnlineWalkDataset(AbstractWalkDB):
     def __init__(self, args, prog_dict, data_dir, phase, sample_prob=None, shuffle_var=False):
         super(SlowOnlineWalkDataset, self).__init__(args, prog_dict, data_dir, phase, sample_prob, shuffle_var)
 
