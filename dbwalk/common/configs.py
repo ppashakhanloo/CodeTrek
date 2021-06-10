@@ -11,6 +11,7 @@ cmd_opt = argparse.ArgumentParser(description='Argparser for dbwalk', allow_abbr
 cmd_opt.add_argument('-save_dir', default='.', help='result output root')
 cmd_opt.add_argument('-data_dir', default='.', help='data dir')
 cmd_opt.add_argument('-data', default=None, help='data name')
+cmd_opt.add_argument('-single_source', default=None, help='one python source file')
 
 cmd_opt.add_argument('-phase', default='train', help='train/test')
 cmd_opt.add_argument('-model_dump', default=None, help='load model dump')

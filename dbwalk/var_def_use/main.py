@@ -39,6 +39,23 @@ if __name__ == '__main__':
         eval_loader = db_eval.get_test_loader(args)
         binary_eval_dataset(model, args.phase, eval_loader, device)
         sys.exit()
+
+    if args.phase == 'single_test':
+        assert args.model_dump is not None
+        print('testing one source...')
+        model_dump = os.path.join(args.save_dir, args.model_dump)
+        print('loading model from', model_dump)
+        device = get_torch_device(args.gpu)
+        model = model.to(device)
+        
+        sys.exit()
+
+        model.load_state_dict(torch.load(model_dump))
+        db_eval = db_class(args, prog_dict, args.data_dir, 'eval')
+        eval_loader = db_eval.get_test_loader(args)
+        binary_eval_dataset(model, args.phase, eval_loader, device)
+        sys.exit()
+
     torch.cuda.empty_cache()
     db_train = db_class(args, prog_dict, args.data_dir, 'train', 
                         sample_prob={'used': 0.5, 'unused': 0.5},

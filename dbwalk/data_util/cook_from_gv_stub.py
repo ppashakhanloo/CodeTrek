@@ -107,3 +107,39 @@ if __name__ == '__main__':
         d['var_reverse_dict'] = var_reverse_dict
         d['token_vocab'] = token_vocab
         cp.dump(d, f, cp.HIGHEST_PROTOCOL)
+
+
+def cook_single_source(gv_file_path):
+    parse_util = WalkUtils if args.language == 'python' else JavaWalkUtils
+    gh = GraphHolder()
+    graph = RandomWalker.load_graph_from_gv(gv_file_path)
+    var_set = set()
+    for node in graph.nodes(data=True):
+        node_label = node[1]['label']
+        node_name, node_value = parse_util.parse_node_label(node_label)
+        node_type, node_value = parse_util.gen_node_type_value(node_name, values)
+        if node_type.startswith('v_'):
+           var_set.add(node_type)
+        else:
+            get_or_add(node_types, node_type)
+        if len(node_value) != 0:
+            tok = tokenizer.tokenize(node_value, args.language)
+        else:
+            tok = []
+        node[1]['val_idx'] = [get_or_add(token_vocab, key) for key in tok]
+        node[1]['raw_val'] = node_value
+    for e in graph.edges(data=True):
+        edge = e[2]['label']
+        if edge[0] != '(':
+            edge = '(' + edge + ')'
+            e[2]['label'] = edge
+        get_or_add(edge_types, edge)
+    max_num_vars = 100
+    tmp = sep.join(gv_file_path.split(sep)[1:])
+    json_name = cand + sep + '.'.join(tmp.split('.')[:-1]) + '.json'
+
+    with open(json_name, 'r') as f:
+        meta_data_list = json.load(f)
+    for meta_data in meta_data_list:
+        gh.add_graph(graph, meta_data)
+        gh.dump('cooked_'+json_name)
