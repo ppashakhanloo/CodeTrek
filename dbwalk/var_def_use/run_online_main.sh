@@ -13,7 +13,7 @@ setenc=deepset
 online=True
 num_proc=0
 shuffle_var=False
-use_node_val=False
+use_node_val=True
 
 export CUDA_VISIBLE_DEVICES=0
 

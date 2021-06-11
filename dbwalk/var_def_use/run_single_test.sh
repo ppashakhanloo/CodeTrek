@@ -1,10 +1,9 @@
 #!/bin/bash
 
 py_source="test.py"
-saved_model=""
 lang=python
 
-save_dir=$HOME/scratch/results/dbwalk/gen
+save_dir=$HOME/scratch/results/dbwalk/defuse
 queries_dir=$HOME/"relational-representation/python_codeql/python-edb-queries/queries"
 codeql_runner=$HOME/"relational-representation/codeql_dir/codeql/codeql"
 defuse_stub_bin=$HOME/"relational-representation/data_prep/random_walk/gen_stubs_defuse.py"
@@ -19,22 +18,21 @@ proc_dir=$tmp_dir/data
 
 mkdir -p $tmp_dir $proc_dir $tables_dir
 cp $py_source $tmp_dir
-$codeql_runner database create $tmp_dir/db --language=python --source-root=$tmp_dir
-$codeql_runner database run-queries $tmp_dir/db $queries_dir
+$codeql_runner database create $tmp_dir/db --language=python --source-root=$tmp_dir || exit 1
+$codeql_runner database run-queries $tmp_dir/db $queries_dir || exit 1
 for bqrs in `ls -1 $bqrs_dir | grep bqrs` ;
 do
-  $codeql_runner bqrs decode --entities=id --output=$tables_dir/$bqrs.csv --format=csv $bqrs_dir/$bqrs
+  $codeql_runner bqrs decode --entities=id --output=$tables_dir/$bqrs.csv --format=csv $bqrs_dir/$bqrs || exit 1
 done
 
-python $graph_bin $tables_dir $join_path $proc_dir/graph_$py_source
-python $defuse_stub_bin $proc_dir/graph_$py_source.gv $tables_dir $tables_dir/unused_var.bqrs.csv $proc_dir/stub_$py_source.json
+python $graph_bin $tables_dir $join_path $proc_dir/graph_$py_source || exit 1
+python $defuse_stub_bin $proc_dir/graph_$py_source.gv $tables_dir $tables_dir/unused_var.bqrs.csv $proc_dir/stub_$py_source.json || exit 1
 
 python -m dbwalk.data_util.cook_single_gv_stub \
     -language $lang \
     -single_source $proc_dir/graph_$py_source.gv \
     -use_node_val True \
     -online_walk_gen True \
-    $@
 
 bsize=1
 embed=256
@@ -51,8 +49,11 @@ use_node_val=True
 export CUDA_VISIBLE_DEVICES=0
 
 python main.py \
-    -save_dir $saved_model \
-    -data $data_name \
+    -phase single_test \
+    -save_dir $save_dir \
+    -data defuse \
+    -model_dump model-best_dev.ckpt \
+    -data_dir /home/pardisp/data/dataset/dbwalk/defuse \
     -online_walk_gen $online \
     -set_encoder $setenc \
     -shuffle_var $shuffle_var \
@@ -69,7 +70,5 @@ python main.py \
     -min_steps 4 \
     -max_steps 20 \
     -gpu 0 \
-    $@
 
-
-
+echo "All information saved at" $tmp_dir

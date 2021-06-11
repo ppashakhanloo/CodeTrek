@@ -5,6 +5,7 @@ data_name=defuse
 lang=python
 
 python -m dbwalk.data_util.cook_from_gv_stub \
+    -use_node_val True \
     -data_dir $data_root \
     -data $data_name \
     -language $lang \

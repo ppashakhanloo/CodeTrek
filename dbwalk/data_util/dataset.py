@@ -244,9 +244,13 @@ class FastOnlineWalkDataset(AbstractWalkDB):
     def __init__(self, args, prog_dict, data_dir, phase, sample_prob=None, shuffle_var=False):
         super(FastOnlineWalkDataset, self).__init__(args, prog_dict, data_dir, phase, sample_prob, shuffle_var)
 
-        chunks = os.listdir(os.path.join(data_dir, 'cooked_' + phase))
-        chunks = sorted(chunks)
-        chunks = [os.path.join(data_dir, 'cooked_' + phase, x) for x in chunks]
+        if args.phase in ['train', 'dev', 'eval']:
+            chunks = os.listdir(os.path.join(data_dir, 'cooked_' + phase))
+            chunks = sorted(chunks)
+            chunks = [os.path.join(data_dir, 'cooked_' + phase, x) for x in chunks]
+        else:
+            chunks = ["/home/pardisp/relational-representation/dbwalk/var_def_use/cooked_test"]
+
         self.merged_gh = MergedGraphHolders(chunks)
         self.language = 'python'
 

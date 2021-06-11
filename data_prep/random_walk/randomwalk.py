@@ -104,6 +104,9 @@ class RandomWalker:
             if curr_walk not in walks and len(curr_walk) > 1:
                 walks.append(curr_walk)
 
+        if args.single_source:
+            print(walks)
+
         return RandomWalker.padding(walks, max_num_walks)
 
     @staticmethod

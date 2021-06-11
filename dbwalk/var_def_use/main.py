@@ -7,7 +7,7 @@ import numpy as np
 import random
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from dbwalk.data_util.dataset import InMemDataest, ProgDict, FastOnlineWalkDataset
+from dbwalk.data_util.dataset import InMemDataest, PreGeneratedWalkDataset, ProgDict, FastOnlineWalkDataset
 from dbwalk.common.configs import args, get_torch_device
 from tqdm import tqdm
 from sklearn.metrics import roc_auc_score
@@ -47,9 +47,6 @@ if __name__ == '__main__':
         print('loading model from', model_dump)
         device = get_torch_device(args.gpu)
         model = model.to(device)
-        
-        sys.exit()
-
         model.load_state_dict(torch.load(model_dump))
         db_eval = db_class(args, prog_dict, args.data_dir, 'eval')
         eval_loader = db_eval.get_test_loader(args)

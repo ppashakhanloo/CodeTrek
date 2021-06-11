@@ -108,12 +108,16 @@ def binary_eval_dataset(model, phase, eval_loader, device, fn_parse_eval_nn_args
             pred_probs += pred.flatten().tolist()
             true_labels += label.data.numpy().flatten().tolist()
         pbar.set_description('evaluating %s' % phase)
-    roc_auc = roc_auc_score(true_labels, pred_probs)
-    pred_label = np.where(np.array(pred_probs) > 0.5, 1, 0)
-    acc = np.mean(pred_label == np.array(true_labels, dtype=pred_label.dtype))
-    print('%s auc: %.4f, acc: %.4f' % (phase, roc_auc, acc))
-    return roc_auc
-
+    if args.phase in ['dev', 'train', 'eval']:
+        roc_auc = roc_auc_score(true_labels, pred_probs)
+        pred_label = np.where(np.array(pred_probs) > 0.5, 1, 0)
+        acc = np.mean(pred_label == np.array(true_labels, dtype=pred_label.dtype))
+        print('%s auc: %.4f, acc: %.4f' % (phase, roc_auc, acc))
+        return roc_auc
+    else:
+        pred_label = np.where(np.array(pred_probs) > 0.5, 1, 0)
+        print("PRED_LABEL:",pred_label,"\nTRUE_LABEL:",true_labels)
+        return None
 
 def train_loop(args, device, prog_dict, model, db_train,
                db_dev=None,
