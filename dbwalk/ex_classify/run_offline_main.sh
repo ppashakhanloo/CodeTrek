@@ -1,7 +1,7 @@
 #!/bin/bash
 
 data_root=$HOME/data/dataset/dbwalk
-data_name=ex_large_walks
+data_name=tiny_except
 
 bsize=32
 embed=256

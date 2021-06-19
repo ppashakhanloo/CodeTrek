@@ -8,7 +8,7 @@ import random
 from data_prep.random_walk.walkutils import WalkUtils, JavaWalkUtils
 from data_prep.random_walk.randomwalk import RandomWalker
 from dbwalk.data_util.graph_holder import GraphHolder
-from dbwalk.common.configs import args
+from dbwalk.common.configs import cmd_args
 from dbwalk.common.consts import TOK_PAD, var_idx2name, UNK
 from dbwalk.data_util.cook_data import load_label_dict, get_or_add
 from data_prep.tokenizer import tokenizer
@@ -16,7 +16,7 @@ import argparse
 
 
 if __name__ == '__main__':
-    #label_dict = load_label_dict(os.path.join(args.data_dir, args.data))
+    #label_dict = load_label_dict(os.path.join(cmd_args.data_dir, cmd_args.data))
     node_types = {}
     edge_types = {}
     token_vocab = {}
@@ -26,9 +26,9 @@ if __name__ == '__main__':
         get_or_add(edge_types, key)
         get_or_add(token_vocab, key)
 
-    parse_util = WalkUtils if args.language == 'python' else JavaWalkUtils
+    parse_util = WalkUtils if cmd_args.language == 'python' else JavaWalkUtils
     gh = GraphHolder()
-    graph = RandomWalker.load_graph_from_gv(args.single_source)
+    graph = RandomWalker.load_graph_from_gv(cmd_args.single_source)
     var_set = set()
     for node in graph.nodes(data=True):
         node_label = node[1]['label']
@@ -39,7 +39,7 @@ if __name__ == '__main__':
         else:
             get_or_add(node_types, node_type)
         if len(node_value) != 0:
-            tok = tokenizer.tokenize(node_value, args.language)
+            tok = tokenizer.tokenize(node_value, cmd_args.language)
         else:
             tok = []
         node[1]['val_idx'] = [get_or_add(token_vocab, key) for key in tok]
@@ -51,9 +51,9 @@ if __name__ == '__main__':
             e[2]['label'] = edge
         get_or_add(edge_types, edge)
 
-    #tmp = '_'.join(args.single_source.split('_')[1:])
+    #tmp = '_'.join(cmd_args.single_source.split('_')[1:])
     #json_name = 'stub_' + '.'.join(tmp.split('.')[:-1]) + '.json'
-    json_file = args.single_source.replace('graph_','stub_').replace('.gv', '.json')
+    json_file = cmd_args.single_source.replace('graph_','stub_').replace('.gv', '.json')
 
     with open(json_file, 'r') as f:
         meta_data_list = json.load(f)

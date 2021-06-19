@@ -1,9 +1,9 @@
 #!/bin/bash
 
 data_root=$HOME/data/dataset/dbwalk
-data_name=exception_small
+data_name=exception_jan
 
-bsize=1
+bsize=20
 embed=256
 nlayer=4
 nhead=8
@@ -24,7 +24,7 @@ then
     mkdir -p $save_dir
 fi
 
-python3 main.py \
+python main.py \
     -data_dir $data_root/$data_name \
     -save_dir $save_dir \
     -data $data_name \
@@ -37,11 +37,11 @@ python3 main.py \
     -transformer_layers $nlayer \
     -dim_feedforward $hidden \
     -dropout $dropout \
-    -iter_per_epoch 2 \
+    -iter_per_epoch 1000 \
     -num_proc $num_proc \
     -use_node_val $use_node_val \
     -learning_rate 1e-4 \
-    -min_steps 4 \
-    -max_steps 26 \
+    -min_steps 16 \
+    -max_steps 24 \
     -gpu 0 \
     $@

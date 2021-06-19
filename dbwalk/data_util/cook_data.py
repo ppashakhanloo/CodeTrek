@@ -5,7 +5,6 @@ import pickle as cp
 from tqdm import tqdm
 import numpy as np
 import random
-from dbwalk.common.configs import args
 from dbwalk.common.consts import TOK_PAD, var_idx2name, UNK
 
 
@@ -70,7 +69,8 @@ def make_mat_from_raw(list_traj_dict, node_types, edge_types, type_filed='node_t
 
 
 if __name__ == '__main__':
-    label_dict = load_label_dict(os.path.join(args.data_dir, args.data))
+    from dbwalk.common.configs import cmd_args
+    label_dict = load_label_dict(os.path.join(cmd_args.data_dir, cmd_args.data))
     print(label_dict)
     node_types = {}
     edge_types = {}
@@ -84,7 +84,7 @@ if __name__ == '__main__':
     max_num_vars = 0
     print('building dict')
     for phase in ['train', 'dev', 'eval']:
-        folder = os.path.join(args.data_dir, args.data, phase)
+        folder = os.path.join(cmd_args.data_dir, cmd_args.data, phase)
         files = os.listdir(folder)
         for fname in tqdm(files):
             if not fname.endswith('json'):
@@ -114,7 +114,7 @@ if __name__ == '__main__':
         var_dict[i] = val
         var_reverse_dict[val] = i
 
-    with open(os.path.join(args.data_dir, args.data, 'dict.pkl'), 'wb') as f:
+    with open(os.path.join(cmd_args.data_dir, cmd_args.data, 'dict.pkl'), 'wb') as f:
         d = {}
         d['node_types'] = node_types
         d['edge_types'] = edge_types
@@ -126,10 +126,10 @@ if __name__ == '__main__':
 
     for phase in ['train', 'dev', 'eval']:
         print('cooking', phase)
-        folder = os.path.join(args.data_dir, args.data, phase)
+        folder = os.path.join(cmd_args.data_dir, cmd_args.data, phase)
         files = os.listdir(folder)
         random.shuffle(files)
-        out_folder = os.path.join(args.data_dir, args.data, 'cooked_' + phase)
+        out_folder = os.path.join(cmd_args.data_dir, cmd_args.data, 'cooked_' + phase)
         if not os.path.isdir(out_folder):
             os.makedirs(out_folder)
 
@@ -145,7 +145,7 @@ if __name__ == '__main__':
                     node_mat, edge_mat = make_mat_from_raw(sample['trajectories'], node_types, edge_types, type_filed='nodes')
                     assert sample['label'] in label_dict, 'unknown label %s' % sample['label']
                     chunk_buf['%s-%d' % (fname_prefix, sample_idx)] = (node_mat, edge_mat, sample['source'], sample['label'])
-            if len(chunk_buf) >= args.data_chunk_size:
+            if len(chunk_buf) >= cmd_args.data_chunk_size:
                 chunk_idx, chunk_buf = dump_data_chunk(out_folder, chunk_idx, chunk_buf) 
         if len(chunk_buf):
             dump_data_chunk(out_folder, chunk_idx, chunk_buf)

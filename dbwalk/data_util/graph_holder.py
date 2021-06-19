@@ -58,6 +58,9 @@ class GraphHolder(object):
             if node_label == anchor_str:
                 anchor_idx = node_idx
         if anchor_idx is None:
+            assert False
+            # double check this -- why we don't need to subtract the node_index_base?
+            # or, can we make it consistent at least? I really don't like to have 1-based for some graphs and 0-based for others
             anchor_idx = meta_info['anchor_index']
             anchor_str = str(anchor_idx)
         self.list_anchors.append(anchor_str)

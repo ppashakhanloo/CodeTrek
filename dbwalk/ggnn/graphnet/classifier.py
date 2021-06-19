@@ -15,7 +15,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from dbwalk.ggnn.graphnet.graph_embed import get_gnn
-from dbwalk.common.configs import args, get_torch_device
 
 
 class GnnClassifierBase(nn.Module):

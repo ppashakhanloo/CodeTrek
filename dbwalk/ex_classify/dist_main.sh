@@ -3,7 +3,7 @@
 data_root=$HOME/data/dataset/dbwalk
 data_name=exception
 
-bsize=32
+bsize=20
 embed=256
 nlayer=4
 nhead=8
@@ -24,7 +24,7 @@ then
     mkdir -p $save_dir
 fi
 
-python -m dbwalk.ex_classify.main \
+python main.py \
     -data_dir $data_root/$data_name \
     -save_dir $save_dir \
     -data $data_name \
@@ -41,7 +41,7 @@ python -m dbwalk.ex_classify.main \
     -num_proc $num_proc \
     -use_node_val $use_node_val \
     -learning_rate 1e-4 \
-    -min_steps 4 \
+    -min_steps 16 \
     -max_steps 24 \
     -gpu_list 0,1,2,3 \
     -port 29500 \

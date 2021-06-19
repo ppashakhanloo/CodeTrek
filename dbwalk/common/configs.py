@@ -70,13 +70,13 @@ cmd_opt.add_argument('-gnn_msg_dim', default=128, type=int, help='dim of message
 cmd_opt.add_argument('-latent_dim', default=128, type=int, help='latent dim')
 
 
-args, _ = cmd_opt.parse_known_args()
+cmd_args, _ = cmd_opt.parse_known_args()
 
-if args.save_dir is not None:
-    if not os.path.isdir(args.save_dir):
-        os.makedirs(args.save_dir)
+if cmd_args.save_dir is not None:
+    if not os.path.isdir(cmd_args.save_dir):
+        os.makedirs(cmd_args.save_dir)
 
-print(args)
+print(cmd_args)
 
 
 def get_torch_device(device_id):
@@ -87,10 +87,10 @@ def get_torch_device(device_id):
 
 def set_device(gpu):
     if torch.cuda.is_available() and gpu >= 0:
-        args.gpu = gpu
-        args.device = torch.device('cuda:' + str(gpu))
+        cmd_args.gpu = gpu
+        cmd_args.device = torch.device('cuda:' + str(gpu))
         print('use gpu indexed: %d' % gpu)
     else:
-        args.gpu = -1
-        args.device = torch.device('cpu')
+        cmd_args.gpu = -1
+        cmd_args.device = torch.device('cpu')
         print('use cpu')

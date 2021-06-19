@@ -8,7 +8,7 @@ import random
 from data_prep.random_walk.walkutils import WalkUtils, JavaWalkUtils
 from data_prep.random_walk.randomwalk import RandomWalker
 from dbwalk.data_util.graph_holder import GraphHolder
-from dbwalk.common.configs import args
+from dbwalk.common.configs import cmd_args
 from dbwalk.common.consts import TOK_PAD, var_idx2name, UNK
 from dbwalk.data_util.cook_data import load_label_dict, get_or_add
 from data_prep.tokenizer import tokenizer
@@ -16,7 +16,7 @@ import argparse
 
 
 if __name__ == '__main__':
-    label_dict = load_label_dict(os.path.join(args.data_dir, args.data))
+    label_dict = load_label_dict(os.path.join(cmd_args.data_dir, cmd_args.data))
     print(label_dict)
     node_types = {}
     edge_types = {}
@@ -27,14 +27,14 @@ if __name__ == '__main__':
         get_or_add(edge_types, key)
         get_or_add(token_vocab, key)
 
-    parse_util = WalkUtils if args.language == 'python' else JavaWalkUtils
+    parse_util = WalkUtils if cmd_args.language == 'python' else JavaWalkUtils
     max_num_vars = 0
     print('building dict')
     for phase in ['train', 'dev', 'eval']:
-        folder = os.path.join(args.data_dir, args.data, phase)
+        folder = os.path.join(cmd_args.data_dir, cmd_args.data, phase)
         files = os.listdir(folder)
         files = [fname for fname in files if fname.endswith('gv')]
-        out_folder = os.path.join(args.data_dir, args.data, 'cooked_' + phase)
+        out_folder = os.path.join(cmd_args.data_dir, cmd_args.data, 'cooked_' + phase)
         if not os.path.isdir(out_folder):
             os.makedirs(out_folder)
 
@@ -45,7 +45,7 @@ if __name__ == '__main__':
             graph = RandomWalker.load_graph_from_gv(os.path.join(folder, fname))
             sep = '-' if '-' in fname else '_'
             json_name = sep.join(fname.split(sep)[1:])
-            json_name = 'stub' + sep + '.'.join(json_name.split('.')[:-1]) + '.json'
+            json_name = 'walks' + sep + '.'.join(json_name.split('.')[:-1]) + '.json'
             var_set = set()
             for node in graph.nodes(data=True):
                 node_label = node[1]['label']
@@ -56,7 +56,7 @@ if __name__ == '__main__':
                 else:
                     get_or_add(node_types, node_type)
                 if len(node_value) != 0:
-                    tok = tokenizer.tokenize(node_value, args.language)
+                    tok = tokenizer.tokenize(node_value, cmd_args.language)
                 else:
                     tok = []
                 node[1]['val_idx'] = [get_or_add(token_vocab, key) for key in tok]
@@ -72,7 +72,7 @@ if __name__ == '__main__':
             with open(os.path.join(folder, json_name), 'r') as f:
                 meta_data = json.load(f)[0]
             gh.add_graph(graph, meta_data)
-            if len(gh) >= args.data_chunk_size:
+            if len(gh) >= cmd_args.data_chunk_size:
                 gh.dump(os.path.join(out_folder, 'chunk_%d' % chunk_idx))
                 chunk_idx += 1
                 gh = GraphHolder()
@@ -93,7 +93,7 @@ if __name__ == '__main__':
         var_dict[i] = val
         var_reverse_dict[val] = i
 
-    with open(os.path.join(args.data_dir, args.data, 'dict.pkl'), 'wb') as f:
+    with open(os.path.join(cmd_args.data_dir, cmd_args.data, 'dict.pkl'), 'wb') as f:
         d = {}
         d['node_types'] = node_types
         d['edge_types'] = edge_types
