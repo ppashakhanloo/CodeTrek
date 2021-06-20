@@ -1,3 +1,5 @@
+from os import walk
+from dbwalk.data_util.cook_data import get_or_unk
 import torch
 import torch.nn as nn
 from torch.nn.parameter import Parameter
@@ -81,11 +83,14 @@ class ProgDeepset(nn.Module):
         super(ProgDeepset, self).__init__()
         self.mlp = MLP(embed_dim, [2 * embed_dim, embed_dim], dropout=dropout)
 
-    def forward(self, walk_repr):
+    def forward(self, walk_repr, get_before_agg=False):
         walk_hidden = self.mlp(walk_repr)
         prog_repr, _ = torch.max(walk_hidden, dim=0)
         #prog_repr = torch.mean(walk_hidden, dim=0)
-        return prog_repr
+        if get_before_agg:
+            return prog_repr, walk_hidden
+        else:
+            return prog_repr
 
 
 class ProgTransformer(nn.Module):
@@ -96,8 +101,9 @@ class ProgTransformer(nn.Module):
         encoder_norm = LayerNorm(d_model)
         self.encoder = TransformerEncoder(encoder_layer, num_encoder_layers, encoder_norm)
 
-    def forward(self, walk_embed):
+    def forward(self, walk_embed, get_before_agg=False):
         assert walk_embed.dim() == 3 # N x B x d_model
+        assert not get_before_agg
         memory = self.encoder(walk_embed)
         return memory[0]
 

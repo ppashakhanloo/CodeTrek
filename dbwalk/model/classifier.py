@@ -22,14 +22,14 @@ class WalkSet2Embed(nn.Module):
         else:
             raise ValueError("unknown set encoder %s" % args.set_encoder)
 
-    def forward(self, node_idx, edge_idx, node_val_mat=None):
+    def forward(self, node_idx, edge_idx, node_val_mat=None, get_before_agg=False):
         if self.use_node_val:
             assert node_val_mat is not None
             seq_tok_embed = self.tok_encoding(node_idx, edge_idx, node_val_mat)
         else:
             seq_tok_embed = self.tok_encoding(node_idx, edge_idx)
         walk_repr = self.walk_encoding(seq_tok_embed)
-        prog_repr = self.prob_encoding(walk_repr)
+        prog_repr = self.prob_encoding(walk_repr, get_before_agg)
         return prog_repr
 
 
@@ -50,6 +50,34 @@ class BinaryNet(WalkSet2Embed):
             return torch.mean(loss)
         else:
             return prob
+
+
+class PathBinaryNet(BinaryNet):
+    def __init__(self, args, prog_dict, semantics='and_not'):
+        super(PathBinaryNet, self).__init__(args, prog_dict)
+        self.semantics = semantics
+
+    def forward(self, node_idx, edge_idx, *, node_val_mat=None, label=None):
+        path_prob, scores = self.predicate(node_idx, edge_idx, node_val_mat=node_val_mat)
+        weights = F.softmax(scores, dim=0)  # soft arg_max
+
+        if self.semantics == 'and_not':
+            path_prob = 1.0 - path_prob  # not
+        prob = torch.sum(weights * path_prob, dim=0)
+
+        if label is not None:
+            label = label.to(prob).view(prob.shape)
+            loss = -label * torch.log(prob + 1e-18) - (1 - label) * torch.log(1 - prob + 1e-18)
+            return torch.mean(loss)
+        else:
+            return prob
+
+    def predicate(self, node_idx, edge_idx, *, node_val_mat=None):
+        _, seq_repr = super(BinaryNet, self).forward(node_idx, edge_idx, node_val_mat, get_before_agg=True)
+        scores = self.out_classifier(seq_repr)
+
+        path_prob = torch.sigmoid(scores)
+        return path_prob, scores
 
 
 class MulticlassNet(WalkSet2Embed):

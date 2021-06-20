@@ -11,7 +11,7 @@ from dbwalk.data_util.dataset import InMemDataest, PreGeneratedWalkDataset, Prog
 from dbwalk.common.configs import cmd_args, get_torch_device
 from tqdm import tqdm
 from sklearn.metrics import roc_auc_score
-from dbwalk.model.classifier import BinaryNet
+from dbwalk.model.classifier import BinaryNet, PathBinaryNet
 from dbwalk.training.train import train_loop, binary_eval_dataset, train_mp
 import torch.multiprocessing as mp
 
@@ -21,7 +21,7 @@ if __name__ == '__main__':
     random.seed(cmd_args.seed)
     torch.manual_seed(cmd_args.seed)
     prog_dict = ProgDict(cmd_args.data_dir)
-    model = BinaryNet(cmd_args, prog_dict)
+    model = PathBinaryNet(cmd_args, prog_dict, semantics='and_not')
 
     if cmd_args.online_walk_gen:
         db_class = FastOnlineWalkDataset
