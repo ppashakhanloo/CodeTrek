@@ -49,7 +49,7 @@ class GraphHolder(object):
         for idx, node in enumerate(g.nodes(data=True)):
             node_label = node[1]['label']
             node_idx = int(node[0]) - node_index_base
-            assert idx == node_idx  # assume ordered
+            assert idx == node_idx
             self.list_node_labels.append(node_label)
             node_tok = ' '.join([str(x) for x in node[1]['val_idx']])
             raw_node_val = node[1]['raw_val']
@@ -58,10 +58,10 @@ class GraphHolder(object):
             if node_label == anchor_str:
                 anchor_idx = node_idx
         if anchor_idx is None:
-            assert False
-            # double check this -- why we don't need to subtract the node_index_base?
-            # or, can we make it consistent at least? I really don't like to have 1-based for some graphs and 0-based for others
-            anchor_idx = meta_info['anchor_index']
+            if meta_info['anchor_index']:
+                anchor_idx = int(meta_info['anchor_index']) - node_index_base
+            else:
+                anchor_idx = len(g.nodes())
             anchor_str = str(anchor_idx)
         self.list_anchors.append(anchor_str)
         self.list_labels.append(meta_info['label'])
