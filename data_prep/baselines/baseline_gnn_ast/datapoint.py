@@ -71,20 +71,20 @@ class ContextGraph:
 
 class DataPoint:
   filename = ""
-  slot_node_idx = ""
+  slot_node_idxs = []
   context_graph = []
   label = ""
 
-  def __init__(self, filename, slot_node_idx,  context_graph, label):
+  def __init__(self, filename, slot_node_idxs, context_graph, label):
     self.filename = filename
-    self.slot_node_idx = slot_node_idx
+    self.slot_node_idxs = slot_node_idxs
     self.context_graph = context_graph
     self.label = label
 
   def to_dict(self):
     return {
       'filename': self.filename,
-      'SlotNodeIdx': self.slot_node_idx,
+      'SlotNodeIdxs': self.slot_node_idxs,
       'ContextGraph': self.context_graph.to_dict(),
       'label': self.label
     }

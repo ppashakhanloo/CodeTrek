@@ -33,6 +33,10 @@ def build_child_edges(main_file, aux_file, task_name):
   subtrees = {} # node -> subtree nodes
   if_branches = {}
 
+  unused_var_name = None
+  if task_name == 'defuse':
+    unused_var_name = main_file.split('.')[1]
+
   with open(main_file, 'r', 100*(2**20)) as infile:
     if task_name == 'varmisuse':
       _, tok1, row1_s, col1_s, _, _, _, tok2, row2_s, col2_s, _, _ = get_diff(main_file, aux_file)
@@ -55,17 +59,12 @@ def build_child_edges(main_file, aux_file, task_name):
       graph = get_graph(contents)
       nodes = graph.get_nodes()
 
-      try:
+      if index in nodes:
         node_of_interest = nodes[index]
-      except:
+      else:
         node_of_interest = nodes[len(nodes)-index]
-    #### END OF VARMISUSE TASK ####
-    elif task_name == 'defuse':
-      graph = get_graph(infile.read())
-    elif task_name == 'exception':
-      graph = get_graph(infile.read())
     else:
-      raise ValueError(task_name, ': is not a valid task name.')
+      graph = get_graph(infile.read())
 
     # compute the neighbors of each node
     edges = graph.get_edges()
@@ -103,7 +102,7 @@ def build_child_edges(main_file, aux_file, task_name):
     for edge in edges:
       edge.set('label', 'Child')
 
-    return graph, neighbors, subtrees, node_of_interest, if_branches
+    return graph, neighbors, subtrees, node_of_interest, if_branches, unused_var_name
 
 def add_next_token_edges(graph, subtrees):
   token_nodes = []
@@ -124,8 +123,14 @@ def add_next_token_edges(graph, subtrees):
 
 def is_variable_node(node):
   if isinstance(node, str):
-    return node.startswith(ARG_IND) or node.startswith(NAME_IND) or node.startswith(ARG_IND_) or node.startswith(NAME_IND_)
-  return node.get_name().startswith(ARG_IND) or node.get_name().startswith(NAME_IND) or node.get_name().startswith(ARG_IND_) or node.get_name().startswith(NAME_IND_)
+    return node.startswith(ARG_IND) or \
+           node.startswith(NAME_IND) or \
+           node.startswith(ARG_IND_) or \
+           node.startswith(NAME_IND_)
+  return node.get_name().startswith(ARG_IND) or \
+         node.get_name().startswith(NAME_IND) or \
+         node.get_name().startswith(ARG_IND_) or \
+         node.get_name().startswith(NAME_IND_)
 
 def add_last_lexical_use_edges(graph):
   nodes_to_vars = {}
@@ -134,7 +139,7 @@ def add_last_lexical_use_edges(graph):
     if is_variable_node(node):
       variable = node.obj_dict['attributes']['label'].split("'")[1]
       nodes_to_vars[node] = variable
-  
+
   variables = {}
   for item in nodes_to_vars:
     variables[nodes_to_vars[item]] = []
@@ -169,9 +174,7 @@ def add_computed_from_edges(graph, subtrees, neighbors):
     if node.startswith(ASSIGN_IND) or node.startswith(ASSIGN_IND_):
       assign_l = neighbors[node][0] # left variable
       assign_r = subtrees[node][1:] # right hand subtree
-      
       lhs_node = graph.get_node(assign_l)[0]
-     
       rhs_nodes = []
       for r in assign_r:
         if r not in subtrees.keys():
@@ -179,18 +182,16 @@ def add_computed_from_edges(graph, subtrees, neighbors):
         else:
           n, _ = get_variables(r, subtrees, graph)
           rhs_nodes += n
-
       for r in rhs_nodes:
         edge = Edge(lhs_node, r)
         edge.set('label', 'ComputedFrom')
         graph.add_edge(edge)
-
   return graph
 
 def add_last_read_write_edges(graph, variables):
   variable_writes = {}
   variable_reads = {}
-  
+
   # variables: {'var': [node1, node2, ..]}
   var_order = []
   for var in variables:
@@ -283,19 +284,7 @@ def add_guarded_edges(graph, subtrees, if_branches):
 
   return graph
 
-def add_varmisue_specials(graph, node_of_interest):
-  # add slot node to specify location
-  slot_node = Node(name='SlotNode')
-  slot_node.set('label', 'SlotNode')
-  graph.add_node(slot_node)
-  edge = Edge(slot_node, node_of_interest)
-  edge.set('label', 'Child')
-  graph.add_edge(edge)
-
-  return graph
-    
 def save_graph(graph, output_file):
-  graph.write(output_file+'.dot', format='dot')
   graph.write(output_file+'.pdf', format='pdf')
 
 def get_subtree(node, res, neighbors):
@@ -334,45 +323,41 @@ def get_value(label, ind):
     return label[loc + offset - 1:label.find(',', loc)]
   return label[loc + offset:label.find('\'', loc + offset)]
 
-def fix_node_labels(graph):
+def fix_node_labels(graph, unused_var_name):
   nodes = graph.get_nodes()
+  terminal_vars = []
+  terminal_dus = []
+  hole_exception = None
   for node in nodes:
     full_label = node.get('label')
     ind = has_value(full_label)
+    cut_label = full_label[4:full_label.find('(')]
     if ind:
       # create a new node as a terminal node
       terminal_node = Node(name=node.get_name()+'_')
       terminal_node.set('label', 'Terminal' + '[SEP]' + get_value(full_label, ind))
+      if get_value(full_label, ind) == 'HoleException':
+        hole_exception = terminal_node
       graph.add_node(terminal_node)
       # add an edge from the non-terminal node to the terminal node
       terminal_edge = Edge(node.get_name(), terminal_node.get_name())
       terminal_edge.set('label', 'Child')
       graph.add_edge(terminal_edge)
+      if cut_label == 'arg' or cut_label == 'Name':
+        terminal_vars.append(terminal_node)
+      if unused_var_name and unused_var_name == get_value(full_label, ind):
+        terminal_dus.append(terminal_node)
+    node.set('label', cut_label)
 
-    if full_label == 'SlotNode':
-      label = full_label
-    else:
-      label = full_label[4:full_label.find('(')]
-    node.set('label', label)
-
-  return graph
+  return graph, terminal_vars, hole_exception, terminal_dus
 
 def gen_graph_from_source(infile, aux_file, task_name):
-  graph, neighbors, subtrees, node_of_interest, if_branches = build_child_edges(infile, aux_file, task_name)
+  graph, neighbors, subtrees, node_of_interest, if_branches, unused_var_name = build_child_edges(infile, aux_file, task_name)
   graph = add_next_token_edges(graph, subtrees)
   graph, variables = add_last_lexical_use_edges(graph)
   graph = add_returns_to_edges(graph, subtrees)
   graph = add_computed_from_edges(graph, subtrees, neighbors)
   graph = add_last_read_write_edges(graph, variables)
   graph = add_guarded_edges(graph, subtrees, if_branches)
-  if task_name == 'varmisuse':
-    graph = add_varmisue_specials(graph, node_of_interest)
-  elif task_name == 'defuse':
-    pass
-  elif task_name == 'exception':
-      pass
-  else:
-    raise ValueError(task_name, ': not a valid task name.')
-  # finally, fix all the labels
-  graph = fix_node_labels(graph)
-  return graph
+  graph, terminal_vars, hole_exception, terminal_dus = fix_node_labels(graph, unused_var_name)
+  return graph, terminal_vars, node_of_interest, hole_exception, terminal_dus

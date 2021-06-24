@@ -4,17 +4,31 @@ import datapoint
 import create_ast
 from data_prep.tokenizer import tokenizer
 
-def init(graph):
-  # assign unique numbers to nodes
+def init(graph, terminal_vars, node_of_interest, hole_exception, terminal_dus, task, pred_kind):
   node_to_num = {}
-  num = 0
-  for node in graph.get_nodes():
-    node_to_num[node.get_name()] = num
-    num += 1
-  slot_node_index = None
-  if graph.get_node('SlotNode'):
-      slot_node_index = node_to_num[graph.get_node('SlotNode')[0].get_name()]
-  return graph, node_to_num, slot_node_index
+  for num, node in enumerate(graph.get_nodes()):
+    node_to_num[node.get_name()] = num + 1
+  if task == 'varmisuse':
+    if pred_kind == 'loc_cls':
+      slot_node_indexes = [node_of_interest]
+    elif pred_kind == 'prog_cls':
+      slot_node_indexes = terminal_vars + [node_of_interest]
+    else:
+      raise NotImplementedError
+  elif task == 'defuse':
+    if pred_kind == 'loc_cls':
+      slot_node_indexes = terminal_dus
+    elif pred_kind == 'prog_cls':
+      slot_node_indexes = terminal_vars
+    else:
+      raise NotImplementedError
+  elif task == 'exception':
+    slot_node_indexes = [hole_exception]
+  else:
+    raise NotImplementedError
+
+  slot_node_indexes = [node_to_num[n.get_name()] for n in slot_node_indexes]
+  return graph, node_to_num, slot_node_indexes
 
 def get_each_edge_category(graph, node_to_num, cat_names):
   edges = {}
@@ -30,11 +44,15 @@ def get_each_edge_category(graph, node_to_num, cat_names):
   return edges
 
 def main(args):
-  if len(args) != 6:
-    print('Usage: python3 gen_graph_jsons.py <file1.py> <file2.py> <label> <output.json> <task_name>')
-    print('Possible task_names: varmisuse, defuse, exception.')
+  if len(args) != 7:
+    print('Usage: python3 gen_graph_jsons.py <file1.py> <file2.py> <label> <output.json> <task> <pred_kind>')
+    print('Possible tasks: varmisuse, defuse, exception.')
+    print('Possible pred_kinds: prog_cls, loc_cls.')
     exit(1)
-  graph, node_to_num, slot_node_idx = init(create_ast.gen_graph_from_source(args[1], args[2], args[5]))
+  graph, terminal_vars, node_of_interest, hole_exception, terminal_dus = \
+          create_ast.gen_graph_from_source(infile=args[1], aux_file=args[2], task_name=args[5])
+  graph, node_to_num, slot_node_idxs = \
+          init(graph, terminal_vars, node_of_interest, hole_exception, terminal_dus, task=args[5], pred_kind=args[6])
   # prepare edges
   cat_names = ['Child', 'NextToken', 'LastLexicalUse', 'ComputedFrom',
                'LastRead', 'LastWrite', 'ReturnsTo', 'GuardedBy', 'GuardedByNegation']
@@ -58,13 +76,13 @@ def main(args):
   for node in node_to_num.keys():
     splits = graph.get_node(node)[0].get('label').split('[SEP]')
     if len(splits) == 2: # the node has type and value
-      node_types[node_to_num[node]] = splits[0]
-      node_values[node_to_num[node]] = splits[1]
-      node_tokens[node_to_num[node]] = tokenizer.tokenize(splits[1], 'python')
+      node_types[node_to_num[node]-1] = splits[0]
+      node_values[node_to_num[node]-1] = splits[1]
+      node_tokens[node_to_num[node]-1] = tokenizer.tokenize(splits[1], 'python')
     else: # the node only has type
-      node_types[node_to_num[node]] = splits[0]
-      node_values[node_to_num[node]] = ""
-      node_tokens[node_to_num[node]] = splits[0]
+      node_types[node_to_num[node]-1] = splits[0]
+      node_values[node_to_num[node]-1] = ""
+      node_tokens[node_to_num[node]-1] = splits[0]
 
   # prepare context_graph
   context_graph = datapoint.ContextGraph(
@@ -77,7 +95,7 @@ def main(args):
   # create data point
   point = datapoint.DataPoint(
     filename=args[1],
-    slot_node_idx=slot_node_idx,
+    slot_node_idxs=slot_node_idxs,
     context_graph=context_graph,
     label=args[3]
   )
