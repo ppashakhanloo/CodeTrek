@@ -61,14 +61,14 @@ class Trajectory:
 
 
 class DataPoint:
-    anchor = None      # type: AnchorNode
+    anchors = []       # type: List[AnchorNode]
     trajectories = []  # type: List[Trajectory]
     hints = []         # type: List[str]
     label = None       # type: str
     source = None      # type: str
 
-    def __init__(self, anchor: AnchorNode, trajectories: List[Trajectory], hints: List[str], label: str, source: str):
-        self.anchor = anchor
+    def __init__(self, anchors: List[AnchorNode], trajectories: List[Trajectory], hints: List[str], label: str, source: str):
+        self.anchors = anchors
         self.trajectories = trajectories
         self.hints = hints
         self.label = label
@@ -76,7 +76,7 @@ class DataPoint:
 
     def to_dict(self) -> Dict:
         return {
-            'anchor': self.anchor.to_dict(),
+            'anchors': [anchor.to_dict() for anchor in self.anchors],
             'trajectories': [traj.to_dict() for traj in self.trajectories],
             'hints': [hint for hint in self.hints],
             'label': self.label,
