@@ -1,0 +1,18 @@
+"col0","ID of parent","idx"
+"translate",4278,3
+"append",4223,3
+"test_post_hanlder",4194,2
+"test_post_hanlder",4198,0
+"post_hanlder",4205,2
+"post_hanlder",4209,0
+"mov eax, ebx",4239,2
+"'",4239,3
+"_asm_parser",4252,3
+"parse",4251,3
+"__set_address",4265,3
+"_translator",4279,3
+"_emulator",4299,3
+"_emulator",4312,3
+"set_instruction_post_handler",4298,3
+"execute_lite",4311,3
+"assertTrue",4335,3

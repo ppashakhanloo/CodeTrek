@@ -108,7 +108,7 @@ def main(args: List[str]) -> None:
         traj_anchors.append(TrajNodeValue(anchor_label))
         walks_all += walks
     if walks_or_graphs == 'walks':
-        trajectories = [WalkUtils.build_trajectory(walk) for walk in RandomWalker.padding(walks, MAX_NUM_WALKS)]
+        trajectories = [WalkUtils.build_trajectory(walk) for walk in RandomWalker.padding(walks_all, MAX_NUM_WALKS)]
     else:
         trajectories = []
     data_point = DataPoint(traj_anchors, trajectories, [], gt, gv_file)

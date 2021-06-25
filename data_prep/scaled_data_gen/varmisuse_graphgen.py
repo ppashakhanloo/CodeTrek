@@ -21,14 +21,14 @@ def run(tables_path):
   num = int(py_file[5:-3])
 
   if label == "correct":
-    file_1 = "gs://" + sources_bucket_name + "/varmisuse/" + category + "/" + "correct" + "/" + "file_" + str(num) + ".py"
+    file_1 = "gs://" + bucket_name + "/varmisuse/" + category + "/" + "correct" + "/" + "file_" + str(num) + ".py"
     file_1_src = "file_" + str(num) + ".py"
-    file_2 = "gs://" + sources_bucket_name + "/varmisuse/" + category + "/" + "misuse" + "/" + "file_" + str(num + 1) + ".py"
+    file_2 = "gs://" + bucket_name + "/varmisuse/" + category + "/" + "misuse" + "/" + "file_" + str(num + 1) + ".py"
     file_2_src = "file_" + str(num + 1) + ".py"
   else:
-    file_1 = "gs://" + sources_bucket_name + "/varmisuse/" + category + "/" + "misuse" + "/" + "file_" + str(num) + ".py"
+    file_1 = "gs://" + bucket_name + "/varmisuse/" + category + "/" + "misuse" + "/" + "file_" + str(num) + ".py"
     file_1_src = "file_" + str(num) + ".py"
-    file_2 = "gs://" + sources_bucket_name + "/varmisuse/" + category + "/" + "correct" + "/" + "file_" + str(num - 1) + ".py"
+    file_2 = "gs://" + bucket_name + "/varmisuse/" + category + "/" + "correct" + "/" + "file_" + str(num - 1) + ".py"
     file_2_src = "file_" + str(num - 1) + ".py"
 
   try:
@@ -36,7 +36,7 @@ def run(tables_path):
       os.system("gsutil cp  " + file_1 + " " + tables_dir + "/" + file_1_src)
       os.system("gsutil cp  " + file_2 + " " + tables_dir + "/" + file_2_src)
 
-      remote_tables_dir = "gs://" + tables_bucket_name + "/" + remote_table_dirname + "/" + tables_path
+      remote_tables_dir = "gs://" + bucket_name + "/" + remote_table_dirname + "/" + tables_path
       diff_bin = os.path.join(home_path, 'data_prep/random_walk/diff.py')
 
       os.system("gsutil -m cp  -r " + remote_tables_dir + "/*" + " " + tables_dir)
@@ -51,10 +51,10 @@ def run(tables_path):
 
       if os.path.exists(tables_dir + "/graph_" + filename + ".gv") and os.path.exists(tables_dir + "/stub_" + filename + ".json"):
         os.system("gsutil cp  " + tables_dir + "/graph_" + filename + ".gv" + " " + \
-                  "gs://" + sources_bucket_name + "/" + output_graphs_dirname + "/" + \
+                  "gs://" + bucket_name + "/" + output_graphs_dirname + "/" + \
                   task + "/" + category + "/" + "graph_" + filename + ".gv")
         os.system("gsutil cp  " + tables_dir + "/stub_" + filename + ".json" + " " + \
-                  "gs://" + sources_bucket_name + "/" + output_graphs_dirname + "/" + \
+                  "gs://" + bucket_name + "/" + output_graphs_dirname + "/" + \
                   task + "/" + category + "/" + "stub_" + filename + ".json")
 
     with open(tables_paths_file + "-done", "a") as done:
@@ -65,13 +65,12 @@ def run(tables_path):
 
 
 tables_paths_file = sys.argv[1] # paths.txt
-tables_bucket_name = sys.argv[2] # generated-tables
-sources_bucket_name = sys.argv[3] # varmisuse-defuse
-remote_table_dirname = sys.argv[4] # outdir_reshuffle
-output_graphs_dirname = sys.argv[5] # output_graphs
-home_path = sys.argv[6] # /home/pardisp/relational-representation
-walks_or_graphs = sys.argv[7] # walks, graphs
-pred_kind = sys.argv[8] # prog_cls, loc_cls
+bucket_name = sys.argv[2] # generated-tables
+remote_table_dirname = sys.argv[3] # outdir_reshuffle
+output_graphs_dirname = sys.argv[4] # output_graphs
+home_path = sys.argv[5] # /home/pardisp/relational-representation
+walks_or_graphs = sys.argv[6] # walks, graphs
+pred_kind = sys.argv[7] # prog_cls, loc_cls
 
 programs = []
 

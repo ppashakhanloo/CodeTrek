@@ -6,3 +6,7 @@ vm_stub.json_prog
 vm_stub.json_prog_g
 vm_stub.json_prog_w
 tables/var_misuses.csv
+du_stub.json_loc_g
+du_stub.json_loc_w
+du_stub.json_prog_g
+du_stub.json_prog_w
