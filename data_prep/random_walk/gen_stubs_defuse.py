@@ -83,9 +83,8 @@ def main(args: List[str]) -> None:
         walks_all = []
         traj_anchors = []
         for anchor in anchor_nodes:
-            if walks_or_graphs == 'graphs':
-                walks = []
-            else:
+            walks = []
+            if walks_or_graphs == 'walks':
                 random_walk = RandomWalker(graph, anchor, 'python')
                 walks = random_walk.random_walk(max_num_walks=MAX_NUM_WALKS//len(anchor_nodes), min_num_steps=4, max_num_steps=24)
             traj_anchors.append(TrajNodeValue(anchor))
@@ -98,12 +97,11 @@ def main(args: List[str]) -> None:
         walklist.append(data_point.to_dict())
     elif pred_kind == 'loc_cls':
         for anchor, label in anchor_nodes:
+            walks = []
             traj_anchors = [TrajNodeValue(anchor)]
-            if walks_or_graphs == 'graphs':
-                walks = []
-            else:
+            if walks_or_graphs == 'walks':
                 random_walk = RandomWalker(graph, anchor, 'python')
-                walks = random_walk.random_walk(max_num_walks=MAX_NUM_WALKS//len(anchor_nodes), min_num_steps=4, max_num_steps=24)
+                walks = random_walk.random_walk(max_num_walks=MAX_NUM_WALKS, min_num_steps=4, max_num_steps=24)
             trajectories = [WalkUtils.build_trajectory(walk) for walk in walks]
             data_point = DataPoint(traj_anchors, trajectories, [], label, gv_file)
             walklist.append(data_point.to_dict())

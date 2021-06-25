@@ -27,7 +27,8 @@ def run(tables_path):
       assert os.path.exists(tables_dir + "/graph_" + filename + ".gv"), "graph not created."
 
       os.system("python " + defuse_stub_bin + " " + tables_dir + "/graph_" + filename + ".gv" + " "\
-        + tables_dir + " " + tables_dir + "/" + "unused_var.bqrs.csv" + " " + tables_dir + "/stub_" + filename + ".json")
+        + tables_dir + " " + tables_dir + "/stub_"\
+        + filename + ".json" + " " + walks_or_graphs + " " + pred_kind)
       assert os.path.exists(tables_dir + "/stub_" + filename + ".json"), "stub du not created."
 
       os.system("gsutil cp  " + tables_dir + "/graph_" + filename + ".gv" + " " + "gs://" + bucket_name + \
