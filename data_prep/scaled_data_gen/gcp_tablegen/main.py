@@ -66,10 +66,10 @@ class AllDoFn(beam.DoFn):
       yield ">>", str(element), ">>", e
  
   
-bucket_name = sys.argv[1] # generated-tables
+bucket_name = sys.argv[1] # varmisuse
 region = sys.argv[2] # us-central1
 py_files_name = sys.argv[3] # file.txt
-output_tables = sys.argv[4] # outdir_reshuffle
+output_tables = sys.argv[4] # tables
 
 
 pipeline_options = PipelineOptions(flags=['--no_use_public_ips'], runner='DataflowRunner',\
