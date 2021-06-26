@@ -342,15 +342,17 @@ def fix_node_labels(graph):
       terminal_edge.set('label', 'Child')
       graph.add_edge(terminal_edge)
       if cut_label == 'arg' or cut_label == 'Name' or cut_label == 'Attribute':
-          if 'ast.arg(' in full_label or 'ctx=ast.Store' in full_label or \
-             'ctx=ast.Param' in full_label or 'ctx=ast.AugStore' in full_label:
-            terminal_vars.append((terminal_node, get_value(full_label, ind), 'write'))
-          else:
+        if 'ast.arg(' in full_label or 'ctx=ast.Store' in full_label or \
+           'ctx=ast.Param' in full_label or 'ctx=ast.AugStore' in full_label:
+          terminal_vars.append((terminal_node, get_value(full_label, ind), 'write'))
+        else:
             terminal_vars.append((terminal_node, get_value(full_label, ind), 'read'))
+      if get_value(full_label, ind) == 'HoleException':
+        hole_exception = terminal_node
     node.set('label', cut_label)
   return graph, terminal_vars, hole_exception
 
-def gen_graph_from_source(infile, aux_file, task_name, pred_kind):
+def gen_graph_from_source(infile, aux_file, task_name, pred_kind='prog_cls'):
   graph, neighbors, subtrees, node_of_interest, if_branches = build_child_edges(infile, aux_file, task_name, pred_kind)
   graph = add_next_token_edges(graph, subtrees)
   graph, variables = add_last_lexical_use_edges(graph)
