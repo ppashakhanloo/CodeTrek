@@ -1,34 +1,12 @@
+import os
 import sys
 import json
+import tempfile
 import datapoint
 import create_ast
+import multiprocessing
+from joblib import Parallel, delayed
 from data_prep.tokenizer import tokenizer
-
-def init(graph, terminal_vars, node_of_interest, hole_exception, terminal_dus, task, pred_kind):
-  node_to_num = {}
-  for num, node in enumerate(graph.get_nodes()):
-    node_to_num[node.get_name()] = num + 1
-  if task == 'varmisuse':
-    if pred_kind == 'loc_cls':
-      slot_node_indexes = [node_of_interest]
-    elif pred_kind == 'prog_cls':
-      slot_node_indexes = terminal_vars + [node_of_interest]
-    else:
-      raise NotImplementedError
-  elif task == 'defuse':
-    if pred_kind == 'loc_cls':
-      slot_node_indexes = terminal_dus
-    elif pred_kind == 'prog_cls':
-      slot_node_indexes = terminal_vars
-    else:
-      raise NotImplementedError
-  elif task == 'exception':
-    slot_node_indexes = [hole_exception]
-  else:
-    raise NotImplementedError
-
-  slot_node_indexes = [node_to_num[n.get_name()] for n in slot_node_indexes]
-  return graph, node_to_num, slot_node_indexes
 
 def get_each_edge_category(graph, node_to_num, cat_names):
   edges = {}
@@ -43,16 +21,7 @@ def get_each_edge_category(graph, node_to_num, cat_names):
       edges[edge.get('label')].append(e)
   return edges
 
-def main(args):
-  if len(args) != 7:
-    print('Usage: python3 gen_graph_jsons.py <file1.py> <file2.py> <label> <output.json> <task> <pred_kind>')
-    print('Possible tasks: varmisuse, defuse, exception.')
-    print('Possible pred_kinds: prog_cls, loc_cls.')
-    exit(1)
-  graph, terminal_vars, node_of_interest, hole_exception, terminal_dus = \
-          create_ast.gen_graph_from_source(infile=args[1], aux_file=args[2], task_name=args[5])
-  graph, node_to_num, slot_node_idxs = \
-          init(graph, terminal_vars, node_of_interest, hole_exception, terminal_dus, task=args[5], pred_kind=args[6])
+def create_sample(graph, anchor_indexes, label, source, node_to_num):
   # prepare edges
   cat_names = ['Child', 'NextToken', 'LastLexicalUse', 'ComputedFrom',
                'LastRead', 'LastWrite', 'ReturnsTo', 'GuardedBy', 'GuardedByNegation']
@@ -94,14 +63,106 @@ def main(args):
 
   # create data point
   point = datapoint.DataPoint(
-    filename=args[1],
-    slot_node_idxs=slot_node_idxs,
+    filename=source,
+    slot_node_idxs=anchor_indexes,
     context_graph=context_graph,
-    label=args[3]
+    label=label
   )
-  
-  with open(args[4], 'w', 1000*(2**20)) as outfile:
-    json.dump(point.to_dict(), outfile)
+
+  return point.to_dict()
+
+def gen_varmisuse(pred_kind):
+    pass
+
+def gen_exception(pred_kind):
+    pass
+
+def gen_defuse(path, pred_kind):
+  remote_tables_dir = "gs://" + bucket_name + "/" + remote_table_dirname + "/" + path
+  splits = path.split('/')
+  filename = splits[-1]
+  prog_label = splits[-2]
+
+  try:
+    with tempfile.TemporaryDirectory() as tables_dir:
+      os.system("gsutil cp " + remote_tables_dir + "/unused_var.bqrs.csv" + " " + tables_dir)
+      os.system("gsutil cp " + "gs://" + bucket_name + "/" + path + " " + tables_dir)
+
+      unused_var_names = []
+      with open(tables_dir + "/unused_var.bqrs.csv", 'r') as f:
+        for line in f.readlines():
+          v = line.strip().split(',')[3][1:-1]
+          unused_var_names.append(v)
+
+      g, terminal_vars, node_of_interest, hole_exception = \
+              create_ast.gen_graph_from_source(infile=tables_dir + "/" + filename, aux_file=None, \
+                                               task_name='defuse', pred_kind=pred_kind)
+      node_to_num = {}
+      for num, node in enumerate(g.get_nodes()):
+        node_to_num[node.get_name()] = num + 1
+      anchor_nodes = []
+      if pred_kind == 'prog_cls':
+        for v in terminal_vars:
+          if v[2] == 'write':
+            anchor_nodes.append(v[0])
+        anchor_nodes = [node_to_num[n.get_name()] for n in anchor_nodes]
+        with open(tables_dir + "/graph_" + filename + ".json", 'w') as f:
+          json.dump(create_sample(g, anchor_nodes, prog_label, path, node_to_num), f)
+        os.system("gsutil cp " + tables_dir + "/graph_" + filename + ".json" + " " + \
+                  "gs://" + bucket_name + "/" + output_graphs_dirname + "/" + path.replace('/' + prog_label, ''))
+      elif pred_kind == 'loc_cls':
+        write_terminal_vars_unused = {}
+        write_terminal_vars_used = {}
+        for v in terminal_vars:
+          if v[1] in unused_var_names and v[2] == 'write':
+            if v[1] in write_terminal_vars_unused:
+              write_terminal_vars_unused[v[1]].append(v)
+            else:
+              write_terminal_vars_unused[v[1]] = [v]
+          elif v[2] == 'write':
+            if v[1] in write_terminal_vars_used:
+              write_terminal_vars_used[v[1]].append(v)
+            else:
+              write_terminal_vars_used[v[1]] = [v]
+        for var_name in write_terminal_vars_unused:
+          for idx, n in enumerate(write_terminal_vars_unused[var_name]):
+            with open(tables_dir + "/graph_" + var_name + '_' + str(idx) + '_' + filename + ".json", 'w') as f:
+              json.dump(create_sample(g, [node_to_num[n[0].get_name()]], 'unused', path, node_to_num), f)
+            os.system("gsutil cp " + tables_dir + "/graph_" + var_name + '_' + str(idx) + '_' + filename + ".json" + " " + \
+                      "gs://" + bucket_name + "/" + output_graphs_dirname + "/" + path.replace(prog_label+'/'+filename, ''))
+        for var_name in write_terminal_vars_used:
+          for idx, n in enumerate(write_terminal_vars_used[var_name]):
+            with open(tables_dir + "/graph_" + var_name + '_' + str(idx) + '_' + filename + ".json", 'w') as f:
+              json.dump(create_sample(g, [node_to_num[n[0].get_name()]], 'used', path, node_to_num), f)
+            os.system("gsutil cp " + tables_dir + "/graph_" + var_name + '_' + str(idx) + '_' + filename + ".json" + " " + \
+                      "gs://" + bucket_name + "/" + output_graphs_dirname + "/" + path.replace(prog_label+'/'+filename, ''))
+      else:
+        raise NotImplementedError(pred_kind)
+
+    with open(tables_paths_file + "-done", "a") as done:
+      done.write(path + "\n")
+  except Exception as e:
+    with open(tables_paths_file + "-log", "a") as log:
+      log.write(">>" + path + str(e) + "\n")
 
 if __name__ == "__main__":
-  main(sys.argv)
+  tables_paths_file = sys.argv[1] # paths.txt
+  bucket_name = sys.argv[2] # generated-tables
+  remote_table_dirname = sys.argv[3] # outdir_reshuffle
+  output_graphs_dirname = sys.argv[4] # output_graphs
+  task = sys.argv[5] # defuse, exception, varmisuse
+  pred_kind = sys.argv[6] # prog_cls, loc_cls
+# python gen_graph_jsons.py du_splits/defuse_split_aa tables ast_prog_cls defuse prog_cls
+  paths = []
+  with open(tables_paths_file, 'r') as fin:
+    for line in fin.readlines():
+      paths.append(line.strip())
+
+  if task == 'varmisuse':
+    gen_varmisuse(pred_kind)
+  elif task == 'defuse':
+    Parallel(n_jobs=10, prefer="threads")(delayed(gen_defuse)(path, pred_kind) for path in paths)
+  elif task == 'exception':
+    gen_exception(pred_kind)
+  else:
+    raise NotImplementedError(task)

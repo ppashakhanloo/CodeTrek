@@ -1,7 +1,8 @@
 import ast
+
+from diff import get_diff
 from pydot import Edge, Node
 from astmonkey import visitors, transformers
-from diff import get_diff 
 
 CURR_STR = '___CURR___'
 SLOT_STR = 'SlotNode'
@@ -27,23 +28,19 @@ def get_graph(contents):
   graph.set_type('digraph')
   return graph
 
-def build_child_edges(main_file, aux_file, task_name):
+def build_child_edges(main_file, aux_file, task_name, pred_kind):
   node_of_interest = None
   neighbors = {} # node -> neighbors
   subtrees = {} # node -> subtree nodes
   if_branches = {}
 
-  unused_var_name = None
-  if task_name == 'defuse':
-    unused_var_name = main_file.split('.')[1]
-
   with open(main_file, 'r', 100*(2**20)) as infile:
     if task_name == 'varmisuse':
       _, tok1, row1_s, col1_s, _, _, _, tok2, row2_s, col2_s, _, _ = get_diff(main_file, aux_file)
       lines = infile.readlines()
-      different_line = lines[row1_s-1]
-      new_line = different_line[:col1_s-1] + different_line[col1_s-1:].replace(tok1, CURR_STR, 1)
-      lines[row1_s-1] = new_line
+      different_line = lines[row1_s - 1]
+      new_line = different_line[:col1_s - 1] + different_line[col1_s - 1:].replace(tok1, CURR_STR, 1)
+      lines[row1_s - 1] = new_line
       contents = "".join(lines)
       graph = get_graph(contents)
 
@@ -62,7 +59,7 @@ def build_child_edges(main_file, aux_file, task_name):
       if index in nodes:
         node_of_interest = nodes[index]
       else:
-        node_of_interest = nodes[len(nodes)-index]
+        node_of_interest = nodes[len(nodes) - index]
     else:
       graph = get_graph(infile.read())
 
@@ -101,8 +98,7 @@ def build_child_edges(main_file, aux_file, task_name):
 
     for edge in edges:
       edge.set('label', 'Child')
-
-    return graph, neighbors, subtrees, node_of_interest, if_branches, unused_var_name
+    return graph, neighbors, subtrees, node_of_interest, if_branches
 
 def add_next_token_edges(graph, subtrees):
   token_nodes = []
@@ -319,11 +315,13 @@ def has_value(label):
 def get_value(label, ind):
   loc = label.find(ind)
   offset = len(ind) + 1
-  if ind == 'value=':
+  if ind == 'value=' or ind == 'id':
     return label[loc + offset - 1:label.find(',', loc)]
+  if ind == 'attr=':
+    return label[loc + offset:label.find(',', loc)-1]
   return label[loc + offset:label.find('\'', loc + offset)]
 
-def fix_node_labels(graph, unused_var_name):
+def fix_node_labels(graph):
   nodes = graph.get_nodes()
   terminal_vars = []
   terminal_dus = []
@@ -343,21 +341,22 @@ def fix_node_labels(graph, unused_var_name):
       terminal_edge = Edge(node.get_name(), terminal_node.get_name())
       terminal_edge.set('label', 'Child')
       graph.add_edge(terminal_edge)
-      if cut_label == 'arg' or cut_label == 'Name':
-        terminal_vars.append(terminal_node)
-      if unused_var_name and unused_var_name == get_value(full_label, ind):
-        terminal_dus.append(terminal_node)
+      if cut_label == 'arg' or cut_label == 'Name' or cut_label == 'Attribute':
+          if 'ast.arg(' in full_label or 'ctx=ast.Store' in full_label or \
+             'ctx=ast.Param' in full_label or 'ctx=ast.AugStore' in full_label:
+            terminal_vars.append((terminal_node, get_value(full_label, ind), 'write'))
+          else:
+            terminal_vars.append((terminal_node, get_value(full_label, ind), 'read'))
     node.set('label', cut_label)
+  return graph, terminal_vars, hole_exception
 
-  return graph, terminal_vars, hole_exception, terminal_dus
-
-def gen_graph_from_source(infile, aux_file, task_name):
-  graph, neighbors, subtrees, node_of_interest, if_branches, unused_var_name = build_child_edges(infile, aux_file, task_name)
+def gen_graph_from_source(infile, aux_file, task_name, pred_kind):
+  graph, neighbors, subtrees, node_of_interest, if_branches = build_child_edges(infile, aux_file, task_name, pred_kind)
   graph = add_next_token_edges(graph, subtrees)
   graph, variables = add_last_lexical_use_edges(graph)
   graph = add_returns_to_edges(graph, subtrees)
   graph = add_computed_from_edges(graph, subtrees, neighbors)
   graph = add_last_read_write_edges(graph, variables)
   graph = add_guarded_edges(graph, subtrees, if_branches)
-  graph, terminal_vars, hole_exception, terminal_dus = fix_node_labels(graph, unused_var_name)
-  return graph, terminal_vars, node_of_interest, hole_exception, terminal_dus
+  graph, terminal_vars, hole_exception = fix_node_labels(graph)
+  return graph, terminal_vars, node_of_interest, hole_exception
