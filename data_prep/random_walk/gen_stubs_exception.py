@@ -8,7 +8,7 @@ from data_prep.random_walk.walkutils import WalkUtils
 from data_prep.random_walk.randomwalk import RandomWalker
 from typing import List
 
-
+NUM_MAX_WALKS = 100
 
 def main(args: List[str]) -> None:
     gv_file = args[1]
@@ -45,21 +45,17 @@ def main(args: List[str]) -> None:
     walklist = []
     for anchor, label in anchor_node:
         anchor_label = graph.nodes[anchor]['label']
-        if walks_or_graphs == 'graphs':
-            walks = []
-        else:
+        walks = []
+        if walks_or_graphs == 'walks':
             random_walk = RandomWalker(graph, anchor_label, 'python')
-            walks = random_walk.random_walk(max_num_walks=100, min_num_steps=8, max_num_steps=30)
-        # generate the Json file
-        source = gv_file
-        traj_anchor = TrajNodeValue(anchor_label)
+            walks = random_walk.random_walk(max_num_walks=NUM_MAX_WALKS, min_num_steps=4, max_num_steps=26)
+        traj_anchor = [TrajNodeValue(anchor_label)]
         trajectories = [WalkUtils.build_trajectory(walk) for walk in walks]
-        data_point = DataPoint(traj_anchor, trajectories, [], label, source)
+        data_point = DataPoint(traj_anchor, trajectories, [], label, gv_file)
         walklist.append(data_point.to_dict())
-    js = json.dumps(walklist)
-    
+
     with open(out_file, 'w') as op_file:
-        op_file.write(js)
+        op_file.write(json.dumps(walklist))
 
 if __name__ == '__main__':
     main(sys.argv)
