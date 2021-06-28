@@ -131,6 +131,8 @@ class RandomWalker:
     # selected from the list at random.
     @staticmethod
     def padding(lst: List[any], num: int) -> List[any]:
+        if len(lst) == 0:
+            return []
         assert len(lst) <= num
         if len(lst) == num:
             return lst

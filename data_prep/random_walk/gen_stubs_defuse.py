@@ -11,19 +11,11 @@ from typing import List
 MAX_NUM_WALKS = 100
 
 def main(args: List[str]) -> None:
-    if len(args) != 6:
-        print('Usage: python3 gen_walks.py <gv> <edb> <out> <walks> <pred>')
-        exit(1)
-
     gv_file = args[1]
     edb_path = args[2]
     out_file = args[3]
     walks_or_graphs = args[4]
     pred_kind = args[5]
-
-    #anchor_nodes = []
-    #gt_vars = set()
-    #local_variable_rows = []
 
     unused_vars = []
     with open(os.path.join(edb_path, "unused_var.bqrs.csv"), 'r') as f:
@@ -31,7 +23,7 @@ def main(args: List[str]) -> None:
         rows = list(reader)
         for row in rows[1:]:
             unused_vars.append(row[0]) # expr_id, var_id
-    
+
     name_exprs = []
     with open(os.path.join(edb_path, "py_exprs.bqrs.csv"), 'r') as f:
         reader = csv.reader(f, delimiter=',')

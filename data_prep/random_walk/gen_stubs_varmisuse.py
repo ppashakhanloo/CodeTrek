@@ -10,7 +10,7 @@ from typing import List
 
 MAX_NUM_WALKS=100
 
-def get_anchor(edb_dir: str, label: str, pred_kind: str):
+def get_misuses(edb_dir, label, pred_kind):
     diff_len = []
     misuse_locs = []
     with open(os.path.join(edb_dir, "var_misuses.csv")) as misuse_file:
@@ -53,70 +53,93 @@ def get_anchor(edb_dir: str, label: str, pred_kind: str):
             for row in py_loc_rows:
                 if loc[0] == row[0]:
                     misuse_loc_ids.append(row)
-    assert len(misuse_loc_ids) >= 1
+    assert len(misuse_loc_ids) > 0
 
-    anchors = set()
-    with open(os.path.join(edb_dir, "py_variables.bqrs.csv")) as py_variables:
+    v_misuses = set()
+    with open(os.path.join(edb_dir, "py_exprs.bqrs.csv")) as py_variables:
         reader = csv.reader(py_variables, delimiter=',')
         for iter, row in enumerate(reader):
-            if pred_kind == 'prog_cls':
-                if iter == 0:
-                    continue
-                anchors.add('py_variables(' + ','.join(row) + ')')
-            elif pred_kind == 'loc_cls':
-                for id in misuse_loc_ids:
-                    if row[1] == id[1]:
-                        anchors.add('py_variables(' + ','.join(row) + ')')
-            else:
-                raise NotImplementedError(pred_kind)
-    assert len(anchors) >= 1
-    return anchors
+            for id in misuse_loc_ids:
+                if row[0] == id[1]:
+                    v_misuses.add('py_exprs(' + ','.join(row) + ')')
+    assert len(v_misuses) > 0
+    return v_misuses
 
+def prep_walks(edb_path, gt, pred_kind, graph, walks_or_graphs):
+  anchor = list(get_misuses(edb_path, gt, pred_kind)).pop()
+  anchor_node = None
+  for node in graph.nodes():
+    element = graph.nodes[node]['label']
+    if element == anchor:
+      anchor_node = node
+  walks = []
+  if not anchor_node:
+    raise Exception('there is no anchor node :(')
+  anchor_label = graph.nodes[anchor_node]['label']
+  if walks_or_graphs == 'walks':
+    random_walker = RandomWalker(graph, anchor_label, 'python')
+    walks = random_walker.random_walk(max_num_walks=MAX_NUM_WALKS, min_num_steps=4, max_num_steps=24)
+  return walks, TrajNodeValue(anchor_label)
 
-def main(args: List[str]) -> None:
-    gv_file = args[1]
-    edb_path = args[2]
-    gt = args[3]
-    assert gt in ["misuse", "correct"]
-    out_file = args[4]
-    walks_or_graphs = args[5]
-    assert walks_or_graphs in ['walks', 'graphs']
-    pred_kind = args[6]
-    assert pred_kind in ['prog_cls', 'loc_cls']
+def main(args):
+  gv_file = args[1]
+  edb_path = args[2]
+  gt = args[3]
+  out_file = args[4]
+  walks_or_graphs = args[5]
+  pred_kind = args[6]
+  assert pred_kind in ['prog_cls', 'loc_cls', 'loc_rep']
 
+  var_access_names = []
+  with open(os.path.join(edb_path, "var_accesses.bqrs.csv"), 'r') as va, \
+       open(os.path.join(edb_path, "py_exprs.bqrs.csv")) as ne:
+    va_lines = [l.strip() for l in va.readlines()[1:]]
+    ne_lines = [l.strip() for l in ne.readlines()[1:]]
+    for v in va_lines:
+      for n in ne_lines:
+        if v.split(',')[0] == n.split(',')[0]:
+          var_access_names.append('py_exprs(' + n + ')')
+  graph = RandomWalker.load_graph_from_gv(gv_file)
+  walklist = []
+  if pred_kind == 'prog_cls':
+    anchors = var_access_names
     anchor_nodes = set()
-    anchors = get_anchor(edb_path, gt, pred_kind)
-    graph = RandomWalker.load_graph_from_gv(gv_file)
-
-    walklist = []
     for node in graph.nodes():
-        element = graph.nodes[node]['label']
-        if element in anchors:
-            anchor_nodes.add((node, gt))
-
+      element = graph.nodes[node]['label']
+      if element in anchors:
+        anchor_nodes.add(node)
+    walks = []
     traj_anchors = []
-    walks_all = []
-    for anchor, _ in anchor_nodes:
-        anchor_label = graph.nodes[anchor]['label']
-        if walks_or_graphs == 'graphs':
-            walks = []
-        else:
-            random_walk = RandomWalker(graph, anchor_label, 'python')
-            walks = \
-                random_walk.random_walk(max_num_walks=MAX_NUM_WALKS//len(anchor_nodes), \
-                                        min_num_steps=8, max_num_steps=24)
-        traj_anchors.append(TrajNodeValue(anchor_label))
-        walks_all += walks
-    if walks_or_graphs == 'walks':
-        trajectories = [WalkUtils.build_trajectory(walk) for walk in RandomWalker.padding(walks_all, MAX_NUM_WALKS)]
-    else:
-        trajectories = []
-    data_point = DataPoint(traj_anchors, trajectories, [], gt, gv_file)
-    walklist.append(data_point.to_dict())
-    js = json.dumps(walklist)
+    for anchor in anchor_nodes:
+      anchor_label = graph.nodes[anchor]['label']
+      if walks_or_graphs == 'walks':
+        random_walker = RandomWalker(graph, anchor_label, 'python')
+        walks += random_walker.random_walk(max_num_walks=MAX_NUM_WALKS//len(anchor_nodes),\
+                                         min_num_steps=4, max_num_steps=24)
+      traj_anchors.append(TrajNodeValue(anchor_label))
+    trajectories = [WalkUtils.build_trajectory(walk) for walk in RandomWalker.padding(walks, MAX_NUM_WALKS)]
+    walklist.append(DataPoint(traj_anchors, trajectories, [], gt, gv_file).to_dict())
+  elif pred_kind == 'loc_cls':
+    walks, traj_anchor = prep_walks(edb_path, gt, pred_kind, graph, walks_or_graphs)
+    trajectories = [WalkUtils.build_trajectory(walk) for walk in walks]
+    walklist.append(DataPoint([traj_anchor], trajectories, [], gt, gv_file).to_dict())
+  elif pred_kind == 'loc_rep':
+    # traj_anchor: error_location (correct/misuse)
+    walks, traj_anchor = prep_walks(edb_path, gt, pred_kind, graph, walks_or_graphs)
+    candidates = var_access_names # all var accesses, repair candidates
+    anchor_nodes = set()
+    for node in graph.nodes():
+      element = graph.nodes[node]['label']
+      if element in candidates:
+        anchor_nodes.add(node)
+    #####... complete loc_rep.
+    targets = [] # all correct var accesses
+    #
+  else:
+    raise NotImplementedError(pred_kind)
 
-    with open(out_file, 'w') as op_file:
-        op_file.write(js)
+  with open(out_file, 'w') as f:
+    f.write(json.dumps(walklist))
 
 if __name__ == '__main__':
     main(sys.argv)

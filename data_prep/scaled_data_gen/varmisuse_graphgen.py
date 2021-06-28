@@ -45,9 +45,8 @@ def run(tables_path):
       assert os.path.exists(tables_dir + "/graph_" + filename + ".gv"), "graph not created."
 
       os.system("python " + varmisuse_stub_bin + " " + tables_dir + "/graph_" + filename + ".gv" + " "\
-        + tables_dir + " " + label + " " + tables_dir + "/stub_" + filename + ".json")
+        + tables_dir + " " + label + " " + tables_dir + "/stub_" + filename + ".json" + " " + walks_or_graphs + " " + pred_kind)
       assert os.path.exists(tables_dir + "/stub_" + filename + ".json"), "stub vm not created."
-
 
       if os.path.exists(tables_dir + "/graph_" + filename + ".gv") and os.path.exists(tables_dir + "/stub_" + filename + ".json"):
         os.system("gsutil cp  " + tables_dir + "/graph_" + filename + ".gv" + " " + \
@@ -70,7 +69,7 @@ remote_table_dirname = sys.argv[3] # outdir_reshuffle
 output_graphs_dirname = sys.argv[4] # output_graphs
 home_path = sys.argv[5] # /home/pardisp/relational-representation
 walks_or_graphs = sys.argv[6] # walks, graphs
-pred_kind = sys.argv[7] # prog_cls, loc_cls
+pred_kind = sys.argv[7] # prog_cls, loc_cls, loc_rep
 
 programs = []
 
