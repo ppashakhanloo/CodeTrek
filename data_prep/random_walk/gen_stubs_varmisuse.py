@@ -3,7 +3,7 @@ import csv
 import json
 import os
 from pygraphviz import Node
-from data_prep.random_walk.datapoint import DataPoint, TrajNodeValue
+from data_prep.random_walk.datapoint import DataPoint, TrajNodeValue, LocRepDataPoint
 from data_prep.random_walk.walkutils import WalkUtils
 from data_prep.random_walk.randomwalk import RandomWalker
 from typing import List
@@ -13,11 +13,13 @@ MAX_NUM_WALKS=100
 def get_misuses(edb_dir, label, pred_kind):
     diff_len = []
     misuse_locs = []
+    conc_var_name = None
     with open(os.path.join(edb_dir, "var_misuses.csv")) as misuse_file:
         reader = csv.reader(misuse_file, delimiter=',')
         for row in reader:
             if label == "correct":
-                loc = [ x.strip() for x in row[:5] ] + [str(int(row[5])-1)]
+                loc = [x.strip() for x in row[:5]] + [str(int(row[5])-1)]
+                conc_var_name = row[1]
                 if loc[1][0] == "@":
                     loc[3] = str(int(loc[3]) + 1)
                 if loc not in misuse_locs:
@@ -25,7 +27,8 @@ def get_misuses(edb_dir, label, pred_kind):
                     diff_len.append(len(row[1]) - len(row[7]))
             else:
                 assert label == "misuse"
-                loc = [ x.strip() for x in row[6:-1] ] + [str(int(row[-1])-1)]
+                loc = [x.strip() for x in row[6:-1]] + [str(int(row[-1])-1)]
+                conc_var_name = row[7]
                 if loc[1][0] == "@":
                     loc[3] = str(int(loc[3]) + 1)
                 if loc not in misuse_locs:
@@ -63,23 +66,23 @@ def get_misuses(edb_dir, label, pred_kind):
                 if row[0] == id[1]:
                     v_misuses.add('py_exprs(' + ','.join(row) + ')')
     assert len(v_misuses) > 0
-    return v_misuses
+    return v_misuses, conc_var_name
 
 def prep_walks(edb_path, gt, pred_kind, graph, walks_or_graphs):
-  anchor = list(get_misuses(edb_path, gt, pred_kind)).pop()
+  anchor, conc_var_name = get_misuses(edb_path, gt, pred_kind)
+  anchor = list(anchor).pop()
   anchor_node = None
   for node in graph.nodes():
     element = graph.nodes[node]['label']
     if element == anchor:
       anchor_node = node
   walks = []
-  if not anchor_node:
-    raise Exception('there is no anchor node :(')
+  assert anchor_node, 'there is no anchor node :('
   anchor_label = graph.nodes[anchor_node]['label']
   if walks_or_graphs == 'walks':
     random_walker = RandomWalker(graph, anchor_label, 'python')
     walks = random_walker.random_walk(max_num_walks=MAX_NUM_WALKS, min_num_steps=4, max_num_steps=24)
-  return walks, TrajNodeValue(anchor_label)
+  return walks, TrajNodeValue(anchor_label), anchor, conc_var_name
 
 def main(args):
   gv_file = args[1]
@@ -120,21 +123,36 @@ def main(args):
     trajectories = [WalkUtils.build_trajectory(walk) for walk in RandomWalker.padding(walks, MAX_NUM_WALKS)]
     walklist.append(DataPoint(traj_anchors, trajectories, [], gt, gv_file).to_dict())
   elif pred_kind == 'loc_cls':
-    walks, traj_anchor = prep_walks(edb_path, gt, pred_kind, graph, walks_or_graphs)
+    walks, traj_anchor, _, _ = prep_walks(edb_path, gt, pred_kind, graph, walks_or_graphs)
     trajectories = [WalkUtils.build_trajectory(walk) for walk in walks]
     walklist.append(DataPoint([traj_anchor], trajectories, [], gt, gv_file).to_dict())
   elif pred_kind == 'loc_rep':
-    # traj_anchor: error_location (correct/misuse)
-    walks, traj_anchor = prep_walks(edb_path, gt, pred_kind, graph, walks_or_graphs)
-    candidates = var_access_names # all var accesses, repair candidates
-    anchor_nodes = set()
-    for node in graph.nodes():
-      element = graph.nodes[node]['label']
-      if element in candidates:
-        anchor_nodes.add(node)
-    #####... complete loc_rep.
-    targets = [] # all correct var accesses
-    #
+    walks, traj_anchor, error, conc_var_name = prep_walks(edb_path, gt, pred_kind, graph, walks_or_graphs)
+    candidates = var_access_names
+    errors = []
+    targets = []
+    if gt == 'misuse':
+      errors.append(error)
+      with open(os.path.join(edb_path, "variable.bqrs.csv")) as cq_var:
+        corresponding_variable = None
+        for v in cq_var.readlines()[1:]:
+          v = v.strip().split(',')
+          if v[2][1:-1] == conc_var_name:
+            corresponding_variable = v
+            break
+        assert corresponding_variable, 'in loc_rep, there is somethig wrong with misused tok.'
+        relevant_py_vars = []
+        with open(os.path.join(edb_path, "py_variables.bqrs.csv")) as py_var:
+          for v in py_var.readlines()[1:]:
+            v = v.strip().split(',')
+            if v[0] == corresponding_variable[0]:
+              relevant_py_vars.append(v)
+          for cand in candidates:
+            for rel_var in relevant_py_vars:
+              if 'py_exprs(' + rel_var[1] + ',' in cand:
+                targets.append(cand)
+    trajectories = []
+    walklist.append(LocRepDataPoint([TrajNodeValue(c) for c in candidates], [TrajNodeValue(e) for e in errors], [TrajNodeValue(t) for t in targets], trajectories, [], gt, gv_file).to_dict())
   else:
     raise NotImplementedError(pred_kind)
 

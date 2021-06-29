@@ -86,3 +86,36 @@ class DataPoint:
     def dump_json(self, filepath: str) -> None:
         with open(filepath, 'w') as outfile:
             json.dump(self.to_dict(), outfile)
+
+class LocRepDataPoint:
+    candidates = []    # type: List[AnchorNode]
+    errors = []        # type: List[AnchorNode]
+    targets = []       # type: List[AnchorNode]
+    trajectories = []  # type: List[Trajectory]
+    hints = []         # type: List[str]
+    label = None       # type: str
+    source = None      # type: str
+
+    def __init__(self, candidates, errors, targets, trajectories: List[Trajectory], hints: List[str], label: str, source: str):
+        self.candidates = candidates
+        self.errors = errors
+        self.targets = targets
+        self.trajectories = trajectories
+        self.hints = hints
+        self.label = label
+        self.source = source
+
+    def to_dict(self) -> Dict:
+        return {
+            'candidates': [c.to_dict() for c in self.candidates],
+            'errors': [e.to_dict() for e in self.errors],
+            'targets': [t.to_dict() for t in self.targets],
+            'trajectories': [traj.to_dict() for traj in self.trajectories],
+            'hints': [hint for hint in self.hints],
+            'label': self.label,
+            'source': self.source
+        }
+
+    def dump_json(self, filepath: str) -> None:
+        with open(filepath, 'w') as outfile:
+            json.dump(self.to_dict(), outfile)
