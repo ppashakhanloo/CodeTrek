@@ -16,7 +16,9 @@ def get_AST_nodes(contents):
   atok = asttokens.ASTTokens(contents, parse=True)
   for node in ast.walk(atok.tree):
     if not hasattr(node, 'lineno'):
-      nodes_AST[(0,0)] = (node, 'other')
+      continue
+    elif isinstance(node, ast.FunctionDef):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, 'def ' + node.name)
     elif isinstance(node, ast.Attribute):
       nodes_AST[(node.lineno, node.col_offset)] = (node, '.')
     elif isinstance(node, ast.Tuple):
@@ -51,8 +53,14 @@ def get_AST_nodes(contents):
       nodes_AST[(node.lineno, node.col_offset)] = (node, 'assign')
     elif isinstance(node, ast.Assert):
       nodes_AST[(node.lineno, node.col_offset)] = (node, 'assert')
+    elif isinstance(node, ast.Str):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, node.s)
+    elif isinstance(node, ast.Call):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, node.func.id)
+    elif isinstance(node, ast.NameConstant):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, str(node.value))
     else:
-      nodes_AST[(0,0)] = (node, 'other')
+      raise Exception((node, 'not handled'))
 
     if isinstance(node, ast.AugAssign):
       assigns[(node.lineno, node.col_offset)] = (node, 'assign')
@@ -80,25 +88,7 @@ def get_AST_nodes(contents):
 
   return nodes_AST, assigns, subtrees, ifs_info
 
-def add_defuse_specials(label, graph):
-  classes = ['used', 'unused']
-  error_location = get_node_by_loc(graph, (0, 0))
-  repair_targets = []
-  repair_candidates = []
-  return error_location, repair_targets, repair_candidates, label
-
-def add_exception_specials(unique_ids, corr_except, graph):
-  classes = ["ValueError", "KeyError", "AttributeError", "TypeError",
-             "OSError", "IOError", "ImportError", "IndexError", "DoesNotExist",
-             "KeyboardInterrupt", "StopIteration", "AssertionError", "SystemExit",
-             "RuntimeError", "HTTPError", "UnicodeDecodeError", "NotImplementedError",
-             "ValidationError", "ObjectDoesNotExist", "NameError"]
-  error_location = get_node_by_loc(graph, unique_ids['HoleException'][0])
-  repair_targets = []
-  repair_candidates = []
-  return error_location, repair_targets, repair_candidates, corr_except
-
-def add_varmisue_specials(main_file, aux_file, unique_ids, graph, vm_label):
+def add_varmisue_specials(main_file, aux_file, unique_ids, graph):
   with open(main_file, 'r') as mfile:
     _, tok1, row1_s, col1_s, _, _, _, _, _, _, _, _ = get_diff(main_file, aux_file)
     lines = mfile.readlines()
@@ -113,12 +103,12 @@ def add_varmisue_specials(main_file, aux_file, unique_ids, graph, vm_label):
     for ind in unique_ids:
       for ind2 in unique_ids[ind]:
         repair_candidates.append(get_node_by_loc(graph, ind2))
-    return error_location, repair_targets, repair_candidates, vm_label
+    return error_location, repair_targets, repair_candidates
 
 def get_node_by_loc(G, loc):
   return list({n: d['loc'] for n, d in G.nodes.items() if 'loc' in d and d['loc']==loc}.keys())[0]
 
-def gen_graph_from_source(main_file, aux_file, task_name, corr_except=None, defuse_label=None, vm_label=None):
+def gen_graph_from_source(main_file, aux_file, task_name, pred_kind):
   infile_content = ""
   with open(main_file, 'r') as f:
     infile_content = f.read()
@@ -133,7 +123,23 @@ def gen_graph_from_source(main_file, aux_file, task_name, corr_except=None, defu
       unique_ids[AST_nodes[loc][1]].append(loc)
     else:
       unique_ids[AST_nodes[loc][1]] = [loc]
-  flat_graph.add_node(ast.Expr(), tok='', loc=(0,0))
+
+  def is_def(checking):
+    if isinstance(checking, ast.Name):
+      if isinstance(checking.ctx, ast.Store) or isinstance(checking.ctx, ast.AugStore) or isinstance(checking.ctx, ast.Param):
+        return True, checking.id
+    if isinstance(checking, ast.arg):
+      return True, checking.arg
+    if isinstance(checking, ast.Attribute):
+      return True, checking.value
+    return False, None
+
+  # collect definitions
+  defs = []
+  for item in AST_nodes:
+    status, name = is_def(AST_nodes[item][0])
+    if status:
+      defs.append((AST_nodes[item][0],name))
 
   # NextToken
   sorted_locs = sorted(AST_nodes.keys())
@@ -199,13 +205,10 @@ def gen_graph_from_source(main_file, aux_file, task_name, corr_except=None, defu
         if entry1.id == entry2.id:
           flat_graph.add_edge(entry1, entry2, label='enum_CFG_NEXT', id='0')
 
-  if task_name == 'varmisuse':
-    err_loc, rep_targets, rep_cands, label = add_varmisue_specials(main_file, aux_file, unique_ids, flat_graph, vm_label)
-  elif task_name == 'defuse':
-    err_loc, rep_targets, rep_cands, label = add_defuse_specials(defuse_label, flat_graph)
-  elif task_name == 'exception':
-    err_loc, rep_targets, rep_cands, label = add_exception_specials(unique_ids, corr_except, flat_graph)
-  else:
-    raise ValueError(task_name, 'not a valid task name.')
+  err_loc = None
+  rep_targets = None
+  rep_cands = None
+  if task_name == 'varmisuse' and pred_kind == 'loc_rep':
+    err_loc, rep_targets, rep_cands = add_varmisue_specials(main_file, aux_file, unique_ids, flat_graph)
 
-  return flat_graph, err_loc, rep_targets, rep_cands, label
+  return flat_graph, err_loc, rep_targets, rep_cands, defs
