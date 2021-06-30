@@ -206,7 +206,10 @@ def add_varmisue_specials(main_file, aux_file, unique_ids, graph):
     repair_candidates = []
     for ind in unique_ids:
       for ind2 in unique_ids[ind]:
-        repair_candidates.append(get_node_by_loc(graph, ind2))
+        node = get_node_by_loc(graph, ind2)
+        if hasattr(node, 'ctx') or \
+           isinstance(node, ast.arg):
+          repair_candidates.append(get_node_by_loc(graph, ind2))
     return error_location, repair_targets, repair_candidates
 
 def get_node_by_loc(G, loc):
@@ -217,7 +220,6 @@ def gen_graph_from_source(main_file, aux_file, task_name, pred_kind):
   with open(main_file, 'r') as f:
     infile_content = f.read()
   AST_nodes, assigns, subtrees, ifs_info = get_AST_nodes(infile_content)
-
   flat_graph = nx.Graph()
   unique_ids = {}
   # ast node : (row, col)->(node, tok)
@@ -312,7 +314,7 @@ def gen_graph_from_source(main_file, aux_file, task_name, pred_kind):
   err_loc = None
   rep_targets = None
   rep_cands = None
-  if task_name == 'varmisuse' and pred_kind == 'loc_rep':
+  if task_name == 'varmisuse' and pred_kind in ['loc_rep', 'loc_cls']:
     err_loc, rep_targets, rep_cands = add_varmisue_specials(main_file, aux_file, unique_ids, flat_graph)
 
   return flat_graph, err_loc, rep_targets, rep_cands, defs
