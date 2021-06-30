@@ -69,6 +69,30 @@ class ContextGraph:
       'NodeTokens': self.node_tokens
     }
 
+class LocRepDataPoint:
+  filename = ""
+  slot_node_idxs = []
+  context_graph = []
+  label = ""
+
+  def __init__(self, filename, errors, repairs, candidates, context_graph, label):
+    self.filename = filename
+    self.errors = errors
+    self.repairs = repairs
+    self.candidates = candidates
+    self.context_graph = context_graph
+    self.label = label
+
+  def to_dict(self):
+    return {
+      'filename': self.filename,
+      'ContextGraph': self.context_graph.to_dict(),
+      'label': self.label,
+      'errors': self.errors,
+      'repairs': self.repairs,
+      'candidates': self.candidates
+    }
+
 class DataPoint:
   filename = ""
   slot_node_idxs = []

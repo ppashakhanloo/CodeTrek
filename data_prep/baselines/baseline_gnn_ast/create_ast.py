@@ -1,4 +1,5 @@
 import ast
+import copy
 
 from diff import get_diff
 from pydot import Edge, Node
@@ -26,8 +27,10 @@ def build_child_edges(main_file, aux_file, task_name, pred_kind):
   neighbors = {} # node -> neighbors
   subtrees = {} # node -> subtree nodes
   if_branches = {}
+  tok1 = None
+  tok2 = None
 
-  with open(main_file, 'r', 100*(2**20)) as infile:
+  with open(main_file, 'r') as infile:
     if task_name == 'varmisuse':
       _, tok1, row1_s, col1_s, _, _, _, tok2, row2_s, col2_s, _, _ = get_diff(main_file, aux_file)
       lines = infile.readlines()
@@ -36,19 +39,14 @@ def build_child_edges(main_file, aux_file, task_name, pred_kind):
       lines[row1_s - 1] = new_line
       contents = "".join(lines)
       graph = get_graph(contents)
-
       index = 0
       nodes = graph.get_nodes()
       for i in range(len(nodes)):
         if CURR_STR in nodes[i].get('label'):
           index = i
           break
-
-      # update the content and the graph
-      contents = contents.replace(CURR_STR, tok1, 1)
-      graph = get_graph(contents)
-      nodes = graph.get_nodes()
-      node_of_interest = nodes[index] if index in nodes else nodes[len(nodes) - index]
+      nodes[index].set('label', nodes[index].get('label').replace(CURR_STR, tok1))
+      node_of_interest = nodes[index]
     else:
       graph = get_graph(infile.read())
 
@@ -57,7 +55,6 @@ def build_child_edges(main_file, aux_file, task_name, pred_kind):
     for edge in edges:
       src = edge.get_source()
       dst = edge.get_destination()
-
       if src not in neighbors.keys():
         neighbors[src] = [dst]
       else:
@@ -87,7 +84,7 @@ def build_child_edges(main_file, aux_file, task_name, pred_kind):
 
     for edge in edges:
       edge.set('label', 'Child')
-    return graph, neighbors, subtrees, node_of_interest, if_branches
+  return graph, neighbors, subtrees, copy.deepcopy(node_of_interest), if_branches, tok1, tok2
 
 def add_next_token_edges(graph, subtrees):
   token_nodes = []
@@ -115,15 +112,11 @@ def add_last_lexical_use_edges(graph):
     if is_variable_node(node):
       variable = node.obj_dict['attributes']['label'].split("'")[1]
       nodes_to_vars[node] = variable
-
   variables = {}
   for item in nodes_to_vars:
     variables[nodes_to_vars[item]] = []
-
   for item in nodes_to_vars:
     variables[nodes_to_vars[item]].append(item)
-
-  # variables: {'var': [node1, node2]}
   for v in variables:
     first_node = variables[v][0]
     if len(variables[v]) > 1:
@@ -132,7 +125,6 @@ def add_last_lexical_use_edges(graph):
         edge.set('label', 'LastLexicalUse')
         graph.add_edge(edge)
         first_node = node
-
   return graph, variables
 
 def add_returns_to_edges(graph, subtrees):
@@ -326,14 +318,14 @@ def fix_node_labels(graph):
            'ctx=ast.Param' in full_label or 'ctx=ast.AugStore' in full_label:
           terminal_vars.append((terminal_node, get_value(full_label, ind), 'write'))
         else:
-            terminal_vars.append((terminal_node, get_value(full_label, ind), 'read'))
+          terminal_vars.append((terminal_node, get_value(full_label, ind), 'read'))
       if get_value(full_label, ind) == 'HoleException':
         hole_exception = terminal_node
     node.set('label', cut_label)
   return graph, terminal_vars, hole_exception
 
 def gen_graph_from_source(infile, aux_file, task_name, pred_kind='prog_cls'):
-  graph, neighbors, subtrees, node_of_interest, if_branches = build_child_edges(infile, aux_file, task_name, pred_kind)
+  graph, neighbors, subtrees, node_of_interest, if_branches, tok1, tok2 = build_child_edges(infile, aux_file, task_name, pred_kind)
   graph = add_next_token_edges(graph, subtrees)
   graph, variables = add_last_lexical_use_edges(graph)
   graph = add_returns_to_edges(graph, subtrees)
@@ -341,4 +333,4 @@ def gen_graph_from_source(infile, aux_file, task_name, pred_kind='prog_cls'):
   graph = add_last_read_write_edges(graph, variables)
   graph = add_guarded_edges(graph, subtrees, if_branches)
   graph, terminal_vars, hole_exception = fix_node_labels(graph)
-  return graph, terminal_vars, node_of_interest, hole_exception
+  return graph, terminal_vars, node_of_interest, hole_exception, tok1, tok2
