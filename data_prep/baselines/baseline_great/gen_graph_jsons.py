@@ -36,6 +36,26 @@ def compute_graph(file1, file2, task_name, pred_kind):
 
   return source_tokens, edges, node_to_num, err_loc, rep_targets, rep_cands, defs
 
+def gen_exception(path):
+  filename = path[path.rfind('/')+1:]
+  prog_label = path.split('/')[-2]
+  with tempfile.TemporaryDirectory() as tables_dir:
+    os.system("gsutil cp gs://" + bucket_name + "/" + path + " " + tables_dir)
+    source_tokens, edges, node_to_num, _, _, _, _ = compute_graph(tables_dir + "/" + filename, None, 'exception', None)
+    point = {
+      "has_bug": True,
+      "bug_kind": bug_kinds['exception'],
+      "bug_kind_name": 'exception',
+      "source_tokens": source_tokens,
+      "edges": edges,
+      "label": prog_label,
+      "provenances": [{"datasetProvenance": {"datasetName": "cubert", "filepath": path, "license": "null", "note": "null"}}]
+    }
+    with open(tables_dir + '/graph_' + filename + '.json', 'w') as f:
+      json.dump(point, f)
+    os.system('gsutil cp ' + tables_dir + '/graph_' + filename + '.json' + ' '\
+              'gs://' + bucket_name + '/' + output_graphs_dirname + '/' + path.replace(prog_label + '/' + filename, ''))
+
 def gen_defuse(path, pred_kind):
   filename = path[path.rfind('/')+1:]
   prog_label = path.split('/')[-2]
@@ -90,17 +110,7 @@ def gen_defuse(path, pred_kind):
 
 # wip
 def main():
-  if task_name == "exception":
-    point = {
-      "has_bug": True,
-      "bug_kind": bug_kinds[task_name],
-      "bug_kind_name": task_name,
-      "source_tokens": source_tokens,
-      "edges": edges,
-      "label": label,
-      "provenances": [{"datasetProvenance": {"datasetName": "cubert", "filepath": file1, "license": "null", "note": "null"}}]
-    }
-  elif task_name == "varmisuse":
+  if task_name == "varmisuse":
     if pred_kind == 'loc_rep':
       point = {
         "has_bug": True if label == 'misuse' else False,
@@ -137,17 +147,7 @@ def main():
         "label": loc_label,
         "provenances": [{"datasetProvenance": {"datasetName": "cubert", "filepath": file1, "license": "null", "note": "null"}}]
       }
-    else:
-      raise NotImplementedError(task_name + ',' + pred_kind)
-  else:
-    raise NotImplementedError(task_name)
-  
-  print("===================================")
-  print(json.dumps(point))
-  print("===================================")
 
-  with open(outfile, 'w') as f:
-    f.write(json.dumps(point))
 
 if __name__ == "__main__":
   tables_paths_file = sys.argv[1] # paths.txt
@@ -155,7 +155,9 @@ if __name__ == "__main__":
   remote_table_dirname = sys.argv[3] # outdir_reshuffle
   output_graphs_dirname = sys.argv[4] # output_graphs
   task_name = sys.argv[5] # defuse, exception, varmisuse
+  assert task_name in ['defuse', 'exception', 'varmisuse']
   pred_kind = sys.argv[6]
+  assert pred_kind in ['prog_cls', 'loc_cls', 'loc_rep']
 
   paths = []
   with open(tables_paths_file, 'r') as fin:
@@ -164,12 +166,7 @@ if __name__ == "__main__":
 
   if task_name == 'varmisuse':
     gen_varmisuse(pred_kind)
-  elif task_name == 'defuse':
+  if task_name == 'defuse':
     Parallel(n_jobs=10, prefer="threads")(delayed(gen_defuse)(path, pred_kind) for path in paths)
-  elif task_name == 'exception':
-    Parallel(n_jobs=10, prefer="threads")(delayed(main)(path) for path in paths)
-  else:
-    raise NotImplementedError(task)
-
-
-
+  if task_name == 'exception':
+    Parallel(n_jobs=10, prefer="threads")(delayed(gen_exception)(path) for path in paths)

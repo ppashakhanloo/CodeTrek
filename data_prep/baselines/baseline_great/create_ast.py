@@ -7,6 +7,58 @@ from diff import get_diff
 
 CURR_STR = 'HOLE'
 
+def op_to_symbol(op):
+  if isinstance(op, ast.Add):
+    return '+'
+  if isinstance(op, ast.Sub):
+    return '-'
+  if isinstance(op, ast.Mult):
+    return '*'
+  if isinstance(op, ast.MatMult):
+    return '@'
+  if isinstance(op, ast.Div):
+    return '/'
+  if isinstance(op, ast.Mod):
+    return '%'
+  if isinstance(op, ast.Pow):
+    return '**'
+  if isinstance(op, ast.LShift):
+    return '<<'
+  if isinstance(op, ast.RShift):
+    return '>>'
+  if isinstance(op, ast.BitOr):
+    return '|'
+  if isinstance(op, ast.BitXor):
+    return '^'
+  if isinstance(op, ast.BitAnd):
+    return '&'
+  if isinstance(op, ast.FloorDiv):
+    return '//'
+  if isinstance(op, ast.Not):
+    return 'not'
+  if isinstance(op, ast.Invert):
+    return '~'
+  if isinstance(op, ast.UAdd):
+    return '+='
+  if isinstance(op, ast.USub):
+    return '-='
+  if isinstance(op, ast.And):
+    return 'and'
+  if isinstance(op, ast.Or):
+    return 'or'
+  if isinstance(op, ast.UAdd):
+    return '+='
+  if isinstance(op, ast.UAdd):
+    return '+='
+  if isinstance(op, ast.UAdd):
+    return '+='
+  if isinstance(op, ast.UAdd):
+    return '+='
+  if isinstance(op, ast.UAdd):
+    return '+='
+  if isinstance(op, ast.UAdd):
+    return '+='
+
 def get_AST_nodes(contents):
   nodes_AST = {}
   assigns = {}
@@ -56,9 +108,61 @@ def get_AST_nodes(contents):
     elif isinstance(node, ast.Str):
       nodes_AST[(node.lineno, node.col_offset)] = (node, node.s)
     elif isinstance(node, ast.Call):
-      nodes_AST[(node.lineno, node.col_offset)] = (node, node.func.id)
+      name = None
+      if isinstance(node.func, ast.Attribute):
+        name = node.func.value
+      if isinstance(node.func, ast.Subscript):
+        name = node.func.value
+      if isinstance(node.func, ast.Name):
+        name = node.func.id
+      assert name, str(node.func)
+      nodes_AST[(node.lineno, node.col_offset)] = (node, name)
     elif isinstance(node, ast.NameConstant):
       nodes_AST[(node.lineno, node.col_offset)] = (node, str(node.value))
+    elif isinstance(node, ast.Num):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, str(node.n))
+    elif isinstance(node, ast.UnaryOp):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, op_to_symbol(node.op))
+    elif isinstance(node, ast.BoolOp):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, op_to_symbol(node.op))
+    elif isinstance(node, ast.BinOp):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, op_to_symbol(node.op))
+    elif isinstance(node, ast.List) or isinstance(node, ast.ListComp):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, 'list')
+    elif isinstance(node, ast.Dict):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, 'dict')
+    elif isinstance(node, ast.Set):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, 'set')
+    elif isinstance(node, ast.IfExp):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, 'if')
+    elif isinstance(node, ast.Pass):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, 'pass')
+    elif isinstance(node, ast.Yield):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, 'yield')
+    elif isinstance(node, ast.Continue):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, 'continue')
+    elif isinstance(node, ast.Break):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, 'break')
+    elif isinstance(node, ast.With):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, 'with')
+    elif isinstance(node, ast.Lambda):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, 'lambda')
+    elif isinstance(node, ast.Raise):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, 'raise')
+    elif isinstance(node, ast.Try):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, 'try')
+    elif isinstance(node, ast.Assert):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, 'assert')
+    elif isinstance(node, ast.Import) or isinstance(node, ast.ImportFrom): #or isinstance(node, ast.Compare):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, 'import')
+    elif isinstance(node, ast.Global):
+      nodes_AST[(node.lineno, node.col_offset)] = (node, 'global')
+    elif isinstance(node, ast.AugAssign) or \
+         isinstance(node, ast.Starred) or \
+         isinstance(node, ast.Compare) or \
+         isinstance(node, ast.GeneratorExp) or \
+         isinstance(node, ast.Bytes):
+      pass
     else:
       raise Exception((node, 'not handled'))
 
