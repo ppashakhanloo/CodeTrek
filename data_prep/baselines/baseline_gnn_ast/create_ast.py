@@ -5,13 +5,6 @@ from pydot import Edge, Node
 from astmonkey import visitors, transformers
 
 CURR_STR = '___CURR___'
-SLOT_STR = 'SlotNode'
-IF_IND = 'ast.If'
-IF_IND_ = '_ast.If'
-NAME_IND = '<ast.Name '
-NAME_IND_ = '<_ast.Name '
-ARG_IND = '<ast.arg '
-ARG_IND_ = '<_ast.arg '
 FUNC_IND = '<ast.FunctionDef '
 FUNC_IND_ = '<_ast.FunctionDef '
 RET_IND = '<ast.Return '
@@ -55,11 +48,7 @@ def build_child_edges(main_file, aux_file, task_name, pred_kind):
       contents = contents.replace(CURR_STR, tok1, 1)
       graph = get_graph(contents)
       nodes = graph.get_nodes()
-
-      if index in nodes:
-        node_of_interest = nodes[index]
-      else:
-        node_of_interest = nodes[len(nodes) - index]
+      node_of_interest = nodes[index] if index in nodes else nodes[len(nodes) - index]
     else:
       graph = get_graph(infile.read())
 
@@ -68,6 +57,7 @@ def build_child_edges(main_file, aux_file, task_name, pred_kind):
     for edge in edges:
       src = edge.get_source()
       dst = edge.get_destination()
+
       if src not in neighbors.keys():
         neighbors[src] = [dst]
       else:
@@ -82,17 +72,16 @@ def build_child_edges(main_file, aux_file, task_name, pred_kind):
 
     # compute if-then-else information before renaming the edges
     for node in neighbor_keys:
-      if graph.get_node(node)[0].get('label').startswith(IF_IND) or \
-         graph.get_node(node)[0].get('label').startswith(IF_IND_):
+      if isinstance(graph.get_node(node)[0], ast.IfExp):
         condition = ""
         then_branch = []
         else_branch = []
         for neighbor in neighbors[node]:
           if graph.get_edge(node, neighbor)[0].get('label').startswith('test'):
             condition = neighbor
-          elif graph.get_edge(node, neighbor)[0].get('label').startswith('body'):
+          if graph.get_edge(node, neighbor)[0].get('label').startswith('body'):
             then_branch.append(neighbor)
-          elif graph.get_edge(node, neighbor)[0].get('label').startswith('orelse'):
+          if graph.get_edge(node, neighbor)[0].get('label').startswith('orelse'):
             else_branch.append(neighbor)
         if_branches[node] = (condition, then_branch, else_branch)
 
@@ -114,19 +103,10 @@ def add_next_token_edges(graph, subtrees):
     edge.set('label', 'NextToken')
     graph.add_edge(edge)
     first_node = node
-  
   return graph
 
 def is_variable_node(node):
-  if isinstance(node, str):
-    return node.startswith(ARG_IND) or \
-           node.startswith(NAME_IND) or \
-           node.startswith(ARG_IND_) or \
-           node.startswith(NAME_IND_)
-  return node.get_name().startswith(ARG_IND) or \
-         node.get_name().startswith(NAME_IND) or \
-         node.get_name().startswith(ARG_IND_) or \
-         node.get_name().startswith(NAME_IND_)
+  return isinstance(node, ast.arg) or isinstance(node, ast.Name)
 
 def add_last_lexical_use_edges(graph):
   nodes_to_vars = {}

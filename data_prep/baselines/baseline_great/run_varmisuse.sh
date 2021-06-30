@@ -13,6 +13,6 @@ rm -f $split_dir/*-log
 for f in `ls -1 $split_dir`
 do
   file_path=$split_dir/$f
-  screen -S $f -d -m python gen_graph_jsons.py $file_path $bucket tables great_"$pred_kind" varmisuse $pred_kind $home_path
+  screen -S $f -d -m python gen_graph_jsons.py $file_path $bucket tables great_"$pred_kind" varmisuse $pred_kind
   echo $f $?
 done

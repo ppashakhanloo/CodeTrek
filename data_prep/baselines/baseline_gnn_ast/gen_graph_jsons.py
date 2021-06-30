@@ -133,8 +133,8 @@ def gen_defuse(path, pred_kind):
         with open(tables_dir + "/graph_" + filename + ".json", 'w') as f:
           json.dump(create_sample(g, anchor_nodes, prog_label, path, node_to_num), f)
         os.system("gsutil cp " + tables_dir + "/graph_" + filename + ".json" + " " + \
-                  "gs://" + bucket_name + "/" + output_graphs_dirname + "/" + path.replace('/' + prog_label, ''))
-      elif pred_kind == 'loc_cls':
+                  "gs://" + bucket_name + "/" + output_graphs_dirname + "/" + path.replace(prog_label + '/' + filename, ''))
+      if pred_kind == 'loc_cls':
         write_terminal_vars_unused = {}
         write_terminal_vars_used = {}
         for v in terminal_vars:
@@ -160,8 +160,6 @@ def gen_defuse(path, pred_kind):
               json.dump(create_sample(g, [node_to_num[n[0].get_name()]], 'used', path, node_to_num), f)
             os.system("gsutil cp " + tables_dir + "/graph_" + var_name + '_' + str(idx) + '_' + filename + ".json" + " " + \
                       "gs://" + bucket_name + "/" + output_graphs_dirname + "/" + path.replace(prog_label+'/'+filename, ''))
-      else:
-        raise NotImplementedError(pred_kind)
     with open(tables_paths_file + "-done", "a") as done:
       done.write(path + "\n")
   except Exception as e:
@@ -171,10 +169,12 @@ def gen_defuse(path, pred_kind):
 if __name__ == "__main__":
   tables_paths_file = sys.argv[1] # paths.txt
   bucket_name = sys.argv[2] # generated-tables
-  remote_table_dirname = sys.argv[3] # outdir_reshuffle
+  remote_table_dirname = sys.argv[3] # tables
   output_graphs_dirname = sys.argv[4] # output_graphs
   task = sys.argv[5] # defuse, exception, varmisuse
+  assert task in ['defuse', 'exception', 'varmisuse']
   pred_kind = sys.argv[6]
+  assert pred_kind in ['prog_cls', 'loc_cls', 'loc_rep']
 
   paths = []
   with open(tables_paths_file, 'r') as fin:
@@ -183,9 +183,7 @@ if __name__ == "__main__":
 
   if task == 'varmisuse':
     gen_varmisuse(pred_kind)
-  elif task == 'defuse':
+  if task == 'defuse':
     Parallel(n_jobs=10, prefer="threads")(delayed(gen_defuse)(path, pred_kind) for path in paths)
-  elif task == 'exception':
+  if task == 'exception':
     Parallel(n_jobs=10, prefer="threads")(delayed(gen_exception)(path) for path in paths)
-  else:
-    raise NotImplementedError(task)

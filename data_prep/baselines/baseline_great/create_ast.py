@@ -157,20 +157,14 @@ def get_AST_nodes(contents):
       nodes_AST[(node.lineno, node.col_offset)] = (node, 'import')
     elif isinstance(node, ast.Global):
       nodes_AST[(node.lineno, node.col_offset)] = (node, 'global')
-    elif isinstance(node, ast.AugAssign) or \
-         isinstance(node, ast.Starred) or \
-         isinstance(node, ast.Compare) or \
-         isinstance(node, ast.GeneratorExp) or \
-         isinstance(node, ast.Bytes):
-      pass
     else:
-      raise Exception((node, 'not handled'))
+      pass
 
     if isinstance(node, ast.AugAssign):
-      assigns[(node.lineno, node.col_offset)] = (node, 'assign')
+      assigns[(node.lineno, node.col_offset)] = (node, '=')
       subtrees[node.value] = []
-    elif isinstance(node, ast.Assign):
-      assigns[(node.lineno, node.col_offset)] = (node, 'assign')
+    if isinstance(node, ast.Assign):
+      assigns[(node.lineno, node.col_offset)] = (node, '=')
       subtrees[node.value] = []
 
     if isinstance(node, ast.If):
@@ -297,7 +291,7 @@ def gen_graph_from_source(main_file, aux_file, task_name, pred_kind):
     assignment = assigns[loc][0]
     if isinstance(assignment, ast.Assign):
       lhs += assignment.targets
-    elif isinstance(assignment, ast.AugAssign):
+    if isinstance(assignment, ast.AugAssign):
       lhs += [assignment.target]
     rhs += subtrees[assignment.value]
     for l in lhs:

@@ -178,7 +178,7 @@ if __name__ == "__main__":
   assert task_name in ['defuse', 'exception', 'varmisuse']
   pred_kind = sys.argv[6]
   assert pred_kind in ['prog_cls', 'loc_cls', 'loc_rep']
-  home_path = sys.argv[7] # /home/pardisp/relational-representation
+
   paths = []
   with open(tables_paths_file, 'r') as fin:
     for line in fin.readlines():
