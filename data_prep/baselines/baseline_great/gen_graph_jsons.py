@@ -78,8 +78,6 @@ def gen_defuse(path, pred_kind):
                 'gs://' + bucket_name + '/' + output_graphs_dirname + '/' + path.replace(prog_label + '/' + filename, ''))
     if pred_kind == 'loc_cls':
       os.system("gsutil cp gs://" + bucket_name + "/" + remote_table_dirname + "/" + path + "/unused_var.bqrs.csv " + tables_dir)
-      os.system("gsutil cp gs://" + bucket_name + "/" + remote_table_dirname + "/" + path + "/variable.bqrs.csv " + tables_dir)
-
       unused_defs = set()
       with open(tables_dir + '/unused_var.bqrs.csv', 'r') as f:
         for row in f.readlines()[1:]:
@@ -104,9 +102,49 @@ def gen_defuse(path, pred_kind):
         os.system("gsutil cp " + tables_dir + "/graph_" + def_v[-1] + '_' + filename + ".json" + " " + \
                   "gs://" + bucket_name + "/" + output_graphs_dirname + "/" + path.replace(prog_label + '/' + filename, ''))
 
+def gen_varmisuse(path, pred_kind):
+  filename = path[path.rfind('/')+1:]
+  prog_label = path.split('/')[-2]
+
+  if pred_kind == 'prog_cls':
+    os.system("gsutil cp gs://" + bucket_name + "/" + path + " " + tempfile.gettempdir() + "/")
+    source_tokens, edges, node_to_num, err_loc, rep_targets, rep_cands, _ = compute_graph(tempfile.gettempdir() + "/" + filename, None, 'varmisuse', pred_kind)
+    point = {
+      "has_bug": True if prog_label == 'misuse' else False,
+      "bug_kind": bug_kinds['varmisuse'],
+      "bug_kind_name": task_name,
+      "source_tokens": source_tokens,
+      "edges": edges,
+      "label": prog_label,
+      "provenances": [{"datasetProvenance": {"datasetName": "cubert", "filepath": path, "license": "null", "note": "null"}}]
+    }
+    with open(tempfile.gettempdir() + '/graph_' + filename + '.json', 'w') as f:
+      json.dump(point, f)
+    os.system('gsutil cp ' + tempfile.gettempdir() + '/graph_' + filename + '.json' + ' ' + \
+              'gs://' + bucket_name + '/' + output_graphs_dirname + '/' + path.replace(prog_label + '/' + filename, ''))
+    return
+
+  with tempfile.TemporaryDirectory() as tables_dir:
+    num = int(py_file[5:-3])
+    if prog_label == "correct":
+      file_1 = "gs://" + bucket_name + "/varmisuse/" + category + "/" + "correct" + "/" + "file_" + str(num) + ".py"
+      file_1_src = "file_" + str(num) + ".py"
+      file_2 = "gs://" + bucket_name + "/varmisuse/" + category + "/" + "misuse" + "/" + "file_" + str(num + 1) + ".py"
+      file_2_src = "file_" + str(num + 1) + ".py"
+    else:
+      file_1 = "gs://" + bucket_name + "/varmisuse/" + category + "/" + "misuse" + "/" + "file_" + str(num) + ".py"
+      file_1_src = "file_" + str(num) + ".py"
+      file_2 = "gs://" + bucket_name + "/varmisuse/" + category + "/" + "correct" + "/" + "file_" + str(num - 1) + ".py"
+      file_2_src = "file_" + str(num - 1) + ".py"
+    os.system("gsutil cp  " + file_1 + " " + tables_dir + "/" + file_1_src)
+    os.system("gsutil cp  " + file_2 + " " + tables_dir + "/" + file_2_src)
+    remote_tables_dir = "gs://" + bucket_name + "/" + remote_table_dirname + "/" + tables_path
+    diff_bin = os.path.join(home_path, 'data_prep/random_walk/diff.py')
+    os.system("gsutil -m cp  -r " + remote_tables_dir + "/*" + " " + tables_dir)
+    os.system("python " + diff_bin + " " + tables_dir + "/" + file_1_src + " " + tables_dir + "/" + file_2_src + " " + tables_dir + "/var_misuses.csv")
 
 
-
+    source_tokens, edges, node_to_num, err_loc, rep_targets, rep_cands, _ = compute_graph(tables_dir + "/" + filename, None, 'defuse', pred_kind)
 
 # wip
 def main():
@@ -165,7 +203,7 @@ if __name__ == "__main__":
       paths.append(line.strip())
 
   if task_name == 'varmisuse':
-    gen_varmisuse(pred_kind)
+    Parallel(n_jobs=10, prefer="threads")(delayed(gen_varmisuse)(path, pred_kind) for path in paths)
   if task_name == 'defuse':
     Parallel(n_jobs=10, prefer="threads")(delayed(gen_defuse)(path, pred_kind) for path in paths)
   if task_name == 'exception':
