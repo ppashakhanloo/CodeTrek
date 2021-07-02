@@ -46,18 +46,6 @@ def op_to_symbol(op):
     return 'and'
   if isinstance(op, ast.Or):
     return 'or'
-  if isinstance(op, ast.UAdd):
-    return '+='
-  if isinstance(op, ast.UAdd):
-    return '+='
-  if isinstance(op, ast.UAdd):
-    return '+='
-  if isinstance(op, ast.UAdd):
-    return '+='
-  if isinstance(op, ast.UAdd):
-    return '+='
-  if isinstance(op, ast.UAdd):
-    return '+='
 
 def get_AST_nodes(contents):
   nodes_AST = {}
@@ -106,15 +94,17 @@ def get_AST_nodes(contents):
     elif isinstance(node, ast.Assert):
       nodes_AST[(node.lineno, node.col_offset)] = (node, 'assert')
     elif isinstance(node, ast.Str):
-      nodes_AST[(node.lineno, node.col_offset)] = (node, node.s)
+      nodes_AST[(node.lineno, node.col_offset)] = (node, "\'"+node.s.replace('\n','\\n').replace('\t', '\\t')+"\'")
     elif isinstance(node, ast.Call):
       name = None
       if isinstance(node.func, ast.Attribute):
         name = node.func.value
-      if isinstance(node.func, ast.Subscript):
+      elif isinstance(node.func, ast.Subscript):
         name = node.func.value
-      if isinstance(node.func, ast.Name):
+      elif isinstance(node.func, ast.Name):
         name = node.func.id
+      else:
+        name = "call"
       assert name, str(node.func)
       nodes_AST[(node.lineno, node.col_offset)] = (node, name)
     elif isinstance(node, ast.NameConstant):
@@ -157,8 +147,6 @@ def get_AST_nodes(contents):
       nodes_AST[(node.lineno, node.col_offset)] = (node, 'import')
     elif isinstance(node, ast.Global):
       nodes_AST[(node.lineno, node.col_offset)] = (node, 'global')
-    else:
-      pass
 
     if isinstance(node, ast.AugAssign):
       assigns[(node.lineno, node.col_offset)] = (node, '=')
@@ -248,14 +236,14 @@ def gen_graph_from_source(main_file, aux_file, task_name, pred_kind):
       continue
     prev_node = get_node_by_loc(flat_graph, sorted_locs[i])
     curr_node = get_node_by_loc(flat_graph, sorted_locs[i+1])
-    flat_graph.add_edge(prev_node, curr_node, label='enum_NEXT_SYNTAX', id='8')
+    flat_graph.add_edge(prev_node, curr_node, label='enum_NEXT_SYNTAX', id='9')
 
   # LastLexicalUse
   for n in unique_ids:
     for i in range(1, len(unique_ids[n])):
       prev_node = get_node_by_loc(flat_graph, unique_ids[n][i-1])
       curr_node = get_node_by_loc(flat_graph, unique_ids[n][i])
-      flat_graph.add_edge(prev_node, curr_node, label='enum_LAST_LEXICAL_USE', id='9')
+      flat_graph.add_edge(prev_node, curr_node, label='enum_LAST_LEXICAL_USE', id='10')
 
   # LastRead/LastWrite
   reads, writes = [], []
@@ -273,9 +261,9 @@ def gen_graph_from_source(main_file, aux_file, task_name, pred_kind):
         node1 = get_node_by_loc(flat_graph, unique_ids[n][i])
         node2 = get_node_by_loc(flat_graph, unique_ids[n][j])
         if node2 in writes:
-          flat_graph.add_edge(node1, node2, label='enum_LAST_WRITE', id='2')
+          flat_graph.add_edge(node1, node2, label='enum_LAST_WRITE', id='3')
         if node2 in reads:
-          flat_graph.add_edge(node1, node2, label='enum_LAST_READ', id='1')
+          flat_graph.add_edge(node1, node2, label='enum_LAST_READ', id='2')
 
   # ReturnsTo
   for loc in sorted_locs:
@@ -283,7 +271,7 @@ def gen_graph_from_source(main_file, aux_file, task_name, pred_kind):
     if isinstance(node, ast.FunctionDef):
       for elem in node.body:
         if isinstance(elem, ast.Return):
-          flat_graph.add_edge(elem, node, label='enum_RETURNS_TO', id='4')
+          flat_graph.add_edge(elem, node, label='enum_RETURNS_TO', id='5')
 
   # ComputedFrom
   for loc in assigns:
@@ -296,14 +284,14 @@ def gen_graph_from_source(main_file, aux_file, task_name, pred_kind):
     rhs += subtrees[assignment.value]
     for l in lhs:
       for r in rhs:
-        flat_graph.add_edge(l, r, label='enum_COMPUTED_FROM', id='3')
+        flat_graph.add_edge(l, r, label='enum_COMPUTED_FROM', id='4')
 
   # 'enum_CFG_NEXT' (GuardedBy, GuardedByNeg)
   for if_node in ifs_info:
     for entry1 in ifs_info[if_node]['body']:
       for entry2 in ifs_info[if_node]['test']:
         if entry1.id == entry2.id:
-          flat_graph.add_edge(entry1, entry2, label='enum_CFG_NEXT', id='0')
+          flat_graph.add_edge(entry1, entry2, label='enum_CFG_NEXT', id='1')
 
   err_loc = None
   rep_targets = None
