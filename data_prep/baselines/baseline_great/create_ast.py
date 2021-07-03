@@ -98,14 +98,16 @@ def get_AST_nodes(contents):
     elif isinstance(node, ast.Call):
       name = None
       if isinstance(node.func, ast.Attribute):
-        name = node.func.value
+        if isinstance(node.func.value, str):
+          name = node.func.value
       elif isinstance(node.func, ast.Subscript):
-        name = node.func.value
+        if isinstance(node.func.value, str):
+          name = node.func.value
       elif isinstance(node.func, ast.Name):
-        name = node.func.id
+        if isinstance(node.func.id, str):
+          name = node.func.id
       else:
         name = "call"
-      assert name, str(node.func)
       nodes_AST[(node.lineno, node.col_offset)] = (node, name)
     elif isinstance(node, ast.NameConstant):
       nodes_AST[(node.lineno, node.col_offset)] = (node, str(node.value))
@@ -143,7 +145,7 @@ def get_AST_nodes(contents):
       nodes_AST[(node.lineno, node.col_offset)] = (node, 'try')
     elif isinstance(node, ast.Assert):
       nodes_AST[(node.lineno, node.col_offset)] = (node, 'assert')
-    elif isinstance(node, ast.Import) or isinstance(node, ast.ImportFrom): #or isinstance(node, ast.Compare):
+    elif isinstance(node, ast.Import) or isinstance(node, ast.ImportFrom):
       nodes_AST[(node.lineno, node.col_offset)] = (node, 'import')
     elif isinstance(node, ast.Global):
       nodes_AST[(node.lineno, node.col_offset)] = (node, 'global')
