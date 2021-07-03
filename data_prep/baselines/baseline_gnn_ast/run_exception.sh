@@ -12,6 +12,6 @@ rm -f $split_dir/*-log
 for f in `ls -1 $split_dir`
 do
   file_path=$split_dir/$f
-  screen -S $f -d -m python gen_graph_jsons.py $file_path $bucket tables ast_graphs exception none
+  screen -S $f -d -m python gen_graph_jsons.py $file_path $bucket tables ast_graphs exception prog_cls
   echo $f $?
 done

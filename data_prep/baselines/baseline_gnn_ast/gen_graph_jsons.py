@@ -278,12 +278,12 @@ def gen_defuse(path, pred_kind):
 
 if __name__ == "__main__":
   tables_paths_file = sys.argv[1] # paths.txt
-  bucket_name = sys.argv[2] # generated-tables
+  bucket_name = sys.argv[2] # defuse, exception-small, varmisuse
   remote_table_dirname = sys.argv[3] # tables
-  output_graphs_dirname = sys.argv[4] # output_graphs
+  output_graphs_dirname = sys.argv[4] # gnn_graphs
   task = sys.argv[5] # defuse, exception, varmisuse
   assert task in ['defuse', 'exception', 'varmisuse']
-  pred_kind = sys.argv[6]
+  pred_kind = sys.argv[6] # prog_cls, loc_cls, loc_rep
   assert pred_kind in ['prog_cls', 'loc_cls', 'loc_rep']
 
   paths = []
