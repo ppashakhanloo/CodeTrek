@@ -32,36 +32,16 @@ def compute_graph(file1, file2, task_name, pred_kind):
   return source_tokens, edges, node_to_num, err_loc, rep_targets, rep_cands, defs
 
 def gen_exception(path):
-  filename = path[path.rfind('/')+1:]
-  prog_label = path.split('/')[-2]
-  with tempfile.TemporaryDirectory() as tables_dir:
-    os.system("gsutil cp gs://" + bucket_name + "/" + path + " " + tables_dir)
-    source_tokens, edges, node_to_num, _, _, _, _ = compute_graph(tables_dir + "/" + filename, None, 'exception', None)
-    point = {
-      "has_bug": True,
-      "bug_kind": bug_kinds['exception'],
-      "bug_kind_name": 'exception',
-      "source_tokens": source_tokens,
-      "edges": edges,
-      "label": prog_label,
-      "provenances": [{"datasetProvenance": {"datasetName": "cubert", "filepath": path, "license": "null", "note": "null"}}]
-    }
-    with open(tables_dir + '/graph_' + filename + '.json', 'w') as f:
-      json.dump(point, f)
-    os.system('gsutil cp ' + tables_dir + '/graph_' + filename + '.json' + ' '\
-              'gs://' + bucket_name + '/' + output_graphs_dirname + '/' + path.replace(prog_label + '/' + filename, ''))
-
-def gen_defuse(path, pred_kind):
-  filename = path[path.rfind('/')+1:]
-  prog_label = path.split('/')[-2]
-  with tempfile.TemporaryDirectory() as tables_dir:
-    os.system("gsutil cp gs://" + bucket_name + "/" + path + " " + tables_dir)
-    source_tokens, edges, node_to_num, _, _, _, defs = compute_graph(tables_dir + "/" + filename, None, 'defuse', pred_kind)
-    if pred_kind == 'prog_cls':
+  try:
+    filename = path[path.rfind('/')+1:]
+    prog_label = path.split('/')[-2]
+    with tempfile.TemporaryDirectory() as tables_dir:
+      os.system("gsutil cp gs://" + bucket_name + "/" + path + " " + tables_dir)
+      source_tokens, edges, node_to_num, _, _, _, _ = compute_graph(tables_dir + "/" + filename, None, 'exception', None)
       point = {
-        "has_bug": True if prog_label == 'unused' else False,
-        "bug_kind": bug_kinds['defuse'],
-        "bug_kind_name": 'defuse',
+        "has_bug": True,
+        "bug_kind": bug_kinds['exception'],
+        "bug_kind_name": 'exception',
         "source_tokens": source_tokens,
         "edges": edges,
         "label": prog_label,
@@ -69,105 +49,143 @@ def gen_defuse(path, pred_kind):
       }
       with open(tables_dir + '/graph_' + filename + '.json', 'w') as f:
         json.dump(point, f)
-      os.system('gsutil cp ' + tables_dir + '/graph_' + filename + '.json' + ' ' + \
+      os.system('gsutil cp ' + tables_dir + '/graph_' + filename + '.json' + ' '\
                 'gs://' + bucket_name + '/' + output_graphs_dirname + '/' + path.replace(prog_label + '/' + filename, ''))
-    if pred_kind == 'loc_cls':
-      os.system("gsutil cp gs://" + bucket_name + "/" + remote_table_dirname + "/" + path + "/unused_var.bqrs.csv " + tables_dir)
-      unused_defs = set()
-      with open(tables_dir + '/unused_var.bqrs.csv', 'r') as f:
-        for row in f.readlines()[1:]:
-            unused_defs.add(row.strip().split(',')[3][1:-1])
-      for def_v in defs:
-        if def_v[-1] in unused_defs:
-          loc_label = 'unused'
-        else:
-          loc_label = 'used'
+    with open(tables_paths_file + "-done", "a") as done:
+      done.write(path + "\n")
+  except Exception as e:
+    with open(tables_paths_file + "-log", "a") as log:
+      log.write(">>" + path + str(e) + "\n")
+
+def gen_defuse(path, pred_kind):
+  try:
+    filename = path[path.rfind('/')+1:]
+    prog_label = path.split('/')[-2]
+    with tempfile.TemporaryDirectory() as tables_dir:
+      os.system("gsutil cp gs://" + bucket_name + "/" + path + " " + tables_dir)
+      source_tokens, edges, node_to_num, _, _, _, defs = compute_graph(tables_dir + "/" + filename, None, 'defuse', pred_kind)
+      if pred_kind == 'prog_cls':
         point = {
-          "has_bug": True if loc_label == 'unused' else False,
+          "has_bug": True if prog_label == 'unused' else False,
+          "bug_kind": bug_kinds['defuse'],
+          "bug_kind_name": 'defuse',
+          "source_tokens": source_tokens,
+          "edges": edges,
+          "label": prog_label,
+          "provenances": [{"datasetProvenance": {"datasetName": "cubert", "filepath": path, "license": "null", "note": "null"}}]
+        }
+        with open(tables_dir + '/graph_' + filename + '.json', 'w') as f:
+          json.dump(point, f)
+        os.system('gsutil cp ' + tables_dir + '/graph_' + filename + '.json' + ' ' + \
+                  'gs://' + bucket_name + '/' + output_graphs_dirname + '/' + path.replace(prog_label + '/' + filename, ''))
+      if pred_kind == 'loc_cls':
+        os.system("gsutil cp gs://" + bucket_name + "/" + remote_table_dirname + "/" + path + "/unused_var.bqrs.csv " + tables_dir)
+        unused_defs = set()
+        with open(tables_dir + '/unused_var.bqrs.csv', 'r') as f:
+          for row in f.readlines()[1:]:
+            unused_defs.add(row.strip().split(',')[3][1:-1])
+        for def_v in defs:
+          if def_v[-1] in unused_defs:
+            loc_label = 'unused'
+          else:
+            loc_label = 'used'
+          point = {
+            "has_bug": True if loc_label == 'unused' else False,
+            "bug_kind": bug_kinds[task_name],
+            "bug_kind_name": task_name,
+            "source_tokens": source_tokens,
+            "edges": edges,
+            "label": loc_label,
+            "error_location": node_to_num[def_v[0]] if loc_label == 'unused' else len(node_to_num) + 1,
+            "provenances": [{"datasetProvenance": {"datasetName": "cubert", "filepath": path, "license": "null", "note": "null"}}]
+          }
+          with open(tables_dir + '/graph_' + def_v[-1] + '_' + filename + '.json', 'w') as f:
+            json.dump(point, f)
+          os.system("gsutil cp " + tables_dir + "/graph_" + def_v[-1] + '_' + filename + ".json" + " " + \
+                    "gs://" + bucket_name + "/" + output_graphs_dirname + "/" + path.replace(prog_label + '/' + filename, ''))
+    with open(tables_paths_file + "-done", "a") as done:
+      done.write(path + "\n")
+  except Exception as e:
+    with open(tables_paths_file + "-log", "a") as log:
+      log.write(">>" + path + str(e) + "\n")
+
+
+def gen_varmisuse(path, pred_kind):
+  try:
+    filename = path[path.rfind('/')+1:]
+    prog_label = path.split('/')[-2]
+    if pred_kind == 'prog_cls':
+      os.system("gsutil cp gs://" + bucket_name + "/" + path + " " + tempfile.gettempdir() + "/")
+      source_tokens, edges, node_to_num, _, _, _, _ = compute_graph(tempfile.gettempdir() + "/" + filename, None, 'varmisuse', pred_kind)
+      point = {
+        "has_bug": True if prog_label == 'misuse' else False,
+        "bug_kind": bug_kinds['varmisuse'],
+        "bug_kind_name": task_name,
+        "source_tokens": source_tokens,
+        "edges": edges,
+        "label": prog_label,
+        "provenances": [{"datasetProvenance": {"datasetName": "cubert", "filepath": path, "license": "null", "note": "null"}}]
+      }
+      with open(tempfile.gettempdir() + '/graph_' + filename + '.json', 'w') as f:
+        json.dump(point, f)
+      os.system('gsutil cp ' + tempfile.gettempdir() + '/graph_' + filename + '.json' + ' ' + \
+                'gs://' + bucket_name + '/' + output_graphs_dirname + '/' + path.replace(prog_label + '/' + filename, ''))
+      return
+
+    with tempfile.TemporaryDirectory() as tables_dir:
+      path_prefix = bucket_name + "/" + path.replace(prog_label + '/' + filename, '')
+      path_prefix = path_prefix[:-1]
+      num = int(filename[5:-3])
+      if prog_label == "correct":
+        file_1_src = "file_" + str(num) + ".py"
+        file_1 = "gs://" + path_prefix + "/correct/" + file_1_src
+        file_2_src = "file_" + str(num + 1) + ".py"
+        file_2 = "gs://" + path_prefix + "/misuse/" + file_2_src
+      else:
+        file_1_src = "file_" + str(num) + ".py"
+        file_1 = "gs://" + path_prefix + "/misuse/" + file_1_src
+        file_2_src = "file_" + str(num - 1) + ".py"
+        file_2 = "gs://" + path_prefix + "/correct/" + file_2_src
+
+      os.system("gsutil cp  " + file_1 + " " + tables_dir + "/" + file_1_src)
+      os.system("gsutil cp  " + file_2 + " " + tables_dir + "/" + file_2_src)
+      remote_tables_dir = "gs://" + bucket_name + "/" + remote_table_dirname
+      source_tokens, edges, node_to_num, err_loc, rep_targets, rep_cands, _ =\
+              compute_graph(tables_dir + "/" + file_1_src, tables_dir + "/" + file_2_src, 'varmisuse', pred_kind)
+
+      if pred_kind == 'loc_cls':
+        point = {
+          "has_bug": True if prog_label == 'misuse' else False,
           "bug_kind": bug_kinds[task_name],
           "bug_kind_name": task_name,
           "source_tokens": source_tokens,
           "edges": edges,
-          "label": loc_label,
-          "error_location": node_to_num[def_v[0]] if loc_label == 'unused' else len(node_to_num) + 1,
+          "label": prog_label,
+          "location": node_to_num[err_loc],
           "provenances": [{"datasetProvenance": {"datasetName": "cubert", "filepath": path, "license": "null", "note": "null"}}]
         }
-        with open(tables_dir + '/graph_' + def_v[-1] + '_' + filename + '.json', 'w') as f:
-          json.dump(point, f)
-        os.system("gsutil cp " + tables_dir + "/graph_" + def_v[-1] + '_' + filename + ".json" + " " + \
-                  "gs://" + bucket_name + "/" + output_graphs_dirname + "/" + path.replace(prog_label + '/' + filename, ''))
-
-def gen_varmisuse(path, pred_kind):
-  filename = path[path.rfind('/')+1:]
-  prog_label = path.split('/')[-2]
-  if pred_kind == 'prog_cls':
-    os.system("gsutil cp gs://" + bucket_name + "/" + path + " " + tempfile.gettempdir() + "/")
-    source_tokens, edges, node_to_num, _, _, _, _ = compute_graph(tempfile.gettempdir() + "/" + filename, None, 'varmisuse', pred_kind)
-    point = {
-      "has_bug": True if prog_label == 'misuse' else False,
-      "bug_kind": bug_kinds['varmisuse'],
-      "bug_kind_name": task_name,
-      "source_tokens": source_tokens,
-      "edges": edges,
-      "label": prog_label,
-      "provenances": [{"datasetProvenance": {"datasetName": "cubert", "filepath": path, "license": "null", "note": "null"}}]
-    }
-    with open(tempfile.gettempdir() + '/graph_' + filename + '.json', 'w') as f:
-      json.dump(point, f)
-    os.system('gsutil cp ' + tempfile.gettempdir() + '/graph_' + filename + '.json' + ' ' + \
-              'gs://' + bucket_name + '/' + output_graphs_dirname + '/' + path.replace(prog_label + '/' + filename, ''))
-    return
-
-  with tempfile.TemporaryDirectory() as tables_dir:
-    path_prefix = bucket_name + "/" + path.replace(prog_label + '/' + filename, '')
-    path_prefix = path_prefix[:-1]
-    num = int(filename[5:-3])
-    if prog_label == "correct":
-      file_1_src = "file_" + str(num) + ".py"
-      file_1 = "gs://" + path_prefix + "/correct/" + file_1_src
-      file_2_src = "file_" + str(num + 1) + ".py"
-      file_2 = "gs://" + path_prefix + "/misuse/" + file_2_src
-    else:
-      file_1_src = "file_" + str(num) + ".py"
-      file_1 = "gs://" + path_prefix + "/misuse/" + file_1_src
-      file_2_src = "file_" + str(num - 1) + ".py"
-      file_2 = "gs://" + path_prefix + "/correct/" + file_2_src
-
-    os.system("gsutil cp  " + file_1 + " " + tables_dir + "/" + file_1_src)
-    os.system("gsutil cp  " + file_2 + " " + tables_dir + "/" + file_2_src)
-    remote_tables_dir = "gs://" + bucket_name + "/" + remote_table_dirname
-    source_tokens, edges, node_to_num, err_loc, rep_targets, rep_cands, _ =\
-            compute_graph(tables_dir + "/" + file_1_src, tables_dir + "/" + file_2_src, 'varmisuse', pred_kind)
-
-    if pred_kind == 'loc_cls':
-      point = {
-        "has_bug": True if prog_label == 'misuse' else False,
-        "bug_kind": bug_kinds[task_name],
-        "bug_kind_name": task_name,
-        "source_tokens": source_tokens,
-        "edges": edges,
-        "label": prog_label,
-        "location": node_to_num[err_loc],
-        "provenances": [{"datasetProvenance": {"datasetName": "cubert", "filepath": path, "license": "null", "note": "null"}}]
-      }
-    if pred_kind == 'loc_rep':
-      point = {
-        "has_bug": True if prog_label == 'misuse' else False,
-        "bug_kind": bug_kinds[task_name],
-        "bug_kind_name": task_name,
-        "source_tokens": source_tokens,
-        "edges": edges,
-        "label": prog_label,
-        "error_location": node_to_num[err_loc] if prog_label == 'misuse' else len(node_to_num) + 1,
-        "repair_targets": [node_to_num[i] for i in rep_targets] if prog_label == 'misuse' else [],
-        "repair_candidates": [node_to_num[i] for i in rep_cands],
-        "provenances": [{"datasetProvenance": {"datasetName": "cubert", "filepath": path, "license": "null", "note": "null"}}]
-      }
-    with open(tables_dir + '/graph_' + filename + '.json', 'w') as f:
-      json.dump(point, f)
-    os.system('gsutil cp ' + tables_dir + '/graph_' + filename + '.json' + ' ' + \
-              'gs://' + bucket_name + '/' + output_graphs_dirname + '/' + path.replace(prog_label + '/' + filename, ''))
-
+      if pred_kind == 'loc_rep':
+        point = {
+          "has_bug": True if prog_label == 'misuse' else False,
+          "bug_kind": bug_kinds[task_name],
+          "bug_kind_name": task_name,
+          "source_tokens": source_tokens,
+          "edges": edges,
+          "label": prog_label,
+          "error_location": node_to_num[err_loc] if prog_label == 'misuse' else len(node_to_num) + 1,
+          "repair_targets": [node_to_num[i] for i in rep_targets] if prog_label == 'misuse' else [],
+          "repair_candidates": [node_to_num[i] for i in rep_cands],
+          "provenances": [{"datasetProvenance": {"datasetName": "cubert", "filepath": path, "license": "null", "note": "null"}}]
+        }
+      with open(tables_dir + '/graph_' + filename + '.json', 'w') as f:
+        json.dump(point, f)
+      os.system('gsutil cp ' + tables_dir + '/graph_' + filename + '.json' + ' ' + \
+                'gs://' + bucket_name + '/' + output_graphs_dirname + '/' + path.replace(prog_label + '/' + filename, ''))
+    with open(tables_paths_file + "-done", "a") as done:
+      done.write(path + "\n")
+  except Exception as e:
+    with open(tables_paths_file + "-log", "a") as log:
+      log.write(">>" + path + str(e) + "\n")
 
 if __name__ == "__main__":
   tables_paths_file = sys.argv[1] # paths.txt
@@ -187,6 +205,6 @@ if __name__ == "__main__":
   if task_name == 'varmisuse':
     Parallel(n_jobs=10, prefer="threads")(delayed(gen_varmisuse)(path, pred_kind) for path in paths)
   if task_name == 'defuse':
-    Parallel(n_jobs=10, prefer="threads")(delayed(gen_defuse)(path, pred_kind) for path in paths)
+    Parallel(n_jobs=6, prefer="threads")(delayed(gen_defuse)(path, pred_kind) for path in paths)
   if task_name == 'exception':
     Parallel(n_jobs=10, prefer="threads")(delayed(gen_exception)(path) for path in paths)
