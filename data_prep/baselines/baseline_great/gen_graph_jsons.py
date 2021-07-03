@@ -29,7 +29,7 @@ def compute_graph(file1, file2, task_name, pred_kind):
     node_type_id = edge[2]['id']
     edges.append([node_to_num[src], node_to_num[dst], int(node_type_id), node_type])
 
-  return source_tokens, edges, node_to_num, err_loc, rep_targets, rep_cands, defs
+  return ["#NEWLINE#"]+source_tokens, edges, node_to_num, err_loc, rep_targets, rep_cands, defs
 
 def gen_exception(path):
   filename = path[path.rfind('/')+1:]
