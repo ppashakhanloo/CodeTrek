@@ -59,7 +59,7 @@ def gen_exception(path):
 
 def gen_defuse(path, pred_kind):
   try:
-    filename = path[path.rfind('/')+1:]
+    filename = path.split('/')[-1]
     prog_label = path.split('/')[-2]
     with tempfile.TemporaryDirectory() as tables_dir:
       os.system("gsutil cp gs://" + bucket_name + "/" + path + " " + tables_dir)

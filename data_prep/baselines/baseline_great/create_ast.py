@@ -215,8 +215,12 @@ def gen_graph_from_source(main_file, aux_file, task_name, pred_kind):
       unique_ids[AST_nodes[loc][1]] = [loc]
 
   def is_def(checking):
+    if isinstance(checking, ast.Subscript):
+      if isinstance(checking.ctx, ast.Store) or isinstance(checking.ctx, ast.AugStore):
+        if isinstance(checking.value, str):
+          return True, checking.value
     if isinstance(checking, ast.Name):
-      if isinstance(checking.ctx, ast.Store) or isinstance(checking.ctx, ast.AugStore) or isinstance(checking.ctx, ast.Param):
+      if isinstance(checking.ctx, ast.Store) or isinstance(checking.ctx, ast.AugStore):
         return True, checking.id
     if isinstance(checking, ast.arg):
       return True, checking.arg

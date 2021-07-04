@@ -272,7 +272,6 @@ def gen_defuse(path, pred_kind):
     with open(tables_paths_file + "-done", "a") as done:
       done.write(path + "\n")
   except Exception as e:
-    raise e
     with open(tables_paths_file + "-log", "a") as log:
       log.write(">>" + path + str(e) + "\n")
 
