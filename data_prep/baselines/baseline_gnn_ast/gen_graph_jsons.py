@@ -291,7 +291,7 @@ if __name__ == "__main__":
       paths.append(line.strip())
 
   if task == 'varmisuse':
-    gen_varmisuse(paths[0], pred_kind)
+    Parallel(n_jobs=2, prefer="threads")(delayed(gen_varmisuse)(path, pred_kind) for path in paths)
   if task == 'defuse':
     Parallel(n_jobs=10, prefer="threads")(delayed(gen_defuse)(path, pred_kind) for path in paths)
   if task == 'exception':
