@@ -12,12 +12,9 @@ class DefuseProgModel(tf.keras.layers.Layer):
     random_init = tf.random_normal_initializer(stddev=self.config['base']['hidden_dim'] ** -0.5)
     self.embed = tf.Variable(random_init([self.vocab_dim, self.config['base']['hidden_dim']]), dtype=tf.float32)
     self.prediction = tf.keras.layers.Dense(1)
-
-    # Store for convenience
     self.pos_enc = tf.constant(util.positional_encoding(self.config['base']['hidden_dim'], 5000))
 
-    # Next, parse the main 'model' from the config
-    join_dicts = lambda d1, d2: {**d1, **d2}  # Small util function to combine configs
+    join_dicts = lambda d1, d2: {**d1, **d2}
     base_config = self.config['base']
     desc = self.config['configuration'].split(' ')
     self.stack = []
@@ -28,7 +25,7 @@ class DefuseProgModel(tf.keras.layers.Layer):
         self.stack.append(ggnn.GGNN(join_dicts(self.config['ggnn'], base_config), shared_embedding=self.embed))
       elif kind == 'great':
         self.stack.append(great_transformer.Transformer(join_dicts(self.config['transformer'], base_config), shared_embedding=self.embed))
-      elif kind == 'transformer':  # Same as above, but explicitly without bias_dim set -- defaults to regular Transformer.
+      elif kind == 'transformer':
         joint_config = join_dicts(self.config['transformer'], base_config)
         joint_config['num_edge_types'] = None
         self.stack.append(great_transformer.Transformer(joint_config, shared_embedding=self.embed))
@@ -36,7 +33,6 @@ class DefuseProgModel(tf.keras.layers.Layer):
         raise ValueError('Unknown model component provided:', kind)
 
   def call(self, tokens, token_mask, edges, training):
-    # Embed subtokens and average into token-level embeddings, masking out invalid locations
     subtoken_embeddings = tf.nn.embedding_lookup(self.embed, tokens)
     subtoken_embeddings *= tf.expand_dims(tf.cast(tf.clip_by_value(tokens, 0, 1), dtype='float32'), -1)
     states = tf.reduce_mean(subtoken_embeddings, 2)
@@ -44,11 +40,7 @@ class DefuseProgModel(tf.keras.layers.Layer):
       states += self.pos_enc[:tf.shape(states)[1]]
 
     for model in self.stack:
-      if isinstance(model, rnn.RNN):  # RNNs simply use the states
-        states = model(states, training=training)
-      elif isinstance(model, ggnn.GGNN):  # For GGNNs, pass edges as-is
-        states = model(states, edges, training=training)
-      elif isinstance(model, great_transformer.Transformer):  # For Transformers, reverse edge directions to match query-key direction and add attention mask.
+      if isinstance(model, great_transformer.Transformer):
         mask = tf.cast(token_mask, dtype='float32')
         mask = tf.expand_dims(tf.expand_dims(mask, 1), 1)
         attention_bias = tf.stack([edges[:, 0], edges[:, 1], edges[:, 3], edges[:, 2]], axis=1)
@@ -58,14 +50,19 @@ class DefuseProgModel(tf.keras.layers.Layer):
 
     return tf.transpose(self.prediction(states), [0, 2, 1])
 
-  def get_loss(self, logits, token_mask, labels, items1, items2):
+  def get_loss(self, logits, token_mask, labels):
     seq_mask = tf.cast(token_mask, 'float32')
     logits += (1.0 - tf.expand_dims(seq_mask, 1)) * tf.float32.min
-    probs = tf.clip_by_value(logits[:,0], 0, 1)
-    loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels, probs)
-    acc = tf.keras.metrics.sparse_categorical_accuracy(labels, probs)
+    probs = tf.sigmoid(logits[:,0][:,0])
+
+    labels = tf.cast(labels, 'float32')
+    loss = -labels * tf.math.log(probs + 1e-9) - (1.0 - labels) * tf.math.log(1.0 - probs + 1e-9)
+    loss = tf.reduce_mean(loss)
+
+    pred_labels = tf.round(probs)
+    acc = tf.reduce_mean(tf.cast(tf.math.equal(pred_labels, labels), 'float32'))
     auc = tf.keras.metrics.AUC()
-    auc.update_state(labels, tf.reduce_mean(probs,1))
+    auc.update_state(tf.cast(labels, 'float32'), probs)
     return loss, acc, auc.result().numpy()
 
   def run_dummy_input(self):

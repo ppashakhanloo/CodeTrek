@@ -51,6 +51,6 @@ class Tracker(object):
       f.write(', ')
       f.write('{0:.3f}'.format(t))
       f.write(': ')
-      f.write(', '.join(['{0:.2%}'.format(s) for s in scores]))
+      f.write('{0:.2f}'.format(scores))
       f.write('\n')
     self.manager.save()

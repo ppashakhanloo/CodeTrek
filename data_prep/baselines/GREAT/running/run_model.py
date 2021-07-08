@@ -35,7 +35,8 @@ def test(data, config, model_path, log_path):
   model.run_dummy_input()
   tracker = Tracker(model, model_path, log_path)
   tracker.restore(best_model=True)
-  evaluate(data, config, model, is_heldout=False)
+  acc, auc = evaluate(data, config, model, is_heldout=False)
+  print("Final Results: acc: {0:.2%}, auc: {1:.2%}".format(acc, auc))
 
 def train(data, config, model_path=None, log_path=None):
   model = DefuseProgModel(config['model'], data.vocabulary.vocab_dim)
@@ -54,78 +55,45 @@ def train(data, config, model_path=None, log_path=None):
   else:
     print("Step:", tracker.ckpt.step.numpy() + 1)
 
-  mbs = 0
+  counter = 0
   loss, acc, auc = get_metrics()
   while tracker.ckpt.step < config["training"]["max_steps"]:
     for batch in data.batcher(mode='train'):
-      mbs += 1
-      tokens, edges, label, items1, items2 = batch
+      counter += 1
+      tokens, edges, label, _, _ = batch
       token_mask = tf.clip_by_value(tf.reduce_sum(tokens, -1), 0, 1)
 
       with tf.GradientTape() as tape:
-        pointer_preds = model(tokens, token_mask, edges, training=True)
-        ls, acs, aus = model.get_loss(pointer_preds, token_mask, label, items1, items2)
+        preds = model(tokens, token_mask, edges, training=True)
+        ls, acs, aus = model.get_loss(preds, token_mask, label)
+        update_metrics(loss, acc, auc, ls, acs, aus)
 
       grads = tape.gradient(ls, model.trainable_variables)
       grads, _ = tf.clip_by_global_norm(grads, 0.25)
       optimizer.apply_gradients(list(zip(grads, model.trainable_variables)))
 
-      # Update statistics
-      num_buggy = tf.reduce_sum(tf.clip_by_value(label, 0, 1))
       samples = tf.shape(token_mask)[0]
       prev_samples = tracker.get_samples()
       curr_samples = tracker.update_samples(samples)
-      update_metrics(loss, acc, auc, token_mask, ls, acs, aus, num_buggy)
+      if counter % config['training']['print_freq'] == 0:
+        print("Progress: loss: {0:.3f}, acc: {1:.2%}, auc: {2:.2%}".format(ls, acs, aus))
 
-      # Every few minibatches, print the recent training performance
-      if mbs % config["training"]["print_freq"] == 0:
-        avg_losses = "{0:.3f}".format(loss.result().numpy())
-        avg_accs = "{0:.2%}".format(acc.result().numpy())
-        avg_aucs = "{0:.2%}".format(auc.result().numpy())
-        print("MB: {0}, seqs: {1:,}, loss: {2}, accs: {3}, aucs: {4}".format(mbs, curr_samples, avg_losses, avg_accs, avg_aucs))
-        loss.reset_states()
-        acc.reset_states()
-        auc.reset_states()
-
-      # Every valid_interval samples, run an evaluation pass and store the most recent model with its heldout accuracy
-      if prev_samples // config["data"]["valid_interval"] < curr_samples // config["data"]["valid_interval"]:
+      if counter % config['data']['valid_interval'] == 0:
         avg_accs = evaluate(data, config, model)
         tracker.save_checkpoint(model, avg_accs)
-        if tracker.ckpt.step >= config["training"]["max_steps"]:
-          break
-        else:
-          print("Step:", tracker.ckpt.step.numpy() + 1)
+        print("Saving the best model...")
+
+  print("Final Results: loss: {0:.3f}, acc: {1:.2%}, auc: {2:.2%}".format(loss.numpy(), acc.numpy(), auc.numpy()))
 
 def evaluate(data, config, model, is_heldout=True):  # Similar to train, just without gradient updates
-  if is_heldout:
-    print("Running evaluation pass on heldout data")
-  else:
-    print("Testing pre-trained model on full eval data")
-
   loss, acc, auc = get_metrics()
-  mbs = 0
   for batch in data.batcher(mode='dev' if is_heldout else 'eval'):
-    mbs += 1
-    tokens, edges, label, items1, items2 = batch    
+    tokens, edges, label, _, _ = batch
     token_mask = tf.clip_by_value(tf.reduce_sum(tokens, -1), 0, 1)
-
-    pointer_preds = model(tokens, token_mask, edges, training=False)
-    ls, acs, aus = model.get_loss(pointer_preds, token_mask, label, items1, items2)
-    num_buggy = tf.reduce_sum(tf.clip_by_value(label, 0, 1))
-    update_metrics(loss, acc, auc, token_mask, ls, acs, aus, num_buggy)
-    if is_heldout and counts[0].result() > config['data']['max_valid_samples']:
-      break
-    if not is_heldout and mbs % config["training"]["print_freq"] == 0:
-      avg_losses = "{0:.3f}".format(loss.result().numpy())
-      avg_accs = "{0:.2%}".format(acc.result().numpy())
-      avg_aucs = "{0:.2%}".format(auc.result().numpy())
-      print("Testing progress: loss: {0}, accs: {1}, aucs: {2}".format(avg_losses, avg_accs, avg_aucs))
-
-  avg_accs_str = "{0:.2%}".format(acc.result().numpy())
-  avg_loss_str = "{0:.3f}".format(loss.result().numpy())
-  avg_aucs_str = "{0:.2%}".format(aucs.result().numpy())
-  print("Evaluation result: loss: {0}, accs: {1}, aucs: {2}".format(avg_loss_str, avg_accs_str, avg_aucs_str))
-  return avg_accs
+    preds = model(tokens, token_mask, edges, training=False)
+    ls, acs, aus = model.get_loss(preds, token_mask, label)
+    update_metrics(loss, acc, auc, ls, acs, aus)
+  return acc.result().numpy(), auc.result().numpy()
 
 def get_metrics():
   loss = tf.keras.metrics.Mean()
@@ -133,8 +101,7 @@ def get_metrics():
   auc = tf.keras.metrics.Mean()
   return loss, acc, auc
 
-def update_metrics(loss, acc, auc, token_mask, ls, acs, aus, num_buggy_samples):
-  num_samples = tf.shape(token_mask)[0]
+def update_metrics(loss, acc, auc, ls, acs, aus):
   loss.update_state(ls)
   acc.update_state(acs)
   auc.update_state(aus)
