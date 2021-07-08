@@ -8,7 +8,7 @@ import numpy as np
 import tensorflow as tf
 
 from checkpoint_tracker import Tracker
-from data import data_loader, vocabulary
+from data import data_loader_defuse_prog, vocabulary
 from meta_model import DefuseProgModel
 
 def main():
@@ -22,7 +22,7 @@ def main():
   args = ap.parse_args()
   config = yaml.safe_load(open(args.config))
   print("Training with configuration:", config)
-  data = data_loader.DataLoader(args.data_path, config["data"], vocabulary.Vocabulary(args.vocabulary_path))
+  data = data_loader_defuse_prog.DataLoader(args.data_path, config["data"], vocabulary.Vocabulary(args.vocabulary_path))
   if args.eval_only:
     if args.models is None or args.log is None:
       raise ValueError("Must provide a path to pre-trained models when running final evaluation")
