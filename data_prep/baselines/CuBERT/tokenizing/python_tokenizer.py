@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2021 The Google Research Authors.
+# Copyright 2020 The Google Research Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,12 +19,16 @@ import re
 import tokenize
 import typing
 from typing import Any
+from typing import Iterable
 from typing import List
 from typing import Sequence
 from typing import Tuple
 from absl import logging
-import cubert_tokenizer
-import unified_tokenizer
+import itertools
+from tensor2tensor.data_generators import text_encoder
+
+import tokenizing.cubert_tokenizer as cubert_tokenizer
+import tokenizing.unified_tokenizer as unified_tokenizer
 
 
 class PythonTokenizer(cubert_tokenizer.CuBertTokenizer):
@@ -70,49 +74,38 @@ class PythonTokenizer(cubert_tokenizer.CuBertTokenizer):
       tokenize.NEWLINE, tokenize.DEDENT, tokenize.NL
   ]
 
+  def __init__(self, *args, **kwargs):
+    super(PythonTokenizer, self).__init__(*args, **kwargs)
+    self.update_types_to_skip([unified_tokenizer.TokenKind.COMMENT])
+    self.subword_tokenizer = text_encoder.SubwordTextEncoder(self.vocab_path)
+
+  def tokenize(self, code):
+    subtokenized_sentences = unified_tokenizer.code_to_cubert_sentences(
+      code=code,
+      initial_tokenizer=super(),
+      subword_tokenizer=self.subword_tokenizer)
+    return subtokenized_sentences
+
   def tokenize_and_abstract(
       self,
       source_code):
     """Produces a language-agnostic tokenization of the input code."""
-    agnostic_tokens: List[unified_tokenizer.AbstractToken] = []
-
+    token_pairs: Iterable[Tuple[str, int]]
     try:
       token_tuples = unified_tokenizer.code_to_tokens(source_code)
+      token_pairs = ((token_name, token_type)
+                     for token_type, token_name, _, _, _ in token_tuples)
     except (tokenize.TokenError, IndentationError) as e:
       logging.warning('The tokenizer raised exception `%s` while parsing %s', e,
                       source_code)
+      token_pairs = (
+          (unified_tokenizer.quote_special(
+              unified_tokenizer.TokenKind.ERROR.name), tokenize.ERRORTOKEN),
+          ('', tokenize.ENDMARKER),
+      )
 
-      # We don't try to do recovery from errors quite yet. Emit just an
-      # error and end-of-sequence and return.
-      agnostic_tokens.append(
-          unified_tokenizer.AbstractToken(
-              unified_tokenizer.quote_special(
-                  unified_tokenizer.TokenKind.ERROR.name),
-              unified_tokenizer.TokenKind.ERROR,
-              unified_tokenizer.TokenMetadata(
-                  start=unified_tokenizer.Position(
-                      line=0, column=0),
-                  end=unified_tokenizer.Position(
-                      line=0, column=0))))
-      agnostic_tokens.append(
-          unified_tokenizer.AbstractToken(
-              unified_tokenizer.quote_special(
-                  unified_tokenizer.TokenKind.EOS.name),
-              unified_tokenizer.TokenKind.EOS,
-              unified_tokenizer.TokenMetadata(
-                  start=unified_tokenizer.Position(
-                      line=0, column=0),
-                  end=unified_tokenizer.Position(
-                      line=0, column=0))))
-      return agnostic_tokens
-
-    for token_tuple in token_tuples:
-      spelling = token_tuple.string
-      kind = token_tuple.type
-
-      # We'll adjust the spelling of some tokens, e.g., those that we
-      # tokenize by their type rather than their original spelling. Indentation
-      # and dedentation tokens are like that.
+    agnostic_tokens: List[unified_tokenizer.AbstractToken] = []
+    for spelling, kind in token_pairs:
       adjusted_spelling = spelling
       token_kind = unified_tokenizer.TokenKind.NONE
       if kind == tokenize.NAME:
@@ -151,26 +144,12 @@ class PythonTokenizer(cubert_tokenizer.CuBertTokenizer):
                              'agnostic one, raised %r.' %
                              ((spelling, kind), ke))
 
-      start_line, start_column = token_tuple.start
-      end_line, end_column = token_tuple.end
-      # Unlike other languages, NEWLINE tokens are reported as ending on the
-      # same line as where they started. We adjust that here, to stick to the
-      # same convention as other tokenizers.
-      if ((token_kind == unified_tokenizer.TokenKind.NEWLINE) or
-          (kind == tokenize.NL)):
-        end_line = start_line + 1
-        end_column = 0
-
       agnostic_tokens.append(
           unified_tokenizer.AbstractToken(
               spelling=adjusted_spelling, kind=token_kind,
-              metadata=unified_tokenizer.TokenMetadata(
-                  # Python's tokenizer counts lines starting from 1, so we
-                  # have to offset what we read from the `TokenInfo` tuple.
-                  start=unified_tokenizer.Position(
-                      line=start_line - 1, column=start_column),
-                  end=unified_tokenizer.Position(
-                      line=end_line - 1, column=end_column))))
+              # TODO(maniatis): Eventually, we'll store token positioning info
+              # in metadata.
+              metadata=unified_tokenizer.TokenMetadata()))
 
     return agnostic_tokens
 

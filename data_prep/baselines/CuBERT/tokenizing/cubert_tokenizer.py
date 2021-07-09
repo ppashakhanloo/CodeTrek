@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2021 The Google Research Authors.
+# Copyright 2020 The Google Research Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,33 +17,33 @@
 
 import abc
 import tokenize
-from typing import Collection
 from typing import Dict
 from typing import Iterable
+from typing import List
 from typing import Mapping
 from typing import Sequence
 from typing import Text
 from typing import Union
+from tensor2tensor.data_generators import text_encoder
 
 import dataclasses
 
-import unified_tokenizer
+import tokenizing.unified_tokenizer as unified_tokenizer
 
 # After all splitting, the longest a token is of the following length.
 MAX_OUTPUT_TOKEN_LENGTH = 15
 
-
 class CuBertTokenizer(abc.ABC):
   """A tokenizer that implements a language-agnostic tokenization.
-
   The tokenizer implements a language-agnostic tokenization. This is available
   as `tokenize_and_abstract()`.
   """
 
   def __init__(self, max_output_token_length = MAX_OUTPUT_TOKEN_LENGTH,
-               reserved = ()):
-    self.types_to_skip = ()
+               reserved = (), vocab_path = None):
+    self.types_to_skip = []
     self.reserved = reserved
+    self.vocab_path = vocab_path
     self.mappings: Dict[str, str]
     self.update_mappings({
         # By default, replace \n and \r. This is meant primarily for literals.
@@ -61,15 +61,12 @@ class CuBertTokenizer(abc.ABC):
       self,
       source_code):
     """Produces a language-agnostic tokenization of the input code.
-
     Args:
       source_code: Source code stored in a string.
-
     Returns:
       A list of pairs of a token (string) and a token kind in the given source
         code. It always includes an end of sequence token. That is, an empty
         input always returns a list of size 1.
-
     Raises:
       ValueError: if `source_code` cannot be tokenized.
     """
@@ -77,25 +74,20 @@ class CuBertTokenizer(abc.ABC):
   @abc.abstractmethod
   def untokenize_abstract(self, whole_tokens):
     """Applies language-specific rules to an abstract untokenized list.
-
     Args:
       whole_tokens: Abstract tokens, reconstituted and unsanitized by
         `untokenize` before passed to this language-specific logic.
-
     Returns:
       A string representing the untokenized text.
     """
 
   def update_types_to_skip(
-      self, types_to_skip
-  ):
+      self, types_to_skip):
     """Replaces the set of token types that are ignored.
-
     Each tokenizer may provide different semantics with respect to this list,
     and may ignore it altogether.
-
     Args:
-      types_to_skip: Types (from the constants in the `token` module) or
+      types_to_skip: List of types (from the constants in the `token` module) or
         `unified_tokenizer.TokenKind`. Note that some of those constants are
         actually defined in the `tokenize` module.
     """
@@ -103,10 +95,8 @@ class CuBertTokenizer(abc.ABC):
 
   def replace_reserved_keywords(self, reserved):
     """Replaces the reserved keywords with the supplied list of strings.
-
     Each tokenizer may provide different semantics with respect to the list
     of reserved keywords, or ignore them altogether.
-
     Args:
       reserved: List of strings.
     """
@@ -114,18 +104,14 @@ class CuBertTokenizer(abc.ABC):
 
   def update_mappings(self, mappings):
     """Replaces the character mappings with the supplied dictionary.
-
     The intent for character mappings is to enable tokenizers that support them
     to sanitize dangerous characters, such as newline and carriage return,
     with a nicer symbol.
-
     Each tokenizer may provide different semantics with respect to the
     mappings, or ignore them altogether.
-
     Args:
       mappings: Dictionary of original to sanitized strings. Keys are expected
         to have length 1.
-
     Raises:
       ValueError: if a key has length different from 1.
     """
@@ -174,10 +160,11 @@ class CuBertTokenizer(abc.ABC):
     multi_tokens = self.subtokenize_full_tokens(conditioned)
 
     subtokens = unified_tokenizer.flatten_subtoken_lists(multi_tokens)
+
     return subtokens
 
-  def untokenize_agnostic(self, token_list):
-    """Turns CuBERT subtokens into whole tokens."""
+  def untokenize(self, token_list):
+    """Untokenizes via `untokenize_abstract`."""
     # Untokenize agnostic.
     if (not token_list or token_list[-1] != unified_tokenizer.quote_special(
         unified_tokenizer.TokenKind.EOS.name)):
@@ -190,13 +177,8 @@ class CuBertTokenizer(abc.ABC):
         token_list,
         sanitization_mapping=self.mappings,
         sentinel=unified_tokenizer.SENTINEL)
-    return whole_tokens
 
-  def untokenize(self, token_list):
-    """Untokenizes via `untokenize_abstract`."""
-    whole_tokens = self.untokenize_agnostic(token_list)
     return self.untokenize_abstract(whole_tokens)
-
 
 def token_from_token_type(token_type):
   """Turns a token type into a reserved token string."""
