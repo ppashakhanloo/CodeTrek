@@ -26,7 +26,6 @@ class AttentionLayer(tf.keras.layers.Layer):
       self.bias_embs = self.add_weight(name='e1', shape=(self.bias_dim, self.attention_dim_per_head), initializer='glorot_uniform')
       self.bias_scalar = self.add_weight(name='e2', shape=(self.attention_dim_per_head, 1), initializer='glorot_uniform')
 
-  @tf.function(input_signature=[tf.TensorSpec(shape=(None, None, None), dtype=tf.float32), tf.TensorSpec(shape=(None, None, None), dtype=tf.float32), tf.TensorSpec(shape=(None, None, None, None), dtype=tf.float32), tf.TensorSpec(shape=(None, 4), dtype=tf.int32)])
   def call(self, states, key_states, masks, attention_bias):
     # Compute key, query and value vectors, reshaped to [Batch, Heads, Time, Dim] where Dim is attention_dim//num_heads.
     query, keys, values = self.compute_qkv(states, key_states)
@@ -39,14 +38,12 @@ class AttentionLayer(tf.keras.layers.Layer):
     context = tf.einsum('btha,had->btd', context, self.weight_out)
     return context
 
-  @tf.function(input_signature=[tf.TensorSpec(shape=(None, None, None), dtype=tf.float32), tf.TensorSpec(shape=(None, None, None), dtype=tf.float32)])
   def compute_qkv(self, states, key_states):
     query = tf.einsum('btd,dha->btha', states, self.attn_query) # Queries are always computed on states
     keys = tf.einsum('btd,dha->btha', key_states, self.attn_keys)
     values = tf.einsum('btd,dha->btha', key_states, self.attn_values)
     return query, keys, values
 
-  @tf.function(input_signature=[tf.TensorSpec(shape=(None, None, None, None), dtype=tf.float32), tf.TensorSpec(shape=(None, None, None, None), dtype=tf.float32), tf.TensorSpec(shape=(None, None, None, None), dtype=tf.float32), tf.TensorSpec(shape=(None, 4), dtype=tf.int32)])
   def get_attention_weights(self, query, keys, masks, attention_bias):
     alpha = tf.einsum('bkha,bqha->bhqk', keys, query)
 
@@ -84,7 +81,6 @@ class LayerNormalization(tf.keras.layers.Layer):
     self.bias = tf.Variable(tf.zeros(self.hidden_dim))
     self.build = True
 
-  @tf.function(input_signature=[tf.TensorSpec(shape=(None, None, None), dtype=tf.float32), tf.TensorSpec(shape=(), dtype=tf.float32)])
   def call(self, x, epsilon=1e-3):
     mean, variance = tf.nn.moments(x, -1, keepdims=True)
     norm_x = (x - mean) * tf.math.rsqrt(variance + epsilon)
@@ -136,7 +132,6 @@ class Transformer(tf.keras.layers.Layer):
     self.ff_1 = [tf.keras.layers.Dense(self.ff_dim, activation='relu') for _ in range(self.num_layers)]
     self.ff_2 = [tf.keras.layers.Dense(self.hidden_dim) for _ in range(self.num_layers)]
 
-  @tf.function(input_signature=[tf.TensorSpec(shape=(None, None, None), dtype=tf.float32), tf.TensorSpec(shape=(None, None, None, None), dtype=tf.float32), tf.TensorSpec(shape=(None, 4), dtype=tf.int32), tf.TensorSpec(shape=(), dtype=tf.bool)])
   def call(self, states, masks, attention_bias, training):
     real_dropout_rate = self.dropout_rate * tf.cast(training, 'float32')  # Easier for distributed training than an explicit conditional
     for ix in range(self.num_layers):
@@ -152,7 +147,6 @@ class Transformer(tf.keras.layers.Layer):
       states += new_states
     return self.ln_out(states)
 
-  @tf.function(input_signature=[tf.TensorSpec(shape=(None, None, None), dtype=tf.float32), tf.TensorSpec(shape=(None, None, None, None), dtype=tf.float32), tf.TensorSpec(shape=(None, None, None), dtype=tf.float32), tf.TensorSpec(shape=(None, None, None, None), dtype=tf.float32), tf.TensorSpec(shape=(None, 4), dtype=tf.int32), tf.TensorSpec(shape=(), dtype=tf.bool)])
   def enc_dec_attention(self, states, masks, key_states, key_masks, attention_bias, training):
     real_dropout_rate = self.dropout_rate * tf.cast(training, 'float32')
     for ix in range(self.num_layers):
@@ -173,10 +167,8 @@ class Transformer(tf.keras.layers.Layer):
       states += new_states
     return self.ln_out(states)
 
-  @tf.function(input_signature=[tf.TensorSpec(shape=(None, None, None), dtype=tf.float32)])
   def predict(self, states):
     return tf.matmul(states, self.embed, transpose_b=True)
 
-  @tf.function
   def get_sequence_mask(self, seq_len):
     return tf.sequence_mask(lengths=tf.range(1, seq_len + 1), maxlen=seq_len, dtype=tf.float32)
