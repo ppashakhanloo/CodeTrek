@@ -108,6 +108,7 @@ class AdamWeightDecayOptimizer(tf.compat.v1.train.Optimizer):
   def apply_gradients(self, grads_and_vars, global_step=None, name=None):
     """See base class."""
     assignments = []
+    print(" --- applying the gradients --- ")
     for (grad, param) in grads_and_vars:
       if grad is None or param is None:
         continue

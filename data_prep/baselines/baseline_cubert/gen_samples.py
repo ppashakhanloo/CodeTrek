@@ -74,7 +74,6 @@ def gen_defuse(path, pred_kind):
         all_defs = bc.get_semmle_defs(tables_dir)
         unused_vars = bc.get_semmle_unused_vars(tables_dir)
         ast_locs, py_locs = bc.get_semmle_locs(tables_dir)
-
         for d in all_defs:
           # first, find whether it's used on not
           label = "used"
@@ -123,10 +122,11 @@ def gen_defuse(path, pred_kind):
           gcp_copy_to(os.path.join(tables_dir, 'sample_' + d[0] + '_' + filename + '.json'),
                       os.path.join(output_dirname, path.replace(prog_label + '/' + filename, '')),
                       bucket_name)
-    log(tables_paths_file + '-done', path)
+    with open(tables_paths_file + '-done', "a") as f:
+      f.write(path + "\n")
   except Exception as e:
-    raise e
-    log(tables_paths_file + '-error', path + str(e))
+    with open(tables_paths_file + '-error', "a") as f:
+      f.write(path + "\n")
 
 def gen_varmisuse(path, pred_kind):
   try:
@@ -175,6 +175,6 @@ if __name__ == "__main__":
   if task_name == 'varmisuse':
     Parallel(n_jobs=10, prefer="threads")(delayed(gen_varmisuse)(path, pred_kind) for path in paths)
   if task_name == 'defuse':
-    Parallel(n_jobs=10, prefer="threads")(delayed(gen_defuse)(path, pred_kind) for path in paths)
+    Parallel(n_jobs=6, prefer="threads")(delayed(gen_defuse)(path, pred_kind) for path in paths)
   if task_name == 'exception':
     Parallel(n_jobs=10, prefer="threads")(delayed(gen_exception)(path) for path in paths)
