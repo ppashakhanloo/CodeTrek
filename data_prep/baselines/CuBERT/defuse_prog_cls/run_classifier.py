@@ -92,17 +92,22 @@ class DataProcessor(object):
 
 class DefuseProgProcessor(DataProcessor):
   def get_train_examples(self, data_dir):
-    data_tuples = self._read_json(os.path.join(data_dir, 'train', "train.txt"))
+    data_tuples = []
+    for f in os.listdir(os.path.join(data_dir, 'train')):
+      data_tuples += self._read_json(os.path.join(data_dir, 'train', f))
     examples = []
     for (i, data_item) in enumerate(data_tuples):
       guid = "train-%d" % (i)
       function = tokenization.convert_to_unicode("[CLS]" + data_item[0])
       label = tokenization.convert_to_unicode(data_item[1])
       examples.append(InputExample(guid=guid, function=function, label=label))
+    print("~~~~~ end of get train examples..")
     return examples
 
   def get_dev_examples(self, data_dir):
-    data_tuples = self._read_json(os.path.join(data_dir, 'dev', "dev.txt"))
+    data_tuples = []
+    for f in os.listdir(os.path.join(data_dir, 'dev')):
+      data_tuples += self._read_json(os.path.join(data_dir, 'dev', f))
     examples = []
     for (i, data_item) in enumerate(data_tuples):
       guid = "dev-%d" % (i)
@@ -112,7 +117,9 @@ class DefuseProgProcessor(DataProcessor):
     return examples
 
   def get_eval_examples(self, data_dir):
-    print("READ FROM:", os.path.join(data_dir, 'eval', 'eval.txt'))
+    data_tuples = []
+    for f in os.listdir(os.path.join(data_dir, 'eval')):
+      data_tuples += self._read_json(os.path.join(data_dir, 'eval', f))
     data_tuples = self._read_json(os.path.join(data_dir, 'eval', "eval.txt"))
     examples = []
     for (i, data_item) in enumerate(data_tuples):
@@ -395,8 +402,10 @@ def main():
   num_warmup_steps = None
 
   if do_train:
+    print(" -- - - - TRAINING ----- --")
     train_examples = processor.get_train_examples(data_dir)
     assert len(train_examples) > 0, "number of train examples must be nonzero"
+    print("GOT TRAINING EXAMPLES: ", len(train_examples), "examples.")
     num_train_steps = int(len(train_examples) / train_batch_size * num_train_epochs)
     num_warmup_steps = int(num_train_steps * warmup_proportion)
 
@@ -420,6 +429,7 @@ def main():
 
   if do_train:
     train_file = os.path.join(output_dir, "train.tf_record")
+    print(" ---- CONVERTING TO FEATURES....")
     file_based_convert_examples_to_features(
         train_examples, label_list, max_seq_length, tokenizer, train_file)
     tf.compat.v1.logging.info("***** Running training *****")
