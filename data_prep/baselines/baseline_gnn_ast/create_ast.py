@@ -1,7 +1,7 @@
 import ast
 import copy
 
-from diff import get_diff
+from data_prep.baselines.baseline_gnn_ast.diff import get_diff
 from pydot import Edge, Node
 from astmonkey import visitors, transformers
 
@@ -314,11 +314,10 @@ def fix_node_labels(graph):
       terminal_edge.set('label', 'Child')
       graph.add_edge(terminal_edge)
       if cut_label == 'arg' or cut_label == 'Name' or cut_label == 'Attribute':
-        if 'ast.arg(' in full_label or 'ctx=ast.Store' in full_label or \
-           'ctx=ast.Param' in full_label or 'ctx=ast.AugStore' in full_label:
-          terminal_vars.append((terminal_node, get_value(full_label, ind), 'write'))
-        else:
+        if 'ctx=ast.Load' in full_label or 'ctx=ast.AugLoad' in full_label:
           terminal_vars.append((terminal_node, get_value(full_label, ind), 'read'))
+        else:
+          terminal_vars.append((terminal_node, get_value(full_label, ind), 'write'))
       if get_value(full_label, ind) == 'HoleException':
         hole_exception = terminal_node
     node.set('label', cut_label)
