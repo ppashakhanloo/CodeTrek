@@ -306,6 +306,7 @@ def fix_node_labels(graph):
       # create a new node as a terminal node
       terminal_node = Node(name=node.get_name()+'_')
       terminal_node.set('label', 'Terminal' + '[SEP]' + get_value(full_label, ind))
+      terminal_node.set('pos', node.get('pos'))
       if get_value(full_label, ind) == 'HoleException':
         hole_exception = terminal_node
       graph.add_node(terminal_node)
