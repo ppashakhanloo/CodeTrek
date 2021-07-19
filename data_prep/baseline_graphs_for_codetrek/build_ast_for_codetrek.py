@@ -5,92 +5,103 @@ import tempfile
 import asttokens
 
 import networkx as nx
+from joblib import Parallel, delayed
 
+from data_prep.utils.utils import read_csv, read_lines
+from data_prep.utils.gcp_utils import gcp_copy_from, gcp_copy_to
 from data_prep.baselines.baseline_gnn_ast.diff import get_diff
 from data_prep.baselines.baseline_gnn_ast.create_ast import build_child_edges, fix_node_labels
 
-def main():
-  graph, neighbors, subtrees, node_of_interest, if_branches, tok1, tok2 = build_child_edges(py_file1, py_file2, task_name, pred_kind)
-  graph, terminal_vars, hole_exception = fix_node_labels(graph)
-
-  splits = py_file1.strip().split('/')
+def gen_graph(path):
+  splits = path.split('/')
   filename = splits[-1]
   prog_label = splits[-2]
+  num = filename[5:-3]
 
-  # create map
-  node_to_num = dict()
-  node_to_pos = dict()
-  for idx, node in enumerate(graph.get_nodes()):
-    node_to_num[node.get_name()] = (idx + 1, node.get('label') + "(" + str(idx+1) + ")")
-    node_to_pos[node.get_name()] = [int(node.get('pos')[1:-1].split(',')[0]), int(node.get('pos')[1:-1].split(',')[1])] if node.get('pos') else None
-  new_graph = nx.Graph()
-  for i in node_to_num:
-    new_graph.add_node(node_to_num[i][0], label=node_to_num[i][1])
-  for e in graph.get_edges():
-    new_graph.add_edge(node_to_num[e.get_source()][0], node_to_num[e.get_destination()][0], label="child")
+  py_file1 = path
+  py_file2 = None
+  if prog_label == 'correct':
+     py_file2 = path.replace(num, str(int(num)+1)).replace('/correct/', '/misuse/')
+  if prog_label == 'misuse':
+     py_file2 = path.replace(num, str(int(num)-1)).replace('/misuse/', '/correct/')
 
-  new_graph = nx.nx_agraph.to_agraph(new_graph)
-  new_graph = str(new_graph).replace('strict graph ""', 'graph').replace('node [label="\\N"];','')
+  try:
+    temp_dir = tempfile.TemporaryDirectory()
+    gcp_copy_from(py_file1, temp_dir.name, bucket)
+    py_file1 = os.path.join(temp_dir.name, filename)
+    if py_file2:
+      gcp_copy_from(py_file2, temp_dir.name, bucket)
+      py_file2 = os.path.join(temp_dir.name, py_file2.split('/')[-1])
 
-  # save graph file
-  with open('graph_' + filename + '.gv', 'w') as f:
-    f.write(new_graph)
+    graph, neighbors, subtrees, node_of_interest, if_branches, tok1, tok2 = build_child_edges(py_file1, py_file2, task_name, pred_kind)
+    graph, terminal_vars, hole_exception = fix_node_labels(graph)
 
-  # find var defs and uses
-  defs, uses = [], []
-  for v in terminal_vars:
-    if v[2] == 'write':
-      defs.append(v)
-    if v[2] == 'read':
-      uses.append(v)
+    # create map
+    node_to_num = dict()
+    node_to_pos = dict()
+    for idx, node in enumerate(graph.get_nodes()):
+      node_to_num[node.get_name()] = (idx + 1, node.get('label') + "(" + str(idx+1) + ")")
+      node_to_pos[node.get_name()] = [int(node.get('pos')[1:-1].split(',')[0]), int(node.get('pos')[1:-1].split(',')[1])] if node.get('pos') else None
+    new_graph = nx.Graph()
+    for i in node_to_num:
+      new_graph.add_node(node_to_num[i][0], label=node_to_num[i][1])
+    for e in graph.get_edges():
+      new_graph.add_edge(node_to_num[e.get_source()][0], node_to_num[e.get_destination()][0], label="child")
 
-  if task_name == 'varmisuse':
-    if pred_kind == 'prog_cls':
-      point = [{
-        'anchors': [node_to_num[n[0].get_name()][1] for n in uses+defs],
-        'trajectories': [],
-        'hints': [],
-        'label': prog_label,
-        'source': py_file1
-      }]
-    if pred_kind == 'loc_cls':
-      point = [{
-        'anchors': [node_to_num[node_of_interest.get_name()][1]],
-        'trajectories': [],
-        'hints': [],
-        'label': prog_label,
-        'source': py_file1
-      }]
-    if pred_kind == 'loc_rep':
-      raise NotImplementedError(task_name + ',' + pred_kind)
+    new_graph = nx.nx_agraph.to_agraph(new_graph)
+    new_graph = str(new_graph).replace('strict graph ""', 'graph').replace('node [label="\\N"];','')
 
-  if task_name == 'defuse':
-    if pred_kind == 'prog_cls':
-      point = [{
-        'anchors': [node_to_num[d[0].get_name()][1] for d in defs],
-        'trajectories': [],
-        'hints': [],
-        'label': prog_label,
-        'source': py_file1
-      }]
-    if pred_kind == 'loc_cls':
-      # get locations of defs
-      with tempfile.TemporaryDirectory() as temp_dir:
-        #os.system("gsutil cp gs://" + bucket + "/" + py_file1 + " " + temp_dir + "/")
-        os.system("gsutil cp gs://" + bucket + "/" + remote_tables_dir + "/" + py_file1 + "/locations_ast.bqrs.csv" + " " + temp_dir + "/")
-        os.system("gsutil cp gs://" + bucket + "/" + remote_tables_dir + "/" + py_file1 + "/py_locations.bqrs.csv" + " " + temp_dir + "/")
-        os.system("gsutil cp gs://" + bucket + "/" + remote_tables_dir + "/" + py_file1 + "/unused_var.bqrs.csv" + " " + temp_dir + "/")
+    # save graph file
+    with open(temp_dir.name + '/graph_' + filename + '.gv', 'w') as f:
+      f.write(new_graph)
+    gcp_copy_to(temp_dir.name + '/graph_' + filename + '.gv', output_graphs_dir + '/' + path.replace(prog_label + '/' + filename, ''), bucket)
 
-        locs_ast, py_locs, unused_vars = [], [], []
-        with open(temp_dir + "/locations_ast.bqrs.csv", 'r') as f:
-          for row in f.readlines()[1:]:
-            locs_ast.append(row.strip().split(',')) # loc, mod, ...
-        with open(temp_dir + "/py_locations.bqrs.csv", 'r') as f:
-          for row in f.readlines()[1:]:
-            py_locs.append(row.strip().split(',')) # loc, exp
-        with open(temp_dir + "/unused_var.bqrs.csv", 'r') as f:
-          for row in f.readlines()[1:]:
-            unused_vars.append(row.strip().split(',')) # exp, _, _, var, _
+    # find var defs and uses
+    defs, uses = [], []
+    for v in terminal_vars:
+      if v[2] == 'write':
+        defs.append(v)
+      if v[2] == 'read':
+        uses.append(v)
+
+    if task_name == 'varmisuse':
+      if pred_kind == 'prog_cls':
+        point = [{
+          'anchors': [node_to_num[n[0].get_name()][1] for n in uses+defs],
+          'trajectories': [],
+          'hints': [],
+          'label': prog_label,
+          'source': path
+        }]
+      if pred_kind == 'loc_cls':
+        point = [{
+          'anchors': [node_to_num[node_of_interest.get_name()][1]],
+          'trajectories': [],
+          'hints': [],
+          'label': prog_label,
+          'source': path
+        }]
+      if pred_kind == 'loc_rep':
+        raise NotImplementedError(task_name + ',' + pred_kind)
+
+    if task_name == 'defuse':
+      if pred_kind == 'prog_cls':
+        point = [{
+          'anchors': [node_to_num[d[0].get_name()][1] for d in defs],
+          'trajectories': [],
+          'hints': [],
+          'label': prog_label,
+          'source': path
+        }]
+      if pred_kind == 'loc_cls':
+        # get locations of defs
+        gcp_copy_from(remote_tables_dir + "/" + path + "/locations_ast.bqrs.csv", temp_dir.name, bucket)
+        gcp_copy_from(remote_tables_dir + "/" + path + "/py_locations.bqrs.csv", temp_dir.name, bucket)
+        gcp_copy_from(remote_tables_dir + "/" + path + "/unused_var.bqrs.csv", temp_dir.name, bucket)
+
+        locs_ast = read_csv(temp_dir.name + '/locations_ast.bqrs.csv')
+        py_locs = read_csv(temp_dir.name + '/py_locations.bqrs.csv')
+        unused_vars = read_csv(temp_dir.name + '/unused_var.bqrs.csv')
 
         codeql_results = []
         for uvar in unused_vars:
@@ -101,51 +112,47 @@ def main():
 
         point = []
         for d in defs:
-          is_unused = False
+          label = 'used'
           for res in codeql_results:
             if node_to_pos[d[0].get_name()] == res[1]:
-              is_unused = True
+              label = 'unused'
               break
-          if is_unused:
-            label = 'unused'
-          else:
-            label = 'used'
-          
+
           point.append([{
             'anchors': [node_to_num[d[0].get_name()]],
             'trajectories': [],
             'hints': [],
             'label': label,
-            'source': py_file1
+            'source': path
           }])
 
-  if task_name == 'exception':
-    point = [{
-      'anchors': [node_to_num[hole_exception.get_name()][1]],
-      'trajectories': [],
-      'hints': [],
-      'label': prog_label,
-      'source': py_file1
-    }]
+    if task_name == 'exception':
+      point = [{
+        'anchors': [node_to_num[hole_exception.get_name()][1]],
+        'trajectories': [],
+        'hints': [],
+        'label': prog_label,
+        'source': path
+      }]
 
-  # save stub file
-  if pred_kind == 'loc_cls' and task_name == 'defuse':
-    index = 0
-    for p in point:
-      with open('stub_' + filename + '_' + str(index) + '.json', 'w') as f:
-        json.dump(p, f)
-      index += 1
-  else:
-    with open('stub_' + filename + '.json', 'w') as f:
-       json.dump(point, f)
+    # save stub file
+    with open(temp_dir.name + '/stub_' + filename + '.json', 'w') as f:
+      json.dump(point, f)
+    gcp_copy_to(temp_dir.name + '/stub_' + filename + '.json', output_graphs_dir + '/' + path.replace(prog_label + '/' + filename, ''), bucket)
+
+    with open(paths_file + '-done', 'a') as f:
+      f.write(path + '\n')
+  except Exception as e:
+    with open(paths_file + '-error', 'a') as f:
+      f.write(path + ' ' + str(e) + '\n')
 
 
 if __name__ == "__main__":
   bucket = sys.argv[1]
   remote_tables_dir = sys.argv[2]
-  py_file1 = sys.argv[3]
-  py_file2 = sys.argv[4]
+  output_graphs_dir = sys.argv[3]
+  paths_file = sys.argv[4]
   task_name = sys.argv[5]
   pred_kind = sys.argv[6]
 
-  main()
+  Parallel(n_jobs=10, prefer="threads")(delayed(gen_graph)(path) for path in read_lines(paths_file))
