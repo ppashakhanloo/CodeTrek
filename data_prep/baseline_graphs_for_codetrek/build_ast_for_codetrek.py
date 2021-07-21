@@ -27,6 +27,10 @@ def gen_graph(path):
 
   try:
     temp_dir = tempfile.TemporaryDirectory()
+    gcp_copy_from(output_graphs_dir + '/' + path.replace(prog_label + '/' + filename, '') + 'stub_' + filename + '.json', temp_dir.name, bucket)
+    if os.path.exists(temp_dir.name + '/stub_' + filename + '.json'):
+      raise Exception('already exists.')
+
     gcp_copy_from(py_file1, temp_dir.name, bucket)
     py_file1 = os.path.join(temp_dir.name, filename)
     if py_file2:
