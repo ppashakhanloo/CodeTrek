@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import random
 import tempfile
 import asttokens
 
@@ -139,15 +140,24 @@ def gen_graph(path):
         'source': path
       }]
 
+    if task_name == 'shadow_global':
+      point = [{
+        'anchors': [node_to_num[n[0].get_name()][1] for n in random.choices(terminal_vars, k=10)],
+        'trajectories': [],
+        'hints': [],
+        'label': prog_label,
+        'source': path
+      }]
+
     # save stub file
     with open(temp_dir.name + '/stub_' + filename + '.json', 'w') as f:
       json.dump(point, f)
     gcp_copy_to(temp_dir.name + '/stub_' + filename + '.json', output_graphs_dir + '/' + path.replace(prog_label + '/' + filename, ''), bucket)
 
-    with open(paths_file + '-done', 'a') as f:
+    with open(paths_file + '_done', 'a') as f:
       f.write(path + '\n')
   except Exception as e:
-    with open(paths_file + '-error', 'a') as f:
+    with open(paths_file + '_error', 'a') as f:
       f.write(path + ' ' + str(e) + '\n')
 
 
