@@ -19,16 +19,8 @@ class DefuseLocModel(tf.keras.layers.Layer):
     desc = self.config['configuration'].split(' ')
     self.stack = []
     for kind in desc:
-      if kind == 'rnn':
-        self.stack.append(rnn.RNN(join_dicts(self.config['rnn'], base_config), shared_embedding=self.embed))
-      elif kind == 'ggnn':
-        self.stack.append(ggnn.GGNN(join_dicts(self.config['ggnn'], base_config), shared_embedding=self.embed))
-      elif kind == 'great':
+      if kind == 'great':
         self.stack.append(great_transformer.Transformer(join_dicts(self.config['transformer'], base_config), shared_embedding=self.embed))
-      elif kind == 'transformer':
-        joint_config = join_dicts(self.config['transformer'], base_config)
-        joint_config['num_edge_types'] = None
-        self.stack.append(great_transformer.Transformer(joint_config, shared_embedding=self.embed))
       else:
         raise ValueError('Unknown model component provided:', kind)
 
@@ -56,8 +48,6 @@ class DefuseLocModel(tf.keras.layers.Layer):
     logits = tf.sigmoid(logits)
 
     probs = [logits[idx, :, loc-1] for idx, loc in enumerate(locations)]
-    #for idx, loc in enumerate(locations):
-    #  probs.append(logits[idx, :, loc - 1])
     probs = tf.reshape(probs, [len(probs), 1])
 
     labels = tf.cast(labels, 'float32')

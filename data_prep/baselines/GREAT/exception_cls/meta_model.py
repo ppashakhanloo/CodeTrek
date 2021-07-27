@@ -19,16 +19,8 @@ class ExceptionClsModel(tf.keras.layers.Layer):
     desc = self.config['configuration'].split(' ')
     self.stack = []
     for kind in desc:
-      if kind == 'rnn':
-        self.stack.append(rnn.RNN(join_dicts(self.config['rnn'], base_config), shared_embedding=self.embed))
-      elif kind == 'ggnn':
-        self.stack.append(ggnn.GGNN(join_dicts(self.config['ggnn'], base_config), shared_embedding=self.embed))
       elif kind == 'great':
         self.stack.append(great_transformer.Transformer(join_dicts(self.config['transformer'], base_config), shared_embedding=self.embed))
-      elif kind == 'transformer':
-        joint_config = join_dicts(self.config['transformer'], base_config)
-        joint_config['num_edge_types'] = None
-        self.stack.append(great_transformer.Transformer(joint_config, shared_embedding=self.embed))
       else:
         raise ValueError('Unknown model component provided:', kind)
 

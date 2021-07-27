@@ -1,9 +1,9 @@
 import tensorflow as tf
 from models import great_transformer, ggnn, rnn, util
 
-class DefuseProgModel(tf.keras.layers.Layer):
+class VarmisuseLocModel(tf.keras.layers.Layer):
   def __init__(self, config, vocab_dim):
-    super(DefuseProgModel, self).__init__()
+    super(VarmisuseLocModel, self).__init__()
     self.config = config
     self.vocab_dim = vocab_dim
 
@@ -42,10 +42,13 @@ class DefuseProgModel(tf.keras.layers.Layer):
 
     return tf.transpose(self.prediction(states), [0, 2, 1])
 
-  def get_loss(self, logits, token_mask, labels):
+  def get_loss(self, logits, token_mask, labels, locations):
     seq_mask = tf.cast(token_mask, 'float32')
     logits += (1.0 - tf.expand_dims(seq_mask, 1)) * tf.float32.min
-    probs = tf.sigmoid(logits[:,0][:,0])
+    logits = tf.sigmoid(logits)
+
+    probs = [logits[idx, :, loc-1] for idx, loc in enumerate(locations)]
+    probs = tf.reshape(probs, [len(probs), 1])
 
     labels = tf.cast(labels, 'float32')
     loss = -labels * tf.math.log(probs + 1e-9) - (1.0 - labels) * tf.math.log(1.0 - probs + 1e-9)
