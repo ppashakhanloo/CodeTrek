@@ -15,12 +15,16 @@ ASSIGN_IND_ = '<_ast.Assign '
 
 def get_graph(contents):
   node = ast.parse(contents)
+  node_positions = dict()
+  for n in ast.walk(node):
+    if hasattr(n, 'lineno') and hasattr(n, 'col_offset'):
+      node_positions[str(n)] = [n.lineno, n.col_offset]
   node = transformers.ParentChildNodeTransformer().visit(node)
   visitor = visitors.GraphNodeVisitor()
   visitor.visit(node)
   graph = visitor.graph
   graph.set_type('digraph')
-  return graph
+  return graph, node_positions
 
 def build_child_edges(main_file, aux_file, task_name, pred_kind):
   node_of_interest = None
@@ -38,7 +42,7 @@ def build_child_edges(main_file, aux_file, task_name, pred_kind):
       new_line = different_line[:col1_s - 1] + different_line[col1_s - 1:].replace(tok1, CURR_STR, 1)
       lines[row1_s - 1] = new_line
       contents = "".join(lines)
-      graph = get_graph(contents)
+      graph, node_positions = get_graph(contents)
       index = 0
       nodes = graph.get_nodes()
       for i in range(len(nodes)):
@@ -48,7 +52,7 @@ def build_child_edges(main_file, aux_file, task_name, pred_kind):
       nodes[index].set('label', nodes[index].get('label').replace(CURR_STR, tok1))
       node_of_interest = nodes[index]
     else:
-      graph = get_graph(infile.read())
+      graph, node_positions = get_graph(infile.read())
 
     # compute the neighbors of each node
     edges = graph.get_edges()
@@ -84,7 +88,7 @@ def build_child_edges(main_file, aux_file, task_name, pred_kind):
 
     for edge in edges:
       edge.set('label', 'Child')
-  return graph, neighbors, subtrees, copy.deepcopy(node_of_interest), if_branches, tok1, tok2
+  return graph, neighbors, subtrees, copy.deepcopy(node_of_interest), if_branches, tok1, tok2, node_positions
 
 def add_next_token_edges(graph, subtrees):
   token_nodes = []
@@ -306,7 +310,6 @@ def fix_node_labels(graph):
       # create a new node as a terminal node
       terminal_node = Node(name=node.get_name()+'_')
       terminal_node.set('label', 'Terminal' + '[SEP]' + get_value(full_label, ind))
-      terminal_node.set('pos', node.get('pos'))
       if get_value(full_label, ind) == 'HoleException':
         hole_exception = terminal_node
       graph.add_node(terminal_node)
@@ -325,7 +328,7 @@ def fix_node_labels(graph):
   return graph, terminal_vars, hole_exception
 
 def gen_graph_from_source(infile, aux_file, task_name, pred_kind='prog_cls'):
-  graph, neighbors, subtrees, node_of_interest, if_branches, tok1, tok2 = build_child_edges(infile, aux_file, task_name, pred_kind)
+  graph, neighbors, subtrees, node_of_interest, if_branches, tok1, tok2, _ = build_child_edges(infile, aux_file, task_name, pred_kind)
   graph = add_next_token_edges(graph, subtrees)
   graph, variables = add_last_lexical_use_edges(graph)
   graph = add_returns_to_edges(graph, subtrees)

@@ -38,15 +38,13 @@ def gen_graph(path):
       gcp_copy_from(py_file2, temp_dir.name, bucket)
       py_file2 = os.path.join(temp_dir.name, py_file2.split('/')[-1])
 
-    graph, neighbors, subtrees, node_of_interest, if_branches, tok1, tok2 = build_child_edges(py_file1, py_file2, task_name, pred_kind)
+    graph, neighbors, subtrees, node_of_interest, if_branches, tok1, tok2, node_to_pos = build_child_edges(py_file1, py_file2, task_name, pred_kind)
     graph, terminal_vars, hole_exception = fix_node_labels(graph)
 
     # create map
     node_to_num = dict()
-    node_to_pos = dict()
     for idx, node in enumerate(graph.get_nodes()):
       node_to_num[node.get_name()] = (idx + 1, node.get('label') + "(" + str(idx+1) + ")")
-      node_to_pos[node.get_name()] = [int(node.get('pos')[1:-1].split(',')[0]), int(node.get('pos')[1:-1].split(',')[1])] if node.get('pos') else None
     new_graph = nx.Graph()
     for i in node_to_num:
       new_graph.add_node(node_to_num[i][0], label=node_to_num[i][1])
@@ -119,12 +117,16 @@ def gen_graph(path):
         for d in defs:
           label = 'used'
           for res in codeql_results:
-            if node_to_pos[d[0].get_name()] == res[1]:
+            if d[0].get_name().endswith('_"'):
+              search_name = d[0].get_name()[1:-2]
+            else:
+              search_name = d[0].get_name()
+            if node_to_pos[search_name] == res[1]:
               label = 'unused'
               break
 
           point.append([{
-            'anchors': [node_to_num[d[0].get_name()]],
+            'anchors': [node_to_num[d[0].get_name()][1]],
             'trajectories': [],
             'hints': [],
             'label': label,
@@ -142,7 +144,7 @@ def gen_graph(path):
 
     if task_name == 'shadow_global':
       point = [{
-        'anchors': [node_to_num[n[0].get_name()][1] for n in random.choices(terminal_vars, k=10)],
+        'anchors': [node_to_num[n[0].get_name()][1] for n in random.choices(terminal_vars, k=min(len(terminal_vars), 10))],
         'trajectories': [],
         'hints': [],
         'label': prog_label,
