@@ -222,8 +222,11 @@ class AbstractWalkDB(Dataset):
                             num_workers=args.num_proc)
         return loader
 
-    def get_item_from_rawfile(self, raw_sample, walker):
-        walks = walker.random_walk(max_num_walks=self.args.num_walks, min_num_steps=self.args.min_steps, max_num_steps=self.args.max_steps)
+    def get_item_from_rawfile(self, raw_sample, walkers):
+        walks = []
+        for walker in walkers:
+            walks += walker.random_walk(max_num_walks=self.args.num_walks//len(walkers), min_num_steps=self.args.min_steps, max_num_steps=self.args.max_steps)
+        walks = RandomWalker.padding(walks, self.args.num_walks)
         trajectories = [WalkUtils.build_trajectory(walk).to_dict() for walk in walks]
         node_mat, edge_mat = make_mat_from_raw(trajectories, self.prog_dict.node_types, self.prog_dict.edge_types)
         if self.args.use_node_val:
@@ -241,15 +244,16 @@ class AbstractWalkDB(Dataset):
 
 
 class FastOnlineWalkDataset(AbstractWalkDB):
-    def __init__(self, args, prog_dict, data_dir, phase, sample_prob=None, shuffle_var=False):
+    def __init__(self, args, prog_dict, data_dir, phase, sample_prob=None, shuffle_var=False, chunks=None):
         super(FastOnlineWalkDataset, self).__init__(args, prog_dict, data_dir, phase, sample_prob, shuffle_var)
 
-        if args.phase in ['train', 'dev', 'eval']:
-            chunks = os.listdir(os.path.join(data_dir, 'cooked_' + phase))
-            chunks = sorted(chunks)
-            chunks = [os.path.join(data_dir, 'cooked_' + phase, x) for x in chunks]
-        else:
-            chunks = ["/home/pardisp/relational-representation/dbwalk/var_def_use/cooked_test"]
+        if chunks is None:
+            if args.phase in ['train', 'dev', 'eval']:
+                chunks = os.listdir(os.path.join(data_dir, 'cooked_' + phase))
+                chunks = sorted(chunks)
+                chunks = [os.path.join(data_dir, 'cooked_' + phase, x) for x in chunks]
+            else:
+                chunks = ["/home/relational-representation/dbwalk/var_def_use/cooked_test"]
 
         self.merged_gh = MergedGraphHolders(chunks)
         self.language = 'python'
@@ -259,8 +263,10 @@ class FastOnlineWalkDataset(AbstractWalkDB):
 
     def __getitem__(self, idx):
         raw_sample = self.merged_gh[idx]
-        walker = RandomWalker(raw_sample.gv_file, raw_sample.anchor, self.language)
-        return self.get_item_from_rawfile(raw_sample, walker)
+        walkers = []
+        for anch in raw_sample.anchors[1:-1].split(', '):
+            walkers.append(RandomWalker(raw_sample.gv_file, anch[1:-1], self.language))
+        return self.get_item_from_rawfile(raw_sample, walkers)
 
 
 class PreGeneratedWalkDataset(AbstractWalkDB):

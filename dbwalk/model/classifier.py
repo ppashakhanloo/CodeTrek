@@ -11,10 +11,10 @@ class WalkSet2Embed(nn.Module):
         super(WalkSet2Embed, self).__init__()
         self.use_node_val = args.use_node_val
         if self.use_node_val:
-            self.tok_encoding = ProgWalkTokEmbedWithVal(prog_dict, args.embed_dim, args.dropout)
+            self.tok_encoding = ProgWalkTokEmbedWithVal(prog_dict, args.embed_dim, args.dropout, args.use_pos_encoding, args.pe_type)
         else:
-            self.tok_encoding = ProgWalkTokEmbed(prog_dict, args.embed_dim, args.dropout)
-        self.walk_encoding = ProgWalkEncoder(args.embed_dim, args.nhead, args.transformer_layers,  args.dim_feedforward, args.dropout)
+            self.tok_encoding = ProgWalkTokEmbed(prog_dict, args.embed_dim, args.dropout, args.use_pos_encoding, args.pe_type)
+        self.walk_encoding = ProgWalkEncoder(args.embed_dim, args.nhead, args.transformer_layers,  args.dim_feedforward, args.dropout, walk_repr=args.walk_repr)
         if args.set_encoder == 'deepset':
             self.prob_encoding = ProgDeepset(args.embed_dim, args.dropout)
         elif args.set_encoder == 'transformer':

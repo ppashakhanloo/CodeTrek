@@ -40,7 +40,7 @@ def main_cook_ast(etype_white_list=None, node_unk=True, edge_unk=True, tok_unk=T
             with open(os.path.join(folder, fname), 'r') as f:
                 d = json.load(f)
             g = nx.empty_graph(0, nx.MultiDiGraph)
-            meta_info = {'anchor_index': d['SlotNodeIdx'],
+            meta_info = {'anchor_index': d['SlotNodeIdxs'],
                          'source': d['filename'],
                          'label': d['label']}
             node_vals = d['ContextGraph']['NodeValues']

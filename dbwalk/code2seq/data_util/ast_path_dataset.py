@@ -20,22 +20,16 @@ class AstTree(object):
         self.graph = graph
         self.label = prog_dict.label_map[sample.label]
         self.num_nodes = len(graph)
-        self.root = None
+        self.root = 1
         self.parent_list = [-1] * self.num_nodes
         self.is_leaf = [True] * self.num_nodes
         for e in graph.edges():
             x, y = e
-            if self.parent_list[y] >= 0:
-                continue
             self.parent_list[y] = x
             self.is_leaf[x] = False
-        if sample.anchor != 'None':
-            self.target_idx = int(sample.anchor)
-        for i in range(self.num_nodes):
-            if self.parent_list[i] < 0:
-                if self.root is not None:
-                    continue
-                self.root = i
+        self.target_idxs = []
+        for i in sample.anchors[1:-1].split(', '):
+            self.target_idxs.append(int(i[1:-1]))
         self.leaves = [x for x in range(self.num_nodes) if self.is_leaf[x]]
 
         self.node_type_list = [None] * self.num_nodes

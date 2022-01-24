@@ -29,7 +29,7 @@ class GnnClassifierBase(nn.Module):
             node_sel = []
             offset = 0
             for g in graph_list:
-                node_sel.append(g.target_idx)
+                node_sel.append(g.target_idx[0])
                 offset += g.num_nodes
             target_embed = node_embed[node_sel]
             return torch.cat((graph_embed, target_embed), dim=1)

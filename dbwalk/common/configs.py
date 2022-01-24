@@ -23,28 +23,32 @@ cmd_opt.add_argument('-gpu_list', default=None, type=str, help='list of gpus')
 cmd_opt.add_argument('-num_train_proc', type=int, default=1, help='number of training processes')
 cmd_opt.add_argument('-port', default='29500', type=str, help='dist port')
 
+cmd_opt.add_argument('-use_pos_encoding', default=True, help='use positional encoding')
+cmd_opt.add_argument('-walk_repr', default='mean', help='pooling mechanism (attn/mean)')
+cmd_opt.add_argument('-pe_type', default='sinusoidal', help='positional encoding type (learned/sinusoidal)')
+
 # transformer
 cmd_opt.add_argument('-embed_dim', default=256, type=int, help='embed size')
-cmd_opt.add_argument('-nhead', default=4, type=int, help='multi-head attention')
+cmd_opt.add_argument('-nhead', default=8, type=int, help='multi-head attention')
 cmd_opt.add_argument('-transformer_layers', default=3, type=int, help='# transformer layers')
 cmd_opt.add_argument('-dropout', default=0, type=float, help='dropout')
 cmd_opt.add_argument('-dim_feedforward', default=512, type=int, help='embed size')
 
 cmd_opt.add_argument('-seed', default=19260817, type=int, help='seed')
-cmd_opt.add_argument('-learning_rate', default=1e-3, type=float, help='learning rate')
+cmd_opt.add_argument('-learning_rate', default=1e-4, type=float, help='learning rate')
 cmd_opt.add_argument('-grad_clip', default=5, type=float, help='gradient clip')
 
 cmd_opt.add_argument('-num_epochs', default=100000, type=int, help='num epochs')
 cmd_opt.add_argument('-batch_size', default=64, type=int, help='batch size')
 
 cmd_opt.add_argument('-epoch_save', default=100, type=int, help='num epochs between save')
-cmd_opt.add_argument('-iter_per_epoch', default=100, type=int, help='num iterations per epoch')
+cmd_opt.add_argument('-iter_per_epoch', default=1000, type=int, help='num iterations per epoch')
 
 cmd_opt.add_argument('-epoch_load', default=None, type=int, help='epoch for loading')
 cmd_opt.add_argument('-shuffle_var', default=False, type=eval, help='shuffle var index?')
-cmd_opt.add_argument('-online_walk_gen', default=False, type=eval, help='generate random walks on the fly?')
+cmd_opt.add_argument('-online_walk_gen', default=True, type=eval, help='generate random walks on the fly?')
 
-cmd_opt.add_argument('-use_node_val', default=False, type=eval, help='use node value as feature?')
+cmd_opt.add_argument('-use_node_val', default=True, type=eval, help='use node value as feature?')
 cmd_opt.add_argument('-set_encoder', default='deepset', help='deepset/transformer')
 
 # data process

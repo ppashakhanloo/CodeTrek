@@ -44,9 +44,14 @@ class GraphHolder(object):
         self.list_node_offset.append(self.tot_num_nodes)
         self.list_edge_offset.append(self.tot_num_edges)        
 
-        anchor_idx = None
-        anchor_str = meta_info['anchor'] if 'anchor' in meta_info else None
+        anchor_idxs = []
+        anchor_strs = meta_info['anchors'] if 'anchors' in meta_info else []
         for idx, node in enumerate(g.nodes(data=True)):
+            # check if the node is correct. If not, fix it.
+            if 'label' not in node[1] or 'val_idx' not in node[1] or 'raw_val' not in node[1]:
+                node[1]['label'] = 'Name'
+                node[1]['val_idx'] = []
+                node[1]['raw_val'] = ''
             node_label = node[1]['label']
             node_idx = int(node[0]) - node_index_base
             assert idx == node_idx
@@ -55,15 +60,20 @@ class GraphHolder(object):
             raw_node_val = node[1]['raw_val']
             self.list_node_tokens.append(node_tok)
             self.list_node_values.append(raw_node_val)
-            if node_label == anchor_str:
-                anchor_idx = node_idx
-        if anchor_idx is None:
-            if meta_info['anchor_index']:
-                anchor_idx = int(meta_info['anchor_index']) - node_index_base
+        for anchor_str in anchor_strs:
+            for idx, node in enumerate(g.nodes(data=True)):
+                node_label = node[1]['label']
+                node_idx = int(node[0]) - node_index_base
+                assert idx == node_idx
+                if node_label == anchor_str:
+                    anchor_idxs.append(node_idx)
+        if len(anchor_idxs) == 0:
+            if len(meta_info['anchor_index']) > 0:
+                anchor_idxs = [int(anch) - node_index_base for anch in meta_info['anchor_index']]
             else:
-                anchor_idx = len(g.nodes())
-            anchor_str = str(anchor_idx)
-        self.list_anchors.append(anchor_str)
+                anchor_idxs.append(len(g.nodes()))
+            anchor_strs = [str(anch_idx) for anch_idx in anchor_idxs]
+        self.list_anchors.append(anchor_strs)
         self.list_labels.append(meta_info['label'])
         self.list_source.append(meta_info['source'])
         num_edges = 0

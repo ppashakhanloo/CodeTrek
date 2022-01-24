@@ -122,8 +122,8 @@ def binary_eval_dataset(model, phase, eval_loader, device, fn_parse_eval_nn_args
         return None
 
 
-def train_loop(args, device, prog_dict, model, db_train,
-               db_dev=None, 
+def train_loop(args, device, prog_dict, model, fn_db_train,
+               fn_db_dev=None,
                fn_eval=None,
                nn_arg_constructor=path_based_arg_constructor):
     mp.set_start_method('fork', force=True)
@@ -136,8 +136,11 @@ def train_loop(args, device, prog_dict, model, db_train,
     random.seed(args.seed + rank)
     torch.manual_seed(args.seed + rank)
     model = model.to(device)
+    db_train = fn_db_train
     train_loader = db_train.get_train_loader(args)
-    dev_loader = db_dev.get_test_loader(args)
+    if rank == 0:
+        db_dev = fn_db_dev
+        dev_loader = db_dev.get_test_loader(args)
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
     train_iter = iter(train_loader)
 
@@ -178,7 +181,7 @@ def train_loop(args, device, prog_dict, model, db_train,
 
 
 @thread_wrapped_func
-def train_mp(args, rank, device, prog_dict, model, db_train, db_dev=None, fn_eval=None, n_arg_constructor=path_based_arg_constructor):
+def train_mp(args, rank, device, prog_dict, model, fn_db_train, fn_db_dev=None, fn_eval=None, n_arg_constructor=path_based_arg_constructor):
     if args.num_train_proc > 1:
         torch.set_num_threads(1)    
     os.environ['MASTER_ADDR'] = '127.0.0.1'
@@ -188,4 +191,4 @@ def train_mp(args, rank, device, prog_dict, model, db_train, db_dev=None, fn_eva
     else:
         backend = 'nccl'
     dist.init_process_group(backend, rank=rank, world_size=args.num_train_proc)
-    train_loop(args, device, prog_dict, model, db_train, db_dev, fn_eval)
+    train_loop(args, device, prog_dict, model, fn_db_train, fn_db_dev, fn_eval)

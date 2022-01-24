@@ -18,17 +18,17 @@ from dbwalk.data_util.graph_holder import MergedGraphHolders
 class ProgGraph(object):
     def __init__(self, sample, prog_dict):
         graph = sample.gv_file
-
         self.label = prog_dict.label_map[sample.label]
         self.node_val_dim = prog_dict.num_node_val_tokens
-        if sample.anchor != 'None':
-            self.target_idx = int(sample.anchor)
+        if sample.anchors != 'None':
+            self.target_idx = [int(anch[1:-1]) for anch in sample.anchors[1:-1].split(', ')]
         else:
             self.target_idx = None
         self.num_node_feats = len(prog_dict.node_types)
         self.num_nodes = len(graph)
         self.typed_edge_list = [[] for _ in range(len(prog_dict.edge_types))]
         self.edge_list = []
+
 
         for e in graph.edges(data=True):
             e_type = e[2]['label']
@@ -117,5 +117,3 @@ if __name__ == '__main__':
     prog_dict = ProgDict(cmd_args.data_dir)
     db = AstGraphDataset(cmd_args, prog_dict, cmd_args.data_dir, 'train')
     g = db[0]
-    print(g.num_nodes)
-    print(g.num_edges)
