@@ -82,16 +82,11 @@ class GraphBuilder:
 
         return joins, keys
 
-    def load_db(self, col_dict: Dict, include_callgraph=False) -> Dict[str, List[Tuple]]:
+    def load_db(self, col_dict: Dict, include_callgraph=True) -> Dict[str, List[Tuple]]:
         database = {}  # type: Dict[str, List[Tuple]]
         for table_file in os.listdir(self.tables_dir):
             if table_file.endswith('.csv'):
-                if 'call_graph' in table_file and not include_callgraph:
-                    continue # skip the call_graph if call graph is not requested.
-                elif 'call_graph' in table_file and include_callgraph:
-                    table_name = 'call_graph'
-                else:
-                    table_name = table_file[:table_file.find('.')] # remove suffixes
+                table_name = table_file[:table_file.find('.')] # remove suffixes
                 if table_name in col_dict:
                     database[table_name] = self.load_table(table_file)
         return database
@@ -179,7 +174,7 @@ class GraphBuilder:
 
         return graph
 
-    def build(self, include_callgraph=False) -> graphviz.Graph:
+    def build(self, include_callgraph=True) -> graphviz.Graph:
         columns = self.load_columns()
         db = self.load_db(columns, include_callgraph)
         joins, keys = self.load_joins()

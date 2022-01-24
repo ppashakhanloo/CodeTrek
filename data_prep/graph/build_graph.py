@@ -16,7 +16,7 @@ def main(args: List[str]) -> None:
     graph_builder = GraphBuilder(tables_dir, join_filepath, language)
     # When include_callgraph=True then callgraphs are added to the graph.
     # The default is include_callgraph=False.
-    graph = graph_builder.build(include_callgraph=False)
+    graph = graph_builder.build(include_callgraph=True)
     GraphBuilder.save_gv(graph, output_file + '.gv')
 
 if __name__ == "__main__":
