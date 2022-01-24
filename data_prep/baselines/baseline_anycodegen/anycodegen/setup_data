@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-
-pip install tqdm requests
-
-# wget https://s3.amazonaws.com/code2seq/datasets/java-small.tar.gz
-wget https://codegen-slm.s3.us-east-2.amazonaws.com/data/java-small-json.tar.gz
-
-tar -xvf java-small-json.tar.gz
