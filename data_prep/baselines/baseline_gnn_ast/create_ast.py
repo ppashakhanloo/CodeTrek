@@ -6,12 +6,15 @@ from pydot import Edge, Node
 from astmonkey import visitors, transformers
 
 CURR_STR = '___CURR___'
-FUNC_IND = '<ast.FunctionDef '
-FUNC_IND_ = '<_ast.FunctionDef '
-RET_IND = '<ast.Return '
-RET_IND_ = '<_ast.Return '
-ASSIGN_IND = '<ast.Assign '
-ASSIGN_IND_ = '<_ast.Assign '
+FUNC = 'ast.FunctionDef'
+RETURN = 'ast.Return'
+ASSIGN = 'ast.Assign'
+NAME = 'ast.Name'
+ARG = 'ast.arg'
+ARGS = 'ast.arguments'
+STORE = 'ast.Store'
+LOAD = 'ast.Load'
+IF = 'ast.If'
 
 def get_graph(contents):
   node = ast.parse(contents)
@@ -55,14 +58,17 @@ def build_child_edges(main_file, aux_file, task_name, pred_kind):
       graph, node_positions = get_graph(infile.read())
 
     # compute the neighbors of each node
-    edges = graph.get_edges()
-    for edge in edges:
+    for edge in graph.get_edges():
       src = edge.get_source()
       dst = edge.get_destination()
       if src not in neighbors.keys():
         neighbors[src] = [dst]
       else:
-        neighbors[src].append(dst)
+        if dst not in neighbors[src]: neighbors[src].append(dst)
+      if dst not in neighbors.keys():
+        neighbors[dst] = [src]
+      else:
+        if src not in neighbors[dst]: neighbors[dst].append(src)
 
     # compute the flat subtree for each node
     neighbor_keys = neighbors.keys()
@@ -73,11 +79,13 @@ def build_child_edges(main_file, aux_file, task_name, pred_kind):
 
     # compute if-then-else information before renaming the edges
     for node in neighbor_keys:
-      if isinstance(graph.get_node(node)[0], ast.IfExp):
+      if IF in graph.get_node(node)[0].get('label'):
         condition = ""
         then_branch = []
         else_branch = []
         for neighbor in neighbors[node]:
+          if len(graph.get_edge(node, neighbor)) < 1:
+              continue
           if graph.get_edge(node, neighbor)[0].get('label').startswith('test'):
             condition = neighbor
           if graph.get_edge(node, neighbor)[0].get('label').startswith('body'):
@@ -86,7 +94,7 @@ def build_child_edges(main_file, aux_file, task_name, pred_kind):
             else_branch.append(neighbor)
         if_branches[node] = (condition, then_branch, else_branch)
 
-    for edge in edges:
+    for edge in graph.get_edges():
       edge.set('label', 'Child')
   return graph, neighbors, subtrees, copy.deepcopy(node_of_interest), if_branches, tok1, tok2, node_positions
 
@@ -107,7 +115,7 @@ def add_next_token_edges(graph, subtrees):
   return graph
 
 def is_variable_node(node):
-  return isinstance(node, ast.arg) or isinstance(node, ast.Name)
+  return (NAME in str(node) or ARG in str(node)) and (ARGS not in str(node))
 
 def add_last_lexical_use_edges(graph):
   nodes_to_vars = {}
@@ -133,9 +141,9 @@ def add_last_lexical_use_edges(graph):
 
 def add_returns_to_edges(graph, subtrees):
   for node in subtrees:
-    if node.startswith(FUNC_IND) or node.startswith(FUNC_IND_):
+    if FUNC in node:
       for t in subtrees[node]:
-        if t.startswith(RET_IND) or t.startswith(RET_IND_):
+        if RETURN in t:
           edge = Edge(t, node)
           edge.set('label', 'ReturnsTo')
           graph.add_edge(edge)
@@ -143,17 +151,11 @@ def add_returns_to_edges(graph, subtrees):
 
 def add_computed_from_edges(graph, subtrees, neighbors):
   for node in subtrees:
-    if node.startswith(ASSIGN_IND) or node.startswith(ASSIGN_IND_):
-      assign_l = neighbors[node][0] # left variable
-      assign_r = subtrees[node][1:] # right hand subtree
+    if ASSIGN in node:
+      assign_l = neighbors[node][-2] # left variable
+      assign_r = subtrees[node][-1] # right hand subtree (list)
       lhs_node = graph.get_node(assign_l)[0]
-      rhs_nodes = []
-      for r in assign_r:
-        if r not in subtrees.keys():
-          continue
-        else:
-          n, _ = get_variables(r, subtrees, graph)
-          rhs_nodes += n
+      rhs_nodes, _ = get_variables(assign_r, subtrees, graph)
       for r in rhs_nodes:
         edge = Edge(lhs_node, r)
         edge.set('label', 'ComputedFrom')
@@ -169,12 +171,12 @@ def add_last_read_write_edges(graph, variables):
   for var in variables:
     for node in variables[var]:
       var_order.append(node)
-      if 'ast.Store' in node.get('label'):
+      if STORE in node.get('label'):
         if var in variable_writes:
           variable_writes[var].append(node)
         else:
           variable_writes[var] = [node]
-      if 'ast.Load' in node.get('label'):
+      if LOAD in node.get('label'):
         if var in variable_reads:
           variable_reads[var].append(node)
         else:
@@ -217,13 +219,13 @@ def add_last_read_write_edges(graph, variables):
 def get_variables(node, subtrees, graph):
   if node not in subtrees.keys():
     return [], []
-  nodes, vars = [], []
+  nodes, vs = [], []
   for n in subtrees[node]:
     if is_variable_node(n):
       retrieved_node = graph.get_node(n)[0]
       nodes.append(retrieved_node)
-      vars.append(retrieved_node.get('label').split("'")[1])
-  return nodes, vars
+      vs.append(retrieved_node.get('label').split("'")[1])
+  return nodes, vs
 
 def add_guarded_edges(graph, subtrees, if_branches):
   for if_node in if_branches.keys():
@@ -259,11 +261,13 @@ def add_guarded_edges(graph, subtrees, if_branches):
 def save_graph(graph, output_file):
   graph.write(output_file+'.pdf', format='pdf')
 
-def get_subtree(node, res, neighbors):
-  if node in neighbors:
-    for child in neighbors[node]:
-      res.append(child)
-      get_subtree(child, res, neighbors)
+def get_subtree(node, res, neighbors, i=0):
+  if i == 2: return
+  for child in neighbors[node]:
+    if child in res:
+        continue
+    res.append(child)
+    get_subtree(child, res, neighbors, i + 1)
 
 value_indicators = [
   'name=',

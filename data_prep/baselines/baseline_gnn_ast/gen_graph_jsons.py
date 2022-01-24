@@ -70,7 +70,7 @@ def create_sample_lr(graph, errors, repairs, candidates, label, source, node_to_
 
   return point.to_dict()
 
-def create_sample(graph, anchor_indexes, label, source, node_to_num):
+def create_sample(graph, anchor_indexes, label, source, node_to_num, doc=None):
   # prepare edges
   cat_names = ['Child', 'NextToken', 'LastLexicalUse', 'ComputedFrom',
                'LastRead', 'LastWrite', 'ReturnsTo', 'GuardedBy', 'GuardedByNegation']
@@ -108,14 +108,24 @@ def create_sample(graph, anchor_indexes, label, source, node_to_num):
     node_types=node_types,
     node_values=node_values,
     node_tokens=node_tokens)
-
+  
   # create data point
-  point = datapoint.DataPoint(
-    filename=source,
-    slot_node_idxs=anchor_indexes,
-    context_graph=context_graph,
-    label=label)
-
+  if task == 'codesearch':
+    assert doc
+    point = datapoint.DataPointWithDoc(
+      filename=source,
+      slot_node_idx=anchor_indexes,
+      context_graph=context_graph,
+      doc=doc,
+      label=label)
+  else:
+    point = datapoint.DataPoint(
+      filename=source,
+      slot_node_idxs=anchor_indexes,
+      context_graph=context_graph,
+      label=label)
+    
+    
   return point.to_dict()
 
 def gen_varmisuse(path, pred_kind):
@@ -275,13 +285,36 @@ def gen_defuse(path, pred_kind):
     with open(tables_paths_file + "-log", "a") as log:
       log.write(">>" + path + str(e) + "\n")
 
+def gen_codesearch(path):
+    path = path.strip()
+    _, _, prog_label, dir_name = path.split('/') 
+    
+    filename = dir_name + '.py'
+    docname = dir_name + '-docstring.txt'
+    with open(path+'/'+docname, 'r') as f:
+        doc = f.read().strip()
+    
+    g, terminal_vars, _, _, _, _ = \
+            create_ast.gen_graph_from_source(infile=path + "/" + filename, aux_file=None, \
+            task_name='codesearch')
+  
+  # prepare edges
+    node_to_num = {}
+    for num, node in enumerate(g.get_nodes()):
+        node_to_num[node.get_name()] = num + 1
+    anchors = []
+    with open(path + "/graph_" + filename + ".json", 'w') as f:
+      json.dump(create_sample(g, anchors, label=prog_label,
+                              source=path, node_to_num=node_to_num, doc=doc), f)
+
+
 if __name__ == "__main__":
   tables_paths_file = sys.argv[1] # paths.txt
   bucket_name = sys.argv[2] # defuse, exception-small, varmisuse
   remote_table_dirname = sys.argv[3] # tables
   output_graphs_dirname = sys.argv[4] # gnn_graphs
   task = sys.argv[5] # defuse, exception, varmisuse
-  assert task in ['defuse', 'exception', 'varmisuse']
+  assert task in ['defuse', 'exception', 'varmisuse', 'codesearch']
   pred_kind = sys.argv[6] # prog_cls, loc_cls, loc_rep
   assert pred_kind in ['prog_cls', 'loc_cls', 'loc_rep']
 
@@ -296,3 +329,5 @@ if __name__ == "__main__":
     Parallel(n_jobs=10, prefer="threads")(delayed(gen_defuse)(path, pred_kind) for path in paths)
   if task == 'exception':
     Parallel(n_jobs=10, prefer="threads")(delayed(gen_exception)(path) for path in paths)
+  if task == 'codesearch':
+    Parallel(n_jobs=10, prefer="threads")(delayed(gen_codesearch)(path) for path in paths)

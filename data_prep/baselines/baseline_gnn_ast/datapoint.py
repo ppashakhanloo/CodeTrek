@@ -117,3 +117,24 @@ class DataPoint:
     with open(filepath, 'w') as outfile:
       json.dump(self.to_dict(), outfile)
 
+class DataPointWithDoc():
+    def __init__(self, filename, slot_node_idx, context_graph, doc, label):
+        self.filename = filename
+        self.slot_node_idx = slot_node_idx
+        self.context_graph = context_graph
+        self.doc = doc
+        self.label = label
+
+    def to_dict(self):
+        return {
+            'filename': self.filename,
+            'SlotNodeIdxs': self.slot_node_idx,
+            'ContextGraph': self.context_graph.to_dict(),
+            'doc': self.doc,
+            'label': self.label
+        }
+
+    def dump_json(self, filepath: str):
+        with open(filepath, 'w') as outfile:
+            json.dump(self.to_dict(), outfile)
+
