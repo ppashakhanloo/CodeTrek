@@ -43,13 +43,14 @@ class AllDoFn(beam.DoFn):
           compute = True
           
         if compute:
-          os.system("./codeql-runner/codeql_dir/codeql/codeql database create " + src_dir + "/db " + " --language=python --source-root=" + src_dir)
+          os.system("./codeql-runner/codeql_dir/codeql/codeql database create " + src_dir + "/db " + " --language=python --source-root=" + src_dir + " --command=python")
 
           assert os.path.isdir(src_dir+"/db"), "db does not exist."
  
           os.system("./codeql-runner/codeql_dir/codeql/codeql database run-queries " + src_dir + "/db " + queries_dir)
       
           bqrs_dir = src_dir + "/db/results/python-edb-queries/"
+
           for bqrs in os.listdir(bqrs_dir):
             if not bqrs.endswith("bqrs"):
               continue
@@ -79,4 +80,3 @@ pipeline_options.view_as(SetupOptions).save_main_session = True
 with beam.Pipeline(options=pipeline_options) as p:
   lines = p | "READ" >> ReadFromText("gs://" + bucket_name + "/" + py_files_name) | "Operate" >>\
   beam.ParDo(AllDoFn()) | "Write" >> WriteToText("gs://" + bucket_name + "/output/output")
-
