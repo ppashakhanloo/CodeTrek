@@ -22,13 +22,17 @@ class RandomWalker:
         self.source_node = RandomWalker.find_node_by_label(graph, source)
         self.node_to_relname, self.node_to_values = RandomWalker.build_node_map(graph, self.language)
         self.bias_tables = RandomWalker.load_bias_tables(self.language)
+        if language.lower() == 'python':
+            self.all_relnames = sorted(list(WalkUtils.COLUMNS.keys()))
+        else:
+            raise ValueError('not implemented:', language)
 
     @staticmethod
     def find_node_by_label(graph: AGraph, node_label: str) -> Node:
         for node in graph.nodes():
             if graph.nodes()[node]['label'] == node_label:
                 return node
-        raise NameError('Cannot find node with label:' + node_label)
+        return node
 
     @staticmethod
     def parse_language(language: str) -> str:
@@ -70,7 +74,7 @@ class RandomWalker:
     # If that happens, this function pads the return list to max_num_walks by
     # duplicating elements randomly chosen from the sampled walks.
     def random_walk(self, max_num_walks: int, min_num_steps: int, max_num_steps: int,\
-            limit_to_method=True) -> List[List]:
+            limit_to_method=False) -> List[List]:
         walks = list()
         walk = 0
         
@@ -91,11 +95,11 @@ class RandomWalker:
                     curr_edge_rev = (curr_edge[1], curr_edge[0], curr_edge[2])
 
                     if limit_to_method:
-                        if 'callgraph' in curr_edge[2]:
+                        if 'call_graph' in curr_edge[2]:
                             continue
                     if curr_edge not in curr_walk \
-                            and curr_edge_rev not in curr_walk \
-                            and (curr_node, self.graph.nodes[curr_node]['label']) not in curr_walk:
+                            and curr_edge_rev not in curr_walk:
+                            #and (curr_node, self.graph.nodes[curr_node]['label']) not in curr_walk:
                         curr_walk.append(curr_edge)
                         curr_walk.append((curr_node, self.graph.nodes[curr_node]['label']))
                     else:

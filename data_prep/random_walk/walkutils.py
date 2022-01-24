@@ -416,5 +416,3 @@ class JavaWalkUtils:
             else:           # edge
                 edges.append(JavaWalkUtils.build_traj_edge(walk[i]))
         return Trajectory(nodes, edges)
-
-
