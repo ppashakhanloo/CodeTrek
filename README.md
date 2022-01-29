@@ -1,5 +1,9 @@
 # CodeTrek 
+This is the official repository for [CodeTrek: Flexible Modeling of Code using an Extensible Relational
+Representation](https://openreview.net/forum?id=WQc075jmBmf) accepted at ICLR'22.
 
+
+# Structure
 This folder contains the following:
 1. `data_prep`: code for constructing relational graphs from tables (`data_prep/graph`), code for generating biased random walks (`data_prep/random_walk`), and the tokenizer we used which is adapted from [CuBERT's tokenizer](https://github.com/google-research/google-research/tree/master/cubert) (`data_prep/tokenizer`).
 2. `dbwalk/code2seq` and `dbwalk/ggnn`: two of the baselines that we implemented from scratch.
