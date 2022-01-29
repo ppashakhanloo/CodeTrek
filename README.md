@@ -2,6 +2,7 @@
 This is the official repository for [CodeTrek: Flexible Modeling of Code using an Extensible Relational
 Representation](https://openreview.net/forum?id=WQc075jmBmf) accepted at ICLR'22.
 
+Designing a suitable representation for code-reasoning tasks is challenging in aspects such as the kinds of program information to model, how to combine them, and how much context to consider. **CodeTrek** is a deep learning approach that addresses these challenges by representing codebases as databases that conform to rich relational schemas. The relational representation not only allows CodeTrek to uniformly represent diverse kinds of program information, but also to leverage program-analysis queries to derive new semantic relations, which can be readily incorporated without further architectural engineering. CodeTrek embeds this relational representation using a set of walks that can traverse different relations in an unconstrained fashion, and incorporates all relevant attributes along the way.
 
 # Structure
 This folder contains the following:
