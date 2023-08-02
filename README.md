@@ -112,3 +112,8 @@ First, set the variables in `run_cook_data.sh` and then run one of the following
 
     ./dbwalk/code2seq/[TASK]/run_main.sh -phase eval -model_dump model-best_dev.ckpt
     ./dbwalk/ggnn/[TASK]/run_main.sh -phase eval -model_dump model-best_dev.ckpt
+
+
+
+## Note
+If you are interested in using CodeTrek training as a module in your project, check out https://github.com/codetrekorg/codetrek-core.
