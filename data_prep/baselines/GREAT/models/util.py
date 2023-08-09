@@ -9,6 +9,4 @@ def positional_encoding(dim, sentence_length, dtype=tf.float32):
 	return tf.constant(encoded_vec.reshape([sentence_length, dim]), dtype=dtype)
 
 def prefix_sum(arr):
-	res = [0]
-	for a in arr: res.append(res[-1] + a)
-	return res
+	return [0] + np.cumsum(arr).tolist()
